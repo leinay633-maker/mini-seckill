@@ -1,0 +1,21 @@
+spring:
+  data:
+    redis:
+      timeout: 2s
+      cluster:
+        nodes:
+          - redis-cluster-7000:7000
+          - redis-cluster-7001:7001
+          - redis-cluster-7002:7002
+          - redis-cluster-7003:7003
+          - redis-cluster-7004:7004
+          - redis-cluster-7005:7005
+        max-redirects: 5
+
+seckill:
+  stock-shard:
+    enabled: true
+    bucket-count: 128
+  anti-brush:
+    token-quota-enabled: true
+    token-quota-multiplier: 5

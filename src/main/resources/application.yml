@@ -1,0 +1,102 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mini-seckill
+  datasource:
+    url: jdbc:mysql://localhost:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: miniseckill
+    password: miniseckill
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2s
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        retry:
+          enabled: false
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+seckill:
+  idempotent-ttl: 30m
+  order-status-ttl: 2h
+  default-activity-id: 1
+  mq-fallback-sync: false
+  rate-limit:
+    enabled: true
+    window: 1s
+    sku-limit: 300
+    user-limit: 5
+    ip-limit: 80
+  anti-brush:
+    enabled: true
+    token-ttl: 2m
+    token-quota-enabled: true
+    token-quota-multiplier: 3
+  stock-shard:
+    enabled: true
+    bucket-count: 64
+  mysql-stock-segment:
+    enabled: true
+    segment-count: 32
+  sold-out-local-cache:
+    enabled: true
+    ttl: 5s
+  dynamic-rate-limit:
+    enabled: true
+    cache-ttl: 5s
+  mq-consumer:
+    concurrent-consumers: 2
+    max-concurrent-consumers: 8
+    prefetch-count: 50
+  message-retry:
+    enabled: true
+    fixed-delay: 15000
+    max-retry: 5
+    batch-size: 50
+    initial-backoff: 5s
+    max-backoff: 2m
+  reconcile:
+    enabled: true
+    fixed-delay: 60000
+    scan-limit: 100
+    page-size: 100
+  order-timeout:
+    enabled: true
+    fixed-delay: 60000
+    queued-timeout: 10m
+    batch-size: 100
+  redis-recovery:
+    enabled: true
+    health-check-delay: 5000
+    failure-threshold: 3
+    scan-limit: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: mini-seckill
