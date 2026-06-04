@@ -1,0 +1,43 @@
+seckill:
+  rate-limit:
+    enabled: true
+    window: 1s
+    sku-limit: 20000
+    user-limit: 2
+    ip-limit: 500
+  anti-brush:
+    enabled: true
+    token-ttl: 2m
+    token-quota-enabled: true
+    token-quota-multiplier: 5
+  stock-shard:
+    enabled: true
+    bucket-count: 128
+  mysql-stock-segment:
+    enabled: true
+    segment-count: 128
+  sold-out-local-cache:
+    enabled: true
+    ttl: 3s
+  dynamic-rate-limit:
+    enabled: true
+    cache-ttl: 3s
+  mq-consumer:
+    concurrent-consumers: 8
+    max-concurrent-consumers: 32
+    prefetch-count: 100
+  message-retry:
+    initial-backoff: 3s
+    max-backoff: 1m
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 40
+      minimum-idle: 8
+      connection-timeout: 2000
+  rabbitmq:
+    listener:
+      simple:
+        retry:
+          enabled: false

@@ -1,0 +1,217 @@
+services:
+  redis-cluster-7000:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7000
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7000"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7000
+      - --cluster-announce-port
+      - "7000"
+      - --cluster-announce-bus-port
+      - "17000"
+    ports:
+      - "7000:7000"
+      - "17000:17000"
+
+  redis-cluster-7001:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7001
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7001"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7001
+      - --cluster-announce-port
+      - "7001"
+      - --cluster-announce-bus-port
+      - "17001"
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+
+  redis-cluster-7002:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7002
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7002"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7002
+      - --cluster-announce-port
+      - "7002"
+      - --cluster-announce-bus-port
+      - "17002"
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+
+  redis-cluster-7003:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7003
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7003"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7003
+      - --cluster-announce-port
+      - "7003"
+      - --cluster-announce-bus-port
+      - "17003"
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+
+  redis-cluster-7004:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7004
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7004"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7004
+      - --cluster-announce-port
+      - "7004"
+      - --cluster-announce-bus-port
+      - "17004"
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+
+  redis-cluster-7005:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-7005
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --port
+      - "7005"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --protected-mode
+      - "no"
+      - --cluster-announce-hostname
+      - redis-cluster-7005
+      - --cluster-announce-port
+      - "7005"
+      - --cluster-announce-bus-port
+      - "17005"
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+
+  redis-cluster-init:
+    image: redis:7-alpine
+    container_name: mini-seckill-redis-cluster-init
+    restart: "no"
+    depends_on:
+      - redis-cluster-7000
+      - redis-cluster-7001
+      - redis-cluster-7002
+      - redis-cluster-7003
+      - redis-cluster-7004
+      - redis-cluster-7005
+    entrypoint:
+      - sh
+      - -c
+      - |
+        sleep 8
+        yes yes | redis-cli --cluster create \
+          redis-cluster-7000:7000 \
+          redis-cluster-7001:7001 \
+          redis-cluster-7002:7002 \
+          redis-cluster-7003:7003 \
+          redis-cluster-7004:7004 \
+          redis-cluster-7005:7005 \
+          --cluster-replicas 1 || true
+        redis-cli -h redis-cluster-7000 -p 7000 cluster info
+
+  app-redis-cluster:
+    build: .
+    container_name: mini-seckill-app-redis-cluster
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: redis-cluster,100k
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: miniseckill
+      SPRING_DATASOURCE_PASSWORD: miniseckill
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8090:8080"
+    depends_on:
+      mysql:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      redis-cluster-init:
+        condition: service_completed_successfully
