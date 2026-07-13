@@ -1,6 +1,8 @@
 package com.example.miniseckill.config;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -29,6 +31,7 @@ public class SeckillProperties {
     private AdminAuth adminAuth = new AdminAuth();
     private Snowflake snowflake = new Snowflake();
     private AsyncLog asyncLog = new AsyncLog();
+    private Security security = new Security();
 
     public Duration getIdempotentTtl() {
         return idempotentTtl;
@@ -188,6 +191,14 @@ public class SeckillProperties {
 
     public void setAsyncLog(AsyncLog asyncLog) {
         this.asyncLog = asyncLog;
+    }
+
+    public Security getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(Security security) {
+        this.security = security;
     }
 
     public static class RateLimit {
@@ -770,6 +781,33 @@ public class SeckillProperties {
 
         public void setQueueCapacity(int queueCapacity) {
             this.queueCapacity = queueCapacity;
+        }
+    }
+
+    public static class Security {
+        /**
+         * Whether to trust X-Forwarded-For / X-Real-IP for the client IP used by IP rate limiting.
+         * Default false: use the socket address, so a client cannot spoof the header to dodge IP limits.
+         * Set true only when the app sits behind a trusted proxy/nginx that sets these headers.
+         */
+        private boolean trustForwardedHeader = false;
+        /** Trusted proxy IP prefixes; when trusting XFF, entries matching these are peeled off right-to-left. */
+        private List<String> trustedProxies = new ArrayList<>(List.of("127.", "10.", "172.", "192.168."));
+
+        public boolean isTrustForwardedHeader() {
+            return trustForwardedHeader;
+        }
+
+        public void setTrustForwardedHeader(boolean trustForwardedHeader) {
+            this.trustForwardedHeader = trustForwardedHeader;
+        }
+
+        public List<String> getTrustedProxies() {
+            return trustedProxies;
+        }
+
+        public void setTrustedProxies(List<String> trustedProxies) {
+            this.trustedProxies = trustedProxies;
         }
     }
 }

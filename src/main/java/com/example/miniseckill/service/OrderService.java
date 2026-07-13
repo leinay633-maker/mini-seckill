@@ -12,5 +12,11 @@ public interface OrderService {
 
     void createOrderFromConsumingMessage(SeckillMessage message);
 
+    /**
+     * Persists a terminal FAILED order row so a failed order stays queryable after the Redis status
+     * key's TTL expires. Idempotent: a duplicate (activity,user,sku) is ignored.
+     */
+    void recordFailedOrder(SeckillMessage message);
+
     OrderQueryResponse queryOrder(Long activityId, Long userId, Long skuId);
 }

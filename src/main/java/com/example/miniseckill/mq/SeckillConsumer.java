@@ -21,6 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,11 +79,34 @@ public class SeckillConsumer {
         } catch (InsufficientStockException ex) {
             safeLog(seckillMessage, "DB_STOCK_NOT_ENOUGH_ACKED");
             seckillMessageMapper.markFailed(seckillMessage.getRequestId(), MessageStatus.FAILED.getCode(), ex.getMessage());
+            orderService.recordFailedOrder(seckillMessage);
             setOrderStatus(seckillMessage, OrderStatus.FAILED);
             insertCompensation(seckillMessage, "MYSQL_STOCK_GUARD", "FAILED", ex.getMessage());
             seckillMetrics.mq("stock_guard_failed");
             channel.basicAck(deliveryTag, false);
         } catch (Exception ex) {
+            if (ex instanceof TransientDataAccessException) {
+                // Transient DB failure (deadlock / lock timeout / connection blip): don't dead-letter on the
+                // first hit. Roll the message back from CONSUMING to FAILED and hand it to the retry job,
+                // which owns backoff + max-retry (message-retry.max-retry) + eventual DEAD via retry_count.
+                // Republishing to the queue here would hot-loop, because the CONSUMING row can no longer be
+                // re-marked CONSUMING. The transient retry budget is intentionally shared with the send-side
+                // retry_count column — one bounded retry loop, not two.
+                int rolledBack = seckillMessageMapper.markFailedFromConsuming(
+                        seckillMessage.getRequestId(),
+                        MessageStatus.FAILED.getCode(),
+                        MessageStatus.CONSUMING.getCode(),
+                        shortError(ex),
+                        java.time.LocalDateTime.now().plus(seckillProperties.getMessageRetry().getInitialBackoff())
+                );
+                if (rolledBack == 1) {
+                    safeLog(seckillMessage, "TRANSIENT_CONSUME_RETRY");
+                    seckillMetrics.mq("transient_requeued");
+                    channel.basicAck(deliveryTag, false);
+                    return;
+                }
+                // Row was no longer CONSUMING (recovered/finalized by another path); fall through to dead-letter.
+            }
             log.error("consume seckill message failed, requestId={}", seckillMessage.getRequestId(), ex);
             seckillMessageMapper.markDead(
                     seckillMessage.getRequestId(),

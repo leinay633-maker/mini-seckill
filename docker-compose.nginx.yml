@@ -1,4 +1,21 @@
 services:
+  app-1: &nginx-backend
+    environment:
+      SECKILL_SECURITY_TRUST_FORWARDED_HEADER: "true"
+      SECKILL_SECURITY_TRUSTED_PROXIES: "172.29.0.10"
+    networks:
+      - default
+      - seckill-edge
+
+  app-2:
+    <<: *nginx-backend
+
+  app-3:
+    <<: *nginx-backend
+
+  app-4:
+    <<: *nginx-backend
+
   nginx:
     image: nginx:1.27-alpine
     container_name: mini-seckill-nginx
@@ -12,8 +29,17 @@ services:
       - app-2
       - app-3
       - app-4
+    networks:
+      seckill-edge:
+        ipv4_address: 172.29.0.10
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+networks:
+  seckill-edge:
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
