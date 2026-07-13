@@ -389,7 +389,11 @@ public class SeckillProperties {
 
     public static class StockShard {
         private boolean enabled = true;
+        /** With single-Lua scan enabled, keep this modest (≤ a few hundred): the Lua scans all buckets in one
+         *  atomic script, and a very large count would hold Redis's single thread long enough to spike tail latency. */
         private int bucketCount = 64;
+        /** Single-Lua bucket scan (1 RTT). Keep true on single Redis; set false under Cluster (bucket keys span slots). */
+        private boolean singleLuaEnabled = true;
 
         public boolean isEnabled() {
             return enabled;
@@ -405,6 +409,14 @@ public class SeckillProperties {
 
         public void setBucketCount(int bucketCount) {
             this.bucketCount = bucketCount;
+        }
+
+        public boolean isSingleLuaEnabled() {
+            return singleLuaEnabled;
+        }
+
+        public void setSingleLuaEnabled(boolean singleLuaEnabled) {
+            this.singleLuaEnabled = singleLuaEnabled;
         }
     }
 

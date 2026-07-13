@@ -92,6 +92,7 @@ class OrderTimeoutJobTest {
                 String.valueOf(OrderStatus.TIMEOUT.getCode()),
                 properties.getOrderStatusTtl()
         );
+        verify(stringRedisTemplate).delete(RedisKeyUtil.userSkuKey(ACTIVITY_ID, USER_ID, SKU_ID));
         verify(seckillLogMapper).insertLog(REQUEST_ID, ACTIVITY_ID, USER_ID, SKU_ID, "ORDER_TIMEOUT");
         verify(compensationRecordMapper).insert(any(CompensationRecord.class));
     }
@@ -124,6 +125,7 @@ class OrderTimeoutJobTest {
         job.closeTimeoutOrders();
 
         verify(stringRedisTemplate, never()).opsForValue();
+        verify(stringRedisTemplate, never()).delete(any(String.class));
         verify(seckillLogMapper, never()).insertLog(any(), any(), any(), any(), any());
         verify(compensationRecordMapper, never()).insert(any(CompensationRecord.class));
     }

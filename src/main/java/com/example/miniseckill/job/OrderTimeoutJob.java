@@ -86,6 +86,10 @@ public class OrderTimeoutJob {
                 String.valueOf(OrderStatus.TIMEOUT.getCode()),
                 seckillProperties.getOrderStatusTtl()
         );
+        // Release the idempotency key so a timed-out user isn't blocked as a "duplicate" for the
+        // remaining idempotent-ttl (30m) while the order was already closed after queued-timeout (10m).
+        // This closes the gap between the two TTLs.
+        stringRedisTemplate.delete(RedisKeyUtil.userSkuKey(record.getActivityId(), record.getUserId(), record.getSkuId()));
         try {
             seckillLogMapper.insertLog(
                     record.getRequestId(),

@@ -16,6 +16,7 @@ seckill:
   stock-shard:
     enabled: true
     bucket-count: 128
+    single-lua-enabled: false
   anti-brush:
     token-quota-enabled: true
     token-quota-multiplier: 5

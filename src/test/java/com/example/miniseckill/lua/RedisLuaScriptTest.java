@@ -98,6 +98,47 @@ class RedisLuaScriptTest {
                 String.valueOf(windowMillis), String.valueOf(max), String.valueOf(nowMillis), member);
     }
 
+    @Test
+    void shardedStockDeductsFirstNonEmptyBucketInOneCall() {
+        FakeRedis redis = new FakeRedis();
+        redis.set("stock:b0", 0);
+        redis.set("stock:b1", 2);
+        redis.set("stock:b2", 0);
+        // start=0: b0 empty, b1 has stock → returns index 1 and decrements b1
+        assertEquals(1, runScript("lua/seckill_stock_sharded.lua", redis,
+                new String[] {"stock:b0", "stock:b1", "stock:b2"}, "0").toint());
+        assertEquals("1", redis.get("stock:b1"));
+    }
+
+    @Test
+    void shardedStockReturnsMinusOneWhenAllBucketsEmpty() {
+        FakeRedis redis = new FakeRedis();
+        redis.set("stock:b0", 0);
+        redis.set("stock:b1", 0);
+        assertEquals(-1, runScript("lua/seckill_stock_sharded.lua", redis,
+                new String[] {"stock:b0", "stock:b1"}, "0").toint());
+    }
+
+    @Test
+    void shardedStockReturnsMinusTwoWhenNoBucketExists() {
+        FakeRedis redis = new FakeRedis();
+        assertEquals(-2, runScript("lua/seckill_stock_sharded.lua", redis,
+                new String[] {"stock:missing0", "stock:missing1"}, "0").toint());
+    }
+
+    @Test
+    void shardedStockScansFromStartIndex() {
+        FakeRedis redis = new FakeRedis();
+        redis.set("stock:b0", 5);
+        redis.set("stock:b1", 5);
+        redis.set("stock:b2", 5);
+        // start=2: b2 first → returns index 2, decrements b2
+        assertEquals(2, runScript("lua/seckill_stock_sharded.lua", redis,
+                new String[] {"stock:b0", "stock:b1", "stock:b2"}, "2").toint());
+        assertEquals("4", redis.get("stock:b2"));
+        assertEquals("5", redis.get("stock:b0"));
+    }
+
     private LuaValue runScript(String resourcePath, FakeRedis redis, String[] keys, String... args) {
         Globals globals = JsePlatform.standardGlobals();
         globals.set("redis", redis.asLuaTable());

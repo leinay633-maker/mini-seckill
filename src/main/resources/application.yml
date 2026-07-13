@@ -82,6 +82,7 @@ seckill:
   stock-shard:
     enabled: true
     bucket-count: 64
+    single-lua-enabled: true
   mysql-stock-segment:
     enabled: true
     segment-count: 32
