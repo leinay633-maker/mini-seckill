@@ -40,13 +40,14 @@ public interface SeckillMessageMapper {
             SET status = #{sendingStatus},
                 updated_at = NOW()
             WHERE request_id = #{requestId}
-              AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus})
+              AND status = #{sendingStatus}
             """)
     int markSending(@Param("requestId") String requestId,
                     @Param("sendingStatus") int sendingStatus,
                     @Param("consumedStatus") int consumedStatus,
                     @Param("timeoutStatus") int timeoutStatus,
-                    @Param("deadStatus") int deadStatus);
+                    @Param("deadStatus") int deadStatus,
+                    @Param("consumingStatus") int consumingStatus);
 
     @Update("""
             UPDATE seckill_message
@@ -55,13 +56,55 @@ public interface SeckillMessageMapper {
                 next_retry_at = NULL,
                 updated_at = NOW()
             WHERE request_id = #{requestId}
-              AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus})
+              AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus}, #{consumingStatus})
             """)
-    int markSentIfNotFinal(@Param("requestId") String requestId,
-                           @Param("sentStatus") int sentStatus,
-                           @Param("consumedStatus") int consumedStatus,
-                           @Param("timeoutStatus") int timeoutStatus,
-                           @Param("deadStatus") int deadStatus);
+    int markSentFromSending(@Param("requestId") String requestId,
+                            @Param("sentStatus") int sentStatus,
+                            @Param("sendingStatus") int sendingStatus);
+
+    @Update("""
+            UPDATE seckill_message
+            SET status = #{consumingStatus},
+                last_error = NULL,
+                next_retry_at = NULL,
+                updated_at = NOW()
+            WHERE request_id = #{requestId}
+              AND status IN (#{sentStatus}, #{sendingStatus}, #{replayedStatus})
+            """)
+    int markConsuming(@Param("requestId") String requestId,
+                      @Param("consumingStatus") int consumingStatus,
+                      @Param("sentStatus") int sentStatus,
+                      @Param("sendingStatus") int sendingStatus,
+                      @Param("replayedStatus") int replayedStatus);
+
+    @Update("""
+            UPDATE seckill_message
+            SET status = #{consumedStatus},
+                last_error = NULL,
+                next_retry_at = NULL,
+                updated_at = NOW()
+            WHERE request_id = #{requestId}
+              AND status = #{consumingStatus}
+            """)
+    int markConsumedFromConsuming(@Param("requestId") String requestId,
+                                  @Param("consumedStatus") int consumedStatus,
+                                  @Param("consumingStatus") int consumingStatus);
+
+    @Update("""
+            UPDATE seckill_message
+            SET status = #{failedStatus},
+                retry_count = retry_count + 1,
+                last_error = #{lastError},
+                next_retry_at = #{nextRetryAt},
+                updated_at = NOW()
+            WHERE request_id = #{requestId}
+              AND status = #{consumingStatus}
+            """)
+    int markFailedFromConsuming(@Param("requestId") String requestId,
+                                @Param("failedStatus") int failedStatus,
+                                @Param("consumingStatus") int consumingStatus,
+                                @Param("lastError") String lastError,
+                                @Param("nextRetryAt") LocalDateTime nextRetryAt);
 
     @Update("""
             UPDATE seckill_message
@@ -75,6 +118,21 @@ public interface SeckillMessageMapper {
     int markFailed(@Param("requestId") String requestId,
                    @Param("status") int status,
                    @Param("lastError") String lastError);
+
+    @Update("""
+            UPDATE seckill_message
+            SET status = #{failedStatus},
+                retry_count = retry_count + 1,
+                last_error = #{lastError},
+                next_retry_at = NOW(),
+                updated_at = NOW()
+            WHERE request_id = #{requestId}
+              AND status = #{sendingStatus}
+            """)
+    int markPublishFailedFromSending(@Param("requestId") String requestId,
+                                     @Param("failedStatus") int failedStatus,
+                                     @Param("sendingStatus") int sendingStatus,
+                                     @Param("lastError") String lastError);
 
     @Update("""
             UPDATE seckill_message
@@ -142,7 +200,7 @@ public interface SeckillMessageMapper {
             FROM seckill_message
             WHERE activity_id = #{activityId}
               AND sku_id = #{skuId}
-              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
+              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus}, #{consumingStatus})
               AND retry_count < #{maxRetry}
             """)
     long countUnfinishedByActivitySku(@Param("activityId") Long activityId,
@@ -153,6 +211,7 @@ public interface SeckillMessageMapper {
                                       @Param("failedStatus") int failedStatus,
                                       @Param("confirmFailedStatus") int confirmFailedStatus,
                                       @Param("returnedStatus") int returnedStatus,
+                                      @Param("consumingStatus") int consumingStatus,
                                       @Param("maxRetry") int maxRetry);
 
     @Select("""
@@ -160,7 +219,7 @@ public interface SeckillMessageMapper {
             FROM seckill_message
             WHERE activity_id = #{activityId}
               AND sku_id = #{skuId}
-              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
+              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus}, #{consumingStatus})
             """)
     long countRecoveringUnfinishedByActivitySku(@Param("activityId") Long activityId,
                                                 @Param("skuId") Long skuId,
@@ -169,7 +228,20 @@ public interface SeckillMessageMapper {
                                                 @Param("sentStatus") int sentStatus,
                                                 @Param("failedStatus") int failedStatus,
                                                 @Param("confirmFailedStatus") int confirmFailedStatus,
-                                                @Param("returnedStatus") int returnedStatus);
+                                                @Param("returnedStatus") int returnedStatus,
+                                                @Param("consumingStatus") int consumingStatus);
+
+    @Select("""
+            SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count, last_error, next_retry_at, dead_at, created_at, updated_at
+            FROM seckill_message
+            WHERE status = #{consumingStatus}
+              AND updated_at < #{cutoff}
+            ORDER BY updated_at ASC
+            LIMIT #{limit}
+            """)
+    List<SeckillMessageRecord> selectStaleConsuming(@Param("consumingStatus") int consumingStatus,
+                                                    @Param("cutoff") LocalDateTime cutoff,
+                                                    @Param("limit") int limit);
 
     @Select("""
             SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count, last_error, next_retry_at, dead_at, created_at, updated_at
@@ -194,12 +266,16 @@ public interface SeckillMessageMapper {
                 last_error = #{lastError},
                 updated_at = NOW()
             WHERE request_id = #{requestId}
-              AND status NOT IN (#{consumedStatus}, #{deadStatus})
+              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
             """)
     int markTimeout(@Param("requestId") String requestId,
                     @Param("timeoutStatus") int timeoutStatus,
-                    @Param("consumedStatus") int consumedStatus,
-                    @Param("deadStatus") int deadStatus,
+                    @Param("pendingStatus") int pendingStatus,
+                    @Param("sendingStatus") int sendingStatus,
+                    @Param("sentStatus") int sentStatus,
+                    @Param("failedStatus") int failedStatus,
+                    @Param("confirmFailedStatus") int confirmFailedStatus,
+                    @Param("returnedStatus") int returnedStatus,
                     @Param("lastError") String lastError);
 
     @Select("""

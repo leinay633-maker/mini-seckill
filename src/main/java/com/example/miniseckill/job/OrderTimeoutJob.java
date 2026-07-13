@@ -66,13 +66,21 @@ public class OrderTimeoutJob {
     }
 
     private void markTimeout(SeckillMessageRecord record) {
-        seckillMessageMapper.markTimeout(
+        int updated = seckillMessageMapper.markTimeout(
                 record.getRequestId(),
                 MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.CONSUMED.getCode(),
-                MessageStatus.DEAD.getCode(),
+                MessageStatus.PENDING.getCode(),
+                MessageStatus.SENDING.getCode(),
+                MessageStatus.SENT.getCode(),
+                MessageStatus.FAILED.getCode(),
+                MessageStatus.CONFIRM_FAILED.getCode(),
+                MessageStatus.RETURNED.getCode(),
                 "queued order timeout"
         );
+        if (updated != 1) {
+            log.info("skip timeout side effects because message status changed, requestId={}", record.getRequestId());
+            return;
+        }
         stringRedisTemplate.opsForValue().set(
                 RedisKeyUtil.orderStatusKey(record.getActivityId(), record.getUserId(), record.getSkuId()),
                 String.valueOf(OrderStatus.TIMEOUT.getCode()),

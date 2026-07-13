@@ -18,5 +18,7 @@ public interface SeckillService {
 
     Result<Void> placeOrder(SeckillOrderRequest request, String clientIp);
 
+    Result<Void> placeOrderWithPath(String orderPath, SeckillOrderRequest request, String clientIp);
+
     StockViewResponse queryStock(Long activityId, Long skuId);
 }

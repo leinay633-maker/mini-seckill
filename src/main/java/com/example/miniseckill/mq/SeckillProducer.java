@@ -40,7 +40,8 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
                 MessageStatus.SENDING.getCode(),
                 MessageStatus.CONSUMED.getCode(),
                 MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.DEAD.getCode()
+                MessageStatus.DEAD.getCode(),
+                MessageStatus.CONSUMING.getCode()
         );
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.SECKILL_ORDER_EXCHANGE,
@@ -61,18 +62,17 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
         }
         String requestId = correlationData.getId();
         if (ack) {
-            seckillMessageMapper.markSentIfNotFinal(
+            seckillMessageMapper.markSentFromSending(
                     requestId,
                     MessageStatus.SENT.getCode(),
-                    MessageStatus.CONSUMED.getCode(),
-                    MessageStatus.TIMEOUT.getCode(),
-                    MessageStatus.DEAD.getCode()
+                    MessageStatus.SENDING.getCode()
             );
             log.debug("rabbitmq confirm ack, requestId={}", requestId);
         } else {
-            seckillMessageMapper.markFailed(
+            seckillMessageMapper.markPublishFailedFromSending(
                     requestId,
                     MessageStatus.CONFIRM_FAILED.getCode(),
+                    MessageStatus.SENDING.getCode(),
                     cause == null ? "publisher confirm nack" : cause
             );
             log.warn("rabbitmq confirm nack, requestId={}, cause={}", requestId, cause);
@@ -87,9 +87,10 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
                     returned.getReplyCode(), returned.getReplyText());
             return;
         }
-        seckillMessageMapper.markFailed(
+        seckillMessageMapper.markPublishFailedFromSending(
                 requestId,
                 MessageStatus.RETURNED.getCode(),
+                MessageStatus.SENDING.getCode(),
                 returned.getReplyCode() + ":" + returned.getReplyText()
         );
         log.warn("rabbitmq returned message, requestId={}, replyCode={}, replyText={}",

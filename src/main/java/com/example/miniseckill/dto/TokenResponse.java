@@ -9,16 +9,22 @@ public class TokenResponse {
     private Long userId;
     private Long skuId;
     private String token;
+    private String orderPath;
     private Long expiresInSeconds;
 
     public TokenResponse() {
     }
 
     public TokenResponse(Long activityId, Long userId, Long skuId, String token, Long expiresInSeconds) {
+        this(activityId, userId, skuId, token, null, expiresInSeconds);
+    }
+
+    public TokenResponse(Long activityId, Long userId, Long skuId, String token, String orderPath, Long expiresInSeconds) {
         this.activityId = activityId;
         this.userId = userId;
         this.skuId = skuId;
         this.token = token;
+        this.orderPath = orderPath;
         this.expiresInSeconds = expiresInSeconds;
     }
 
@@ -52,6 +58,14 @@ public class TokenResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getOrderPath() {
+        return orderPath;
+    }
+
+    public void setOrderPath(String orderPath) {
+        this.orderPath = orderPath;
     }
 
     public Long getExpiresInSeconds() {

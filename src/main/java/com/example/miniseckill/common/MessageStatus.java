@@ -13,7 +13,8 @@ public enum MessageStatus {
     TIMEOUT(6),
     DEAD(7),
     REPLAYED(8),
-    SENDING(9);
+    SENDING(9),
+    CONSUMING(10);
 
     private final int code;
 

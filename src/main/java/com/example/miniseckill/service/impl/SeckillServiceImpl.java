@@ -13,6 +13,7 @@ import com.example.miniseckill.dto.TokenResponse;
 import com.example.miniseckill.entity.SkuStock;
 import com.example.miniseckill.mapper.SeckillLogMapper;
 import com.example.miniseckill.mapper.SeckillMessageMapper;
+import com.example.miniseckill.mapper.SeckillOrderMapper;
 import com.example.miniseckill.mapper.SkuStockMapper;
 import com.example.miniseckill.mapper.SkuStockSegmentMapper;
 import com.example.miniseckill.service.ActivityService;
@@ -50,9 +51,11 @@ public class SeckillServiceImpl implements SeckillService {
     private final SkuStockSegmentMapper skuStockSegmentMapper;
     private final SeckillLogMapper seckillLogMapper;
     private final SeckillMessageMapper seckillMessageMapper;
+    private final SeckillOrderMapper seckillOrderMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> seckillStockScript;
     private final DefaultRedisScript<Long> rateLimitScript;
+    private final DefaultRedisScript<Long> compareAndDeleteScript;
     private final SeckillProducer seckillProducer;
     private final OrderService orderService;
     private final ActivityService activityService;
@@ -67,9 +70,11 @@ public class SeckillServiceImpl implements SeckillService {
                               SkuStockSegmentMapper skuStockSegmentMapper,
                               SeckillLogMapper seckillLogMapper,
                               SeckillMessageMapper seckillMessageMapper,
+                              SeckillOrderMapper seckillOrderMapper,
                               StringRedisTemplate stringRedisTemplate,
                               DefaultRedisScript<Long> seckillStockScript,
                               DefaultRedisScript<Long> rateLimitScript,
+                              DefaultRedisScript<Long> compareAndDeleteScript,
                               SeckillProducer seckillProducer,
                               OrderService orderService,
                               ActivityService activityService,
@@ -83,9 +88,11 @@ public class SeckillServiceImpl implements SeckillService {
         this.skuStockSegmentMapper = skuStockSegmentMapper;
         this.seckillLogMapper = seckillLogMapper;
         this.seckillMessageMapper = seckillMessageMapper;
+        this.seckillOrderMapper = seckillOrderMapper;
         this.stringRedisTemplate = stringRedisTemplate;
         this.seckillStockScript = seckillStockScript;
         this.rateLimitScript = rateLimitScript;
+        this.compareAndDeleteScript = compareAndDeleteScript;
         this.seckillProducer = seckillProducer;
         this.orderService = orderService;
         this.activityService = activityService;
@@ -151,6 +158,11 @@ public class SeckillServiceImpl implements SeckillService {
         assertRedisReadyForAdmission();
         activityService.assertRunning(activityId);
 
+        if (hasAcceptedOrFinishedOrder(activityId, userId, skuId)) {
+            seckillMetrics.admission("token_duplicate_or_queued");
+            return Result.fail(409, "重复下单或正在排队中");
+        }
+
         if (soldOutCacheService.isSoldOut(activityId, skuId)) {
             seckillMetrics.admission("token_sold_out_local");
             return Result.fail(1002, "库存不足");
@@ -166,8 +178,9 @@ public class SeckillServiceImpl implements SeckillService {
         String tokenKey = RedisKeyUtil.tokenKey(activityId, userId, skuId);
         String existingToken = stringRedisTemplate.opsForValue().get(tokenKey);
         if (StringUtils.hasText(existingToken)) {
+            String orderPath = ensureOrderPath(activityId, userId, skuId, tokenTtl);
             seckillMetrics.admission("token_reused");
-            return Result.success(new TokenResponse(activityId, userId, skuId, existingToken, tokenTtl.toSeconds()));
+            return Result.success(new TokenResponse(activityId, userId, skuId, existingToken, orderPath, tokenTtl.toSeconds()));
         }
 
         String quotaKey = RedisKeyUtil.tokenQuotaKey(activityId, skuId);
@@ -180,14 +193,16 @@ public class SeckillServiceImpl implements SeckillService {
             }
             String currentToken = stringRedisTemplate.opsForValue().get(tokenKey);
             if (StringUtils.hasText(currentToken)) {
+                String orderPath = ensureOrderPath(activityId, userId, skuId, tokenTtl);
                 seckillMetrics.admission("token_reused_race");
-                return Result.success(new TokenResponse(activityId, userId, skuId, currentToken, tokenTtl.toSeconds()));
+                return Result.success(new TokenResponse(activityId, userId, skuId, currentToken, orderPath, tokenTtl.toSeconds()));
             }
             throw new BusinessException(503, "秒杀 token 创建失败，请重试");
         }
+        String orderPath = ensureOrderPath(activityId, userId, skuId, tokenTtl);
         safeLog(UUID.randomUUID().toString(), activityId, userId, skuId, "TOKEN_CREATED");
         seckillMetrics.admission("token_created");
-        return Result.success(new TokenResponse(activityId, userId, skuId, token, tokenTtl.toSeconds()));
+        return Result.success(new TokenResponse(activityId, userId, skuId, token, orderPath, tokenTtl.toSeconds()));
     }
 
     @Override
@@ -291,6 +306,19 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     @Override
+    public Result<Void> placeOrderWithPath(String orderPath, SeckillOrderRequest request, String clientIp) {
+        Long activityId = resolveActivityId(request.getActivityId());
+        Long userId = request.getUserId();
+        Long skuId = request.getSkuId();
+        validateActivitySku(activityId, skuId);
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(400, "userId 参数不合法");
+        }
+        validateOrderPath(activityId, userId, skuId, orderPath);
+        return placeOrder(request, clientIp);
+    }
+
+    @Override
     public StockViewResponse queryStock(Long activityId, Long skuId) {
         validateActivitySku(activityId, skuId);
 
@@ -347,6 +375,19 @@ public class SeckillServiceImpl implements SeckillService {
         return activityId == null ? seckillProperties.getDefaultActivityId() : activityId;
     }
 
+    private boolean hasAcceptedOrFinishedOrder(Long activityId, Long userId, Long skuId) {
+        if (seckillOrderMapper.selectByUserSku(activityId, userId, skuId) != null) {
+            return true;
+        }
+        String statusValue = stringRedisTemplate.opsForValue().get(RedisKeyUtil.orderStatusKey(activityId, userId, skuId));
+        Integer status = parseInteger(statusValue);
+        if (status != null && (status == OrderStatus.QUEUING.getCode() || status == OrderStatus.SUCCESS.getCode())) {
+            return true;
+        }
+        Boolean hasQueueKey = stringRedisTemplate.hasKey(RedisKeyUtil.userSkuKey(activityId, userId, skuId));
+        return Boolean.TRUE.equals(hasQueueKey);
+    }
+
     private void validateActivitySku(Long activityId, Long skuId) {
         if (activityId == null || activityId <= 0 || skuId == null || skuId <= 0) {
             throw new BusinessException(400, "activityId 和 skuId 参数不合法");
@@ -367,11 +408,45 @@ public class SeckillServiceImpl implements SeckillService {
             throw new BusinessException(403, "缺少秒杀 token");
         }
         String tokenKey = RedisKeyUtil.tokenKey(activityId, userId, skuId);
-        String expected = stringRedisTemplate.opsForValue().get(tokenKey);
-        if (!token.equals(expected)) {
+        Long consumed = stringRedisTemplate.execute(compareAndDeleteScript, Collections.singletonList(tokenKey), token);
+        if (!Long.valueOf(1L).equals(consumed)) {
             throw new BusinessException(403, "秒杀 token 无效或已过期");
         }
-        stringRedisTemplate.delete(tokenKey);
+    }
+
+    private String ensureOrderPath(Long activityId, Long userId, Long skuId, Duration ttl) {
+        if (!hiddenOrderPathEnabled()) {
+            return null;
+        }
+        String pathKey = RedisKeyUtil.orderPathKey(activityId, userId, skuId);
+        String existingPath = stringRedisTemplate.opsForValue().get(pathKey);
+        if (StringUtils.hasText(existingPath)) {
+            return existingPath;
+        }
+        String orderPath = UUID.randomUUID().toString().replace("-", "");
+        Boolean created = stringRedisTemplate.opsForValue().setIfAbsent(pathKey, orderPath, ttl);
+        if (Boolean.TRUE.equals(created)) {
+            return orderPath;
+        }
+        return stringRedisTemplate.opsForValue().get(pathKey);
+    }
+
+    private void validateOrderPath(Long activityId, Long userId, Long skuId, String orderPath) {
+        if (!hiddenOrderPathEnabled()) {
+            return;
+        }
+        if (!StringUtils.hasText(orderPath)) {
+            throw new BusinessException(403, "缺少秒杀路径");
+        }
+        String expectedPath = stringRedisTemplate.opsForValue().get(RedisKeyUtil.orderPathKey(activityId, userId, skuId));
+        if (!orderPath.equals(expectedPath)) {
+            throw new BusinessException(403, "秒杀路径无效或已过期");
+        }
+    }
+
+    private boolean hiddenOrderPathEnabled() {
+        SeckillProperties.AntiBrush antiBrush = seckillProperties.getAntiBrush();
+        return antiBrush.isEnabled() && antiBrush.isHiddenPathEnabled();
     }
 
     private StockAdmission deductRedisStock(Long activityId, Long skuId, Long userId) {
@@ -388,7 +463,6 @@ public class SeckillServiceImpl implements SeckillService {
             String bucketKey = bucketKeys.get((start + offset) % bucketKeys.size());
             Long result = stringRedisTemplate.execute(seckillStockScript, Collections.singletonList(bucketKey));
             if (Long.valueOf(1L).equals(result)) {
-                stringRedisTemplate.opsForValue().decrement(RedisKeyUtil.stockKey(activityId, skuId));
                 return new StockAdmission(1L, bucketKey);
             }
             if (!Long.valueOf(-1L).equals(result)) {
@@ -488,10 +562,6 @@ public class SeckillServiceImpl implements SeckillService {
         stringRedisTemplate.delete(orderStatusKey);
         if (stockKey != null) {
             stringRedisTemplate.opsForValue().increment(stockKey);
-            int bucketIndex = stockKey.indexOf(":bucket:");
-            if (bucketIndex > 0) {
-                stringRedisTemplate.opsForValue().increment(stockKey.substring(0, bucketIndex));
-            }
         }
     }
 

@@ -16,6 +16,8 @@ class RedisKeyUtilTest {
         assertEquals("seckill:order:status:1:10001:1001", RedisKeyUtil.orderStatusKey(1L, 10001L, 1001L));
         assertEquals("seckill:token:1:10001:1001", RedisKeyUtil.tokenKey(1L, 10001L, 1001L));
         assertEquals("seckill:token:quota:1:1001", RedisKeyUtil.tokenQuotaKey(1L, 1001L));
+        assertEquals("seckill:path:1:10001:1001", RedisKeyUtil.orderPathKey(1L, 10001L, 1001L));
+        assertEquals("seckill:captcha:abc", RedisKeyUtil.captchaKey("abc"));
         assertEquals("seckill:lock:stock:init:1001", RedisKeyUtil.stockInitLockKey(1001L));
         assertEquals("seckill:lock:stock:init:1:1001", RedisKeyUtil.stockInitLockKey(1L, 1001L));
         assertEquals("seckill:rate:sku:1:1001", RedisKeyUtil.rateSkuKey(1L, 1001L));

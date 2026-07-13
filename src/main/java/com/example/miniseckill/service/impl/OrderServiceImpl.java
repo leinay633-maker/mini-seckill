@@ -56,6 +56,16 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createOrderFromMessage(SeckillMessage message) {
+        createOrder(message, false);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createOrderFromConsumingMessage(SeckillMessage message) {
+        createOrder(message, true);
+    }
+
+    private void createOrder(SeckillMessage message, boolean requireConsumingStatus) {
         SeckillOrder order = new SeckillOrder();
         order.setOrderId(OrderIdGenerator.nextId());
         order.setActivityId(message.getActivityId());
@@ -78,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
                 message.getSkuId(),
                 "ORDER_SUCCESS"
         );
-        seckillMessageMapper.updateStatus(message.getRequestId(), MessageStatus.CONSUMED.getCode());
+        markMessageConsumed(message, requireConsumingStatus);
         setOrderStatus(message.getActivityId(), message.getUserId(), message.getSkuId(), OrderStatus.SUCCESS);
         seckillMetrics.order("success");
     }
@@ -127,6 +137,21 @@ public class OrderServiceImpl implements OrderService {
                 String.valueOf(status.getCode()),
                 seckillProperties.getOrderStatusTtl()
         );
+    }
+
+    private void markMessageConsumed(SeckillMessage message, boolean requireConsumingStatus) {
+        if (!requireConsumingStatus) {
+            seckillMessageMapper.updateStatus(message.getRequestId(), MessageStatus.CONSUMED.getCode());
+            return;
+        }
+        int updated = seckillMessageMapper.markConsumedFromConsuming(
+                message.getRequestId(),
+                MessageStatus.CONSUMED.getCode(),
+                MessageStatus.CONSUMING.getCode()
+        );
+        if (updated != 1) {
+            throw new IllegalStateException("message is not in CONSUMING status");
+        }
     }
 
     private int decreaseMysqlStock(SeckillMessage message) {

@@ -58,14 +58,21 @@ public class SeckillConsumer {
     @RabbitListener(queues = RabbitMQConfig.SECKILL_ORDER_QUEUE, containerFactory = "manualAckRabbitListenerContainerFactory")
     public void consume(SeckillMessage seckillMessage, Message rawMessage, Channel channel) throws IOException {
         long deliveryTag = rawMessage.getMessageProperties().getDeliveryTag();
+        if (!tryMarkConsuming(seckillMessage)) {
+            safeLog(seckillMessage, "CONSUME_SKIPPED_FINAL_OR_TIMEOUT");
+            seckillMetrics.mq("consume_skipped");
+            channel.basicAck(deliveryTag, false);
+            return;
+        }
         try {
-            orderService.createOrderFromMessage(seckillMessage);
+            orderService.createOrderFromConsumingMessage(seckillMessage);
             seckillMetrics.mq("consume_success");
             channel.basicAck(deliveryTag, false);
         } catch (DuplicateKeyException ex) {
             safeLog(seckillMessage, "DUPLICATE_CONSUME_ACKED");
-            seckillMessageMapper.updateStatus(seckillMessage.getRequestId(), MessageStatus.CONSUMED.getCode());
-            setOrderStatus(seckillMessage, OrderStatus.SUCCESS);
+            if (markConsumedFromConsuming(seckillMessage)) {
+                setOrderStatus(seckillMessage, OrderStatus.SUCCESS);
+            }
             seckillMetrics.mq("duplicate_acked");
             channel.basicAck(deliveryTag, false);
         } catch (InsufficientStockException ex) {
@@ -88,6 +95,34 @@ public class SeckillConsumer {
             seckillMetrics.mq("dead_lettered");
             channel.basicNack(deliveryTag, false, false);
         }
+    }
+
+    private boolean tryMarkConsuming(SeckillMessage message) {
+        int updated = seckillMessageMapper.markConsuming(
+                message.getRequestId(),
+                MessageStatus.CONSUMING.getCode(),
+                MessageStatus.SENT.getCode(),
+                MessageStatus.SENDING.getCode(),
+                MessageStatus.REPLAYED.getCode()
+        );
+        if (updated == 1) {
+            return true;
+        }
+        log.info("skip consumed seckill message because status is no longer consumable, requestId={}", message.getRequestId());
+        return false;
+    }
+
+    private boolean markConsumedFromConsuming(SeckillMessage message) {
+        int updated = seckillMessageMapper.markConsumedFromConsuming(
+                message.getRequestId(),
+                MessageStatus.CONSUMED.getCode(),
+                MessageStatus.CONSUMING.getCode()
+        );
+        if (updated == 1) {
+            return true;
+        }
+        log.info("skip CONSUMED side effects because message status changed, requestId={}", message.getRequestId());
+        return false;
     }
 
     private void safeLog(SeckillMessage message, String result) {

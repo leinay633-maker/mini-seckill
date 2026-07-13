@@ -10,5 +10,7 @@ public interface OrderService {
 
     void createOrderFromMessage(SeckillMessage message);
 
+    void createOrderFromConsumingMessage(SeckillMessage message);
+
     OrderQueryResponse queryOrder(Long activityId, Long userId, Long skuId);
 }
