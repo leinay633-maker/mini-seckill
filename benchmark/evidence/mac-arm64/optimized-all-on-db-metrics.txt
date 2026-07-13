@@ -1,0 +1,22 @@
+===== MySQL DB metrics: optimized-mac-all-on-before =====
+captured_at_host=2026-07-13 07:53:36 +0800
+captured_at
+2026-07-13 07:53:36
+Variable_name	Value
+Com_insert	86767
+Com_select	466466
+Com_update	79646
+target	DIGEST_TEXT	COUNT_STAR	SUM_TIMER_WAIT
+seckill_rate_limit_rule activity+sku	SELECT `id` , `activity_id` , `sku_id` , `enabled` , `window_seconds` , `sku_limit` , `user_limit` , `ip_limit` , `created_at` , `updated_at` FROM `seckill_rate_limit_rule` WHERE `activity_id` = ? AND `sku_id` = ? LIMIT ?	2000	197832573000
+seckill_order activity+user+sku	SELECT `id` , `order_id` , `activity_id` , `user_id` , `sku_id` , STATUS , `created_at` , `updated_at` FROM `seckill_order` WHERE `activity_id` = ? AND `user_id` = ? AND `sku_id` = ? LIMIT ?	120279	18410313296000
+===== MySQL DB metrics: optimized-mac-all-on-after =====
+captured_at_host=2026-07-13 08:14:02 +0800
+captured_at
+2026-07-13 08:14:02
+Variable_name	Value
+Com_insert	91768
+Com_select	484386
+Com_update	84649
+target	DIGEST_TEXT	COUNT_STAR	SUM_TIMER_WAIT
+seckill_rate_limit_rule activity+sku	SELECT `id` , `activity_id` , `sku_id` , `enabled` , `window_seconds` , `sku_limit` , `user_limit` , `ip_limit` , `created_at` , `updated_at` FROM `seckill_rate_limit_rule` WHERE `activity_id` = ? AND `sku_id` = ? LIMIT ?	2007	213030032000
+seckill_order activity+user+sku	SELECT `id` , `order_id` , `activity_id` , `user_id` , `sku_id` , STATUS , `created_at` , `updated_at` FROM `seckill_order` WHERE `activity_id` = ? AND `user_id` = ? AND `sku_id` = ? LIMIT ?	121279	18512181169000
