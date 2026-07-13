@@ -25,6 +25,7 @@ import com.example.miniseckill.mapper.SkuStockMapper;
 import com.example.miniseckill.mapper.SkuStockSegmentMapper;
 import com.example.miniseckill.mq.SeckillProducer;
 import com.example.miniseckill.service.ActivityService;
+import com.example.miniseckill.service.AsyncSeckillLogWriter;
 import com.example.miniseckill.service.DistributedLockService;
 import com.example.miniseckill.service.DynamicRateLimitService;
 import com.example.miniseckill.service.OrderService;
@@ -86,6 +87,8 @@ class SeckillServiceImplHiddenPathTest {
     private SoldOutCacheService soldOutCacheService;
     @Mock
     private SeckillMetrics seckillMetrics;
+    @Mock
+    private AsyncSeckillLogWriter asyncSeckillLogWriter;
 
     private SeckillProperties properties;
     private SeckillServiceImpl service;
@@ -113,7 +116,8 @@ class SeckillServiceImplHiddenPathTest {
                 redisRecoveryStateService,
                 dynamicRateLimitService,
                 soldOutCacheService,
-                seckillMetrics
+                seckillMetrics,
+                asyncSeckillLogWriter
         );
     }
 
@@ -144,6 +148,9 @@ class SeckillServiceImplHiddenPathTest {
     @Test
     void createOrderTokenDoesNotConsumeQuotaWhenOrderAlreadyExists() {
         when(redisRecoveryStateService.isRecovering()).thenReturn(false);
+        // D3 makes the duplicate check Redis-first: order-status and idempotency key miss,
+        // so it falls through to the authoritative MySQL order lookup, which hits here.
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
         when(seckillOrderMapper.selectByUserSku(ACTIVITY_ID, USER_ID, SKU_ID)).thenReturn(new SeckillOrder());
 
         Result<TokenResponse> result = service.createOrderToken(ACTIVITY_ID, USER_ID, SKU_ID, "127.0.0.1");

@@ -27,8 +27,9 @@ class DynamicRateLimitServiceImplTest {
         SeckillProperties properties = properties();
         when(rateLimitRuleMapper.selectByActivitySku(1L, 1001L)).thenReturn(null);
 
-        RateLimitPlan plan = new DynamicRateLimitServiceImpl(rateLimitRuleMapper, properties)
-                .effectivePlan(1L, 1001L);
+        DynamicRateLimitServiceImpl service = new DynamicRateLimitServiceImpl(rateLimitRuleMapper, properties);
+        RateLimitPlan plan = service.effectivePlan(1L, 1001L);
+        RateLimitPlan cachedPlan = service.effectivePlan(1L, 1001L);
 
         assertTrue(plan.enabled());
         assertEquals(Duration.ofSeconds(2), plan.window());
@@ -36,6 +37,8 @@ class DynamicRateLimitServiceImplTest {
         assertEquals(5, plan.userLimit());
         assertEquals(80, plan.ipLimit());
         assertEquals("application.yml", plan.source());
+        assertEquals(plan, cachedPlan);
+        verify(rateLimitRuleMapper).selectByActivitySku(1L, 1001L);
     }
 
     @Test

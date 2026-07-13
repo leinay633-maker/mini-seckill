@@ -9,17 +9,22 @@ import com.example.miniseckill.service.DynamicRateLimitService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.time.Duration;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
  * Resolves rate limit rules from DB with a short Caffeine cache.
+ *
+ * <p>Empty lookups are cached too (negative caching): with dynamic-rate-limit enabled but no DB
+ * rule for a SKU — the default state — the hottest admission path would otherwise hit MySQL on
+ * every request, once for the token step and once for the order step.
  */
 @Service
 public class DynamicRateLimitServiceImpl implements DynamicRateLimitService {
 
     private final RateLimitRuleMapper rateLimitRuleMapper;
     private final SeckillProperties seckillProperties;
-    private final Cache<String, RateLimitRule> ruleCache;
+    private final Cache<String, Optional<RateLimitRule>> ruleCache;
 
     public DynamicRateLimitServiceImpl(RateLimitRuleMapper rateLimitRuleMapper,
                                        SeckillProperties seckillProperties) {
@@ -42,16 +47,16 @@ public class DynamicRateLimitServiceImpl implements DynamicRateLimitService {
             return fallbackPlan(fallback);
         }
         String cacheKey = cacheKey(activityId, skuId);
-        RateLimitRule rule = ruleCache.getIfPresent(cacheKey);
-        if (rule == null) {
-            rule = rateLimitRuleMapper.selectByActivitySku(activityId, skuId);
-            if (rule != null) {
-                ruleCache.put(cacheKey, rule);
-            }
+        Optional<RateLimitRule> cached = ruleCache.getIfPresent(cacheKey);
+        if (cached == null) {
+            RateLimitRule loaded = rateLimitRuleMapper.selectByActivitySku(activityId, skuId);
+            cached = Optional.ofNullable(loaded);
+            ruleCache.put(cacheKey, cached);
         }
-        if (rule == null) {
+        if (cached.isEmpty()) {
             return fallbackPlan(fallback);
         }
+        RateLimitRule rule = cached.get();
         if (rule.getEnabled() != null && rule.getEnabled() == 0) {
             return new RateLimitPlan(false, Duration.ofSeconds(Math.max(1, rule.getWindowSeconds())), 0, 0, 0, "db-rule");
         }

@@ -17,6 +17,7 @@ import com.example.miniseckill.mapper.SeckillOrderMapper;
 import com.example.miniseckill.mapper.SkuStockMapper;
 import com.example.miniseckill.mapper.SkuStockSegmentMapper;
 import com.example.miniseckill.service.ActivityService;
+import com.example.miniseckill.service.AsyncSeckillLogWriter;
 import com.example.miniseckill.mq.SeckillProducer;
 import com.example.miniseckill.service.DistributedLockService;
 import com.example.miniseckill.service.DynamicRateLimitService;
@@ -65,6 +66,7 @@ public class SeckillServiceImpl implements SeckillService {
     private final DynamicRateLimitService dynamicRateLimitService;
     private final SoldOutCacheService soldOutCacheService;
     private final SeckillMetrics seckillMetrics;
+    private final AsyncSeckillLogWriter asyncSeckillLogWriter;
 
     public SeckillServiceImpl(SkuStockMapper skuStockMapper,
                               SkuStockSegmentMapper skuStockSegmentMapper,
@@ -83,7 +85,8 @@ public class SeckillServiceImpl implements SeckillService {
                               RedisRecoveryStateService redisRecoveryStateService,
                               DynamicRateLimitService dynamicRateLimitService,
                               SoldOutCacheService soldOutCacheService,
-                              SeckillMetrics seckillMetrics) {
+                              SeckillMetrics seckillMetrics,
+                              AsyncSeckillLogWriter asyncSeckillLogWriter) {
         this.skuStockMapper = skuStockMapper;
         this.skuStockSegmentMapper = skuStockSegmentMapper;
         this.seckillLogMapper = seckillLogMapper;
@@ -102,6 +105,7 @@ public class SeckillServiceImpl implements SeckillService {
         this.dynamicRateLimitService = dynamicRateLimitService;
         this.soldOutCacheService = soldOutCacheService;
         this.seckillMetrics = seckillMetrics;
+        this.asyncSeckillLogWriter = asyncSeckillLogWriter;
     }
 
     @Override
@@ -376,16 +380,19 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     private boolean hasAcceptedOrFinishedOrder(Long activityId, Long userId, Long skuId) {
-        if (seckillOrderMapper.selectByUserSku(activityId, userId, skuId) != null) {
-            return true;
-        }
+        // Redis-first: the token endpoint is hot, so short-circuit on Redis state before touching MySQL.
+        // Most duplicate requests are caught here (queuing/success status or the idempotency key),
+        // and only a genuinely fresh user falls through to the authoritative order-table lookup.
         String statusValue = stringRedisTemplate.opsForValue().get(RedisKeyUtil.orderStatusKey(activityId, userId, skuId));
         Integer status = parseInteger(statusValue);
         if (status != null && (status == OrderStatus.QUEUING.getCode() || status == OrderStatus.SUCCESS.getCode())) {
             return true;
         }
         Boolean hasQueueKey = stringRedisTemplate.hasKey(RedisKeyUtil.userSkuKey(activityId, userId, skuId));
-        return Boolean.TRUE.equals(hasQueueKey);
+        if (Boolean.TRUE.equals(hasQueueKey)) {
+            return true;
+        }
+        return seckillOrderMapper.selectByUserSku(activityId, userId, skuId) != null;
     }
 
     private void validateActivitySku(Long activityId, Long skuId) {
@@ -611,11 +618,9 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     private void safeLog(String requestId, Long activityId, Long userId, Long skuId, String result) {
-        try {
-            seckillLogMapper.insertLog(requestId, activityId, userId, skuId, result);
-        } catch (Exception ex) {
-            log.warn("insert seckill log failed, requestId={}, result={}", requestId, result, ex);
-        }
+        // Off-path async write: the hot order/token endpoints emit several audit rows per request,
+        // and synchronous inserts made MySQL part of every request's latency. Never throws.
+        asyncSeckillLogWriter.write(requestId, activityId, userId, skuId, result);
     }
 
     private String shortError(Exception ex) {

@@ -41,6 +41,11 @@ seckill:
   snowflake:
     worker-id: ${MINI_SECKILL_WORKER_ID:0}
     epoch-millis: 1704067200000
+  async-log:
+    enabled: true
+    core-pool-size: 2
+    max-pool-size: 4
+    queue-capacity: 10000
   user-auth:
     enabled: false
     jwt-secret: ${MINI_SECKILL_JWT_SECRET:mini-seckill-demo-jwt-secret-change-me-32-bytes}
