@@ -106,6 +106,9 @@ function classifyAdmissionFailure(res) {
   if (body.code === 1002) {
     soldOut.add(1);
     systemErrorRate.add(false);
+  } else if (body.code === 409) {
+    duplicate.add(1);
+    systemErrorRate.add(false);
   } else if (body.code === 429) {
     rateLimited.add(1);
     systemErrorRate.add(false);
