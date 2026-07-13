@@ -1,5 +1,6 @@
 target/
 tmp/
+benchmark/results/
 
 *.class
 *.jar
