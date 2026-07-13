@@ -40,7 +40,7 @@ public interface SeckillMessageMapper {
             SET status = #{sendingStatus},
                 updated_at = NOW()
             WHERE request_id = #{requestId}
-              AND status = #{sendingStatus}
+              AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus}, #{consumingStatus})
             """)
     int markSending(@Param("requestId") String requestId,
                     @Param("sendingStatus") int sendingStatus,
@@ -56,7 +56,7 @@ public interface SeckillMessageMapper {
                 next_retry_at = NULL,
                 updated_at = NOW()
             WHERE request_id = #{requestId}
-              AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus}, #{consumingStatus})
+              AND status = #{sendingStatus}
             """)
     int markSentFromSending(@Param("requestId") String requestId,
                             @Param("sentStatus") int sentStatus,
