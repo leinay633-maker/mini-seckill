@@ -207,6 +207,13 @@ public class SeckillProperties {
         private int skuLimit = 300;
         private int userLimit = 5;
         private int ipLimit = 80;
+        /** FIXED_WINDOW (legacy, 2x boundary burst) or SLIDING_WINDOW (default, ZSET-based). */
+        private Algorithm algorithm = Algorithm.SLIDING_WINDOW;
+
+        public enum Algorithm {
+            FIXED_WINDOW,
+            SLIDING_WINDOW
+        }
 
         public boolean isEnabled() {
             return enabled;
@@ -246,6 +253,14 @@ public class SeckillProperties {
 
         public void setIpLimit(int ipLimit) {
             this.ipLimit = ipLimit;
+        }
+
+        public Algorithm getAlgorithm() {
+            return algorithm;
+        }
+
+        public void setAlgorithm(Algorithm algorithm) {
+            this.algorithm = algorithm;
         }
     }
 

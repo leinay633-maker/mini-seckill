@@ -28,6 +28,14 @@ public class RedisConfig {
     }
 
     @Bean
+    public DefaultRedisScript<Long> rateLimitSlidingScript() {
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setLocation(new ClassPathResource("lua/rate_limit_sliding.lua"));
+        script.setResultType(Long.class);
+        return script;
+    }
+
+    @Bean
     public DefaultRedisScript<Long> compareAndDeleteScript() {
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setLocation(new ClassPathResource("lua/compare_delete.lua"));

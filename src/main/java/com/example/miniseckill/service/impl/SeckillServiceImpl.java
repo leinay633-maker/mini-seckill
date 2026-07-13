@@ -56,6 +56,7 @@ public class SeckillServiceImpl implements SeckillService {
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> seckillStockScript;
     private final DefaultRedisScript<Long> rateLimitScript;
+    private final DefaultRedisScript<Long> rateLimitSlidingScript;
     private final DefaultRedisScript<Long> compareAndDeleteScript;
     private final SeckillProducer seckillProducer;
     private final OrderService orderService;
@@ -76,6 +77,7 @@ public class SeckillServiceImpl implements SeckillService {
                               StringRedisTemplate stringRedisTemplate,
                               DefaultRedisScript<Long> seckillStockScript,
                               DefaultRedisScript<Long> rateLimitScript,
+                              DefaultRedisScript<Long> rateLimitSlidingScript,
                               DefaultRedisScript<Long> compareAndDeleteScript,
                               SeckillProducer seckillProducer,
                               OrderService orderService,
@@ -95,6 +97,7 @@ public class SeckillServiceImpl implements SeckillService {
         this.stringRedisTemplate = stringRedisTemplate;
         this.seckillStockScript = seckillStockScript;
         this.rateLimitScript = rateLimitScript;
+        this.rateLimitSlidingScript = rateLimitSlidingScript;
         this.compareAndDeleteScript = compareAndDeleteScript;
         this.seckillProducer = seckillProducer;
         this.orderService = orderService;
@@ -364,6 +367,18 @@ public class SeckillServiceImpl implements SeckillService {
     private boolean passRateLimit(String key, int maxCount, Duration window) {
         if (maxCount <= 0) {
             return true;
+        }
+        if (seckillProperties.getRateLimit().getAlgorithm() == SeckillProperties.RateLimit.Algorithm.SLIDING_WINDOW) {
+            long windowMillis = Math.max(1000L, window.toMillis());
+            Long result = stringRedisTemplate.execute(
+                    rateLimitSlidingScript,
+                    Collections.singletonList(key),
+                    String.valueOf(windowMillis),
+                    String.valueOf(maxCount),
+                    String.valueOf(System.currentTimeMillis()),
+                    UUID.randomUUID().toString()
+            );
+            return Long.valueOf(1L).equals(result);
         }
         long windowSeconds = Math.max(1, window.toSeconds());
         Long result = stringRedisTemplate.execute(
