@@ -16,6 +16,9 @@ import com.example.miniseckill.service.OrderIdGenerator;
 import com.example.miniseckill.service.OrderService;
 import com.example.miniseckill.service.SeckillMetrics;
 import com.example.miniseckill.util.RedisKeyUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private final SeckillOrderMapper seckillOrderMapper;
     private final SkuStockMapper skuStockMapper;
@@ -66,6 +71,28 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = Exception.class)
     public void createOrderFromConsumingMessage(SeckillMessage message) {
         createOrder(message, true);
+    }
+
+    @Override
+    public void recordFailedOrder(SeckillMessage message) {
+        // Runs after the consume transaction rolled back, so this is its own auto-committed insert.
+        // Persisting a FAILED row keeps the failure queryable after the Redis status key's TTL expires,
+        // and occupies the (activity,user,sku) unique key so the user isn't told "not ordered" later.
+        SeckillOrder order = new SeckillOrder();
+        order.setOrderId(orderIdGenerator.nextId());
+        order.setActivityId(message.getActivityId());
+        order.setUserId(message.getUserId());
+        order.setSkuId(message.getSkuId());
+        order.setStatus(OrderStatus.FAILED.getCode());
+        try {
+            seckillOrderMapper.insert(order);
+        } catch (DuplicateKeyException ex) {
+            // A row already exists for this user/sku (e.g. a prior attempt) — the failure is already recorded.
+            log.debug("failed-order row already exists, requestId={}", message.getRequestId());
+        } catch (Exception ex) {
+            // Best-effort: a failed audit row must not turn a handled failure back into an unacked message.
+            log.warn("record failed order row failed, requestId={}", message.getRequestId(), ex);
+        }
     }
 
     private void createOrder(SeckillMessage message, boolean requireConsumingStatus) {
@@ -112,26 +139,35 @@ public class OrderServiceImpl implements OrderService {
         }
 
         String statusValue = stringRedisTemplate.opsForValue().get(RedisKeyUtil.orderStatusKey(activityId, userId, skuId));
-        if (statusValue != null) {
-            int status = Integer.parseInt(statusValue);
-            OrderStatus orderStatus = OrderStatus.fromCode(status);
+        Integer statusCode = parseIntOrNull(statusValue);
+        if (statusCode != null) {
+            OrderStatus orderStatus = OrderStatus.fromCode(statusCode);
             return new OrderQueryResponse(activityId, userId, skuId, null, orderStatus.getCode(), orderStatus.getText());
         }
 
-        String latestResult = seckillLogMapper.selectLatestResult(activityId, userId, skuId);
-        if (latestResult != null
-                && (latestResult.contains("FAILED")
-                || latestResult.contains("NOT_ENOUGH")
-                || latestResult.contains("NOT_FOUND"))) {
-            return new OrderQueryResponse(activityId, userId, skuId, null, OrderStatus.FAILED.getCode(), OrderStatus.FAILED.getText());
-        }
-
+        // Status comes from facts only: the order row, then the Redis status key (which carries the
+        // exact FAILED/QUEUING/SUCCESS/TIMEOUT code written by the state machine), then the idempotency
+        // key. The old log-text contains("FAILED") heuristic was brittle — a reworded log line silently
+        // broke it — and is intentionally gone.
         Boolean hasQueueKey = stringRedisTemplate.hasKey(RedisKeyUtil.userSkuKey(activityId, userId, skuId));
         if (Boolean.TRUE.equals(hasQueueKey)) {
             return new OrderQueryResponse(activityId, userId, skuId, null, OrderStatus.QUEUING.getCode(), OrderStatus.QUEUING.getText());
         }
 
         return new OrderQueryResponse(activityId, userId, skuId, null, OrderStatus.NOT_ORDERED.getCode(), OrderStatus.NOT_ORDERED.getText());
+    }
+
+    private Integer parseIntOrNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException ex) {
+            // Defensive: the status key is written by this app as a numeric code, but a polluted or
+            // legacy value must degrade to "no status" rather than 500 the query.
+            return null;
+        }
     }
 
     private void setOrderStatus(Long activityId, Long userId, Long skuId, OrderStatus status) {

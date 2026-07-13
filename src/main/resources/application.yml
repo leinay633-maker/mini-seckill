@@ -41,6 +41,13 @@ seckill:
   snowflake:
     worker-id: ${MINI_SECKILL_WORKER_ID:0}
     epoch-millis: 1704067200000
+  security:
+    trust-forwarded-header: false
+    trusted-proxies:
+      - "127."
+      - "10."
+      - "172."
+      - "192.168."
   async-log:
     enabled: true
     core-pool-size: 2

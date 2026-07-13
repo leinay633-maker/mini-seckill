@@ -1,6 +1,7 @@
 package com.example.miniseckill.controller;
 
 import com.example.miniseckill.common.Result;
+import com.example.miniseckill.config.ClientIpResolver;
 import com.example.miniseckill.config.OpenApiConfig;
 import com.example.miniseckill.config.SeckillProperties;
 import com.example.miniseckill.dto.SeckillOrderRequest;
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,15 +39,18 @@ public class SeckillController {
     private final SeckillProperties seckillProperties;
     private final UserAuthService userAuthService;
     private final CaptchaService captchaService;
+    private final ClientIpResolver clientIpResolver;
 
     public SeckillController(SeckillService seckillService,
                              SeckillProperties seckillProperties,
                              UserAuthService userAuthService,
-                             CaptchaService captchaService) {
+                             CaptchaService captchaService,
+                             ClientIpResolver clientIpResolver) {
         this.seckillService = seckillService;
         this.seckillProperties = seckillProperties;
         this.userAuthService = userAuthService;
         this.captchaService = captchaService;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @Operation(
@@ -119,14 +122,6 @@ public class SeckillController {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (StringUtils.hasText(forwardedFor)) {
-            return forwardedFor.split(",")[0].trim();
-        }
-        String realIp = request.getHeader("X-Real-IP");
-        if (StringUtils.hasText(realIp)) {
-            return realIp.trim();
-        }
-        return request.getRemoteAddr();
+        return clientIpResolver.resolve(request);
     }
 }

@@ -1,10 +1,16 @@
 package com.example.miniseckill.mq;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.miniseckill.common.InsufficientStockException;
 import com.example.miniseckill.common.MessageStatus;
 import com.example.miniseckill.config.SeckillProperties;
 import com.example.miniseckill.dto.SeckillMessage;
@@ -22,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -127,6 +134,68 @@ class SeckillConsumerTest {
         );
         verify(seckillMessageMapper, never()).updateStatus(REQUEST_ID, MessageStatus.CONSUMED.getCode());
         verify(seckillMetrics).mq("duplicate_acked");
+        verify(channel).basicAck(DELIVERY_TAG, false);
+    }
+
+    @Test
+    void transientDataAccessFailureReturnsMessageToRetryStateAndAcks() throws Exception {
+        SeckillMessage message = message();
+        when(seckillMessageMapper.markConsuming(
+                REQUEST_ID,
+                MessageStatus.CONSUMING.getCode(),
+                MessageStatus.SENT.getCode(),
+                MessageStatus.SENDING.getCode(),
+                MessageStatus.REPLAYED.getCode()
+        )).thenReturn(1);
+        doThrow(new TransientDataAccessResourceException("temporary database failure"))
+                .when(orderService).createOrderFromConsumingMessage(message);
+        when(seckillMessageMapper.markFailedFromConsuming(
+                eq(REQUEST_ID),
+                eq(MessageStatus.FAILED.getCode()),
+                eq(MessageStatus.CONSUMING.getCode()),
+                eq("temporary database failure"),
+                any()
+        )).thenReturn(1);
+
+        consumer.consume(message, rawMessage(), channel);
+
+        verify(seckillMessageMapper).markFailedFromConsuming(
+                eq(REQUEST_ID),
+                eq(MessageStatus.FAILED.getCode()),
+                eq(MessageStatus.CONSUMING.getCode()),
+                eq("temporary database failure"),
+                any()
+        );
+        verify(seckillMessageMapper, never()).markDead(any(), anyInt(), anyInt(), any());
+        verify(compensationRecordMapper, never()).insert(any());
+        verify(seckillMetrics).mq("transient_requeued");
+        verify(channel).basicAck(DELIVERY_TAG, false);
+        verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    void insufficientStockPersistsFailedOrderBeforeAcking() throws Exception {
+        SeckillMessage message = message();
+        when(seckillMessageMapper.markConsuming(
+                REQUEST_ID,
+                MessageStatus.CONSUMING.getCode(),
+                MessageStatus.SENT.getCode(),
+                MessageStatus.SENDING.getCode(),
+                MessageStatus.REPLAYED.getCode()
+        )).thenReturn(1);
+        doThrow(new InsufficientStockException("stock exhausted"))
+                .when(orderService).createOrderFromConsumingMessage(message);
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+
+        consumer.consume(message, rawMessage(), channel);
+
+        verify(seckillMessageMapper).markFailed(
+                REQUEST_ID,
+                MessageStatus.FAILED.getCode(),
+                "stock exhausted"
+        );
+        verify(orderService).recordFailedOrder(message);
+        verify(seckillMetrics).mq("stock_guard_failed");
         verify(channel).basicAck(DELIVERY_TAG, false);
     }
 
