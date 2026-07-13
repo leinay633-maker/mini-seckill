@@ -49,7 +49,7 @@ export default function () {
   });
 
   check(res, {
-    'http status is 200': (r) => r.status === 200,
+    'http status is not 5xx': (r) => r.status < 500,
     'business response parsed': (r) => {
       try {
         JSON.parse(r.body);

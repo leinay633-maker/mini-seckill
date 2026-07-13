@@ -135,7 +135,8 @@ public class RedisRecoveryServiceImpl implements RedisRecoveryService {
                 MessageStatus.SENT.getCode(),
                 MessageStatus.FAILED.getCode(),
                 MessageStatus.CONFIRM_FAILED.getCode(),
-                MessageStatus.RETURNED.getCode()
+                MessageStatus.RETURNED.getCode(),
+                MessageStatus.CONSUMING.getCode()
         );
     }
 

@@ -1,0 +1,19 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mini-seckill-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx-compose.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app-1
+      - app-2
+      - app-3
+      - app-4
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

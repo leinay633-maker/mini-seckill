@@ -13,6 +13,7 @@ public class SeckillProperties {
     private Duration orderStatusTtl = Duration.ofHours(2);
     private Long defaultActivityId = 1L;
     private boolean mqFallbackSync = false;
+    private UserAuth userAuth = new UserAuth();
     private RateLimit rateLimit = new RateLimit();
     private AntiBrush antiBrush = new AntiBrush();
     private StockShard stockShard = new StockShard();
@@ -23,7 +24,9 @@ public class SeckillProperties {
     private MessageRetry messageRetry = new MessageRetry();
     private Reconcile reconcile = new Reconcile();
     private OrderTimeout orderTimeout = new OrderTimeout();
+    private ConsumingRecovery consumingRecovery = new ConsumingRecovery();
     private RedisRecovery redisRecovery = new RedisRecovery();
+    private AdminAuth adminAuth = new AdminAuth();
 
     public Duration getIdempotentTtl() {
         return idempotentTtl;
@@ -55,6 +58,14 @@ public class SeckillProperties {
 
     public void setMqFallbackSync(boolean mqFallbackSync) {
         this.mqFallbackSync = mqFallbackSync;
+    }
+
+    public UserAuth getUserAuth() {
+        return userAuth;
+    }
+
+    public void setUserAuth(UserAuth userAuth) {
+        this.userAuth = userAuth;
     }
 
     public RateLimit getRateLimit() {
@@ -137,12 +148,28 @@ public class SeckillProperties {
         this.orderTimeout = orderTimeout;
     }
 
+    public ConsumingRecovery getConsumingRecovery() {
+        return consumingRecovery;
+    }
+
+    public void setConsumingRecovery(ConsumingRecovery consumingRecovery) {
+        this.consumingRecovery = consumingRecovery;
+    }
+
     public RedisRecovery getRedisRecovery() {
         return redisRecovery;
     }
 
     public void setRedisRecovery(RedisRecovery redisRecovery) {
         this.redisRecovery = redisRecovery;
+    }
+
+    public AdminAuth getAdminAuth() {
+        return adminAuth;
+    }
+
+    public void setAdminAuth(AdminAuth adminAuth) {
+        this.adminAuth = adminAuth;
     }
 
     public static class RateLimit {
@@ -198,6 +225,9 @@ public class SeckillProperties {
         private Duration tokenTtl = Duration.ofMinutes(2);
         private boolean tokenQuotaEnabled = true;
         private int tokenQuotaMultiplier = 3;
+        private boolean hiddenPathEnabled = true;
+        private boolean captchaEnabled = false;
+        private Duration captchaTtl = Duration.ofMinutes(2);
 
         public boolean isEnabled() {
             return enabled;
@@ -229,6 +259,87 @@ public class SeckillProperties {
 
         public void setTokenQuotaMultiplier(int tokenQuotaMultiplier) {
             this.tokenQuotaMultiplier = tokenQuotaMultiplier;
+        }
+
+        public boolean isHiddenPathEnabled() {
+            return hiddenPathEnabled;
+        }
+
+        public void setHiddenPathEnabled(boolean hiddenPathEnabled) {
+            this.hiddenPathEnabled = hiddenPathEnabled;
+        }
+
+        public boolean isCaptchaEnabled() {
+            return captchaEnabled;
+        }
+
+        public void setCaptchaEnabled(boolean captchaEnabled) {
+            this.captchaEnabled = captchaEnabled;
+        }
+
+        public Duration getCaptchaTtl() {
+            return captchaTtl;
+        }
+
+        public void setCaptchaTtl(Duration captchaTtl) {
+            this.captchaTtl = captchaTtl;
+        }
+    }
+
+    public static class UserAuth {
+        private boolean enabled = false;
+        private String jwtSecret = "mini-seckill-demo-jwt-secret-change-me-32-bytes";
+        private Duration tokenTtl = Duration.ofMinutes(30);
+        private String demoUsername = "demo";
+        private String demoPassword = "demo123456";
+        private Long demoUserId = 10001L;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getJwtSecret() {
+            return jwtSecret;
+        }
+
+        public void setJwtSecret(String jwtSecret) {
+            this.jwtSecret = jwtSecret;
+        }
+
+        public Duration getTokenTtl() {
+            return tokenTtl;
+        }
+
+        public void setTokenTtl(Duration tokenTtl) {
+            this.tokenTtl = tokenTtl;
+        }
+
+        public String getDemoUsername() {
+            return demoUsername;
+        }
+
+        public void setDemoUsername(String demoUsername) {
+            this.demoUsername = demoUsername;
+        }
+
+        public String getDemoPassword() {
+            return demoPassword;
+        }
+
+        public void setDemoPassword(String demoPassword) {
+            this.demoPassword = demoPassword;
+        }
+
+        public Long getDemoUserId() {
+            return demoUserId;
+        }
+
+        public void setDemoUserId(Long demoUserId) {
+            this.demoUserId = demoUserId;
         }
     }
 
@@ -472,6 +583,45 @@ public class SeckillProperties {
         }
     }
 
+    public static class ConsumingRecovery {
+        private boolean enabled = true;
+        private Duration fixedDelay = Duration.ofSeconds(60);
+        private Duration staleTimeout = Duration.ofMinutes(2);
+        private int batchSize = 50;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public Duration getFixedDelay() {
+            return fixedDelay;
+        }
+
+        public void setFixedDelay(Duration fixedDelay) {
+            this.fixedDelay = fixedDelay;
+        }
+
+        public Duration getStaleTimeout() {
+            return staleTimeout;
+        }
+
+        public void setStaleTimeout(Duration staleTimeout) {
+            this.staleTimeout = staleTimeout;
+        }
+
+        public int getBatchSize() {
+            return batchSize;
+        }
+
+        public void setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+        }
+    }
+
     public static class RedisRecovery {
         private boolean enabled = true;
         private Duration healthCheckDelay = Duration.ofSeconds(5);
@@ -508,6 +658,36 @@ public class SeckillProperties {
 
         public void setScanLimit(int scanLimit) {
             this.scanLimit = scanLimit;
+        }
+    }
+
+    public static class AdminAuth {
+        private boolean enabled = false;
+        private String token = "";
+        private String headerName = "X-Admin-Token";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public String getHeaderName() {
+            return headerName;
+        }
+
+        public void setHeaderName(String headerName) {
+            this.headerName = headerName;
         }
     }
 }

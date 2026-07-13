@@ -40,6 +40,14 @@ public final class RedisKeyUtil {
         return "seckill:token:quota:" + activityId + ":" + skuId;
     }
 
+    public static String orderPathKey(Long activityId, Long userId, Long skuId) {
+        return "seckill:path:" + activityId + ":" + userId + ":" + skuId;
+    }
+
+    public static String captchaKey(String captchaId) {
+        return "seckill:captcha:" + captchaId;
+    }
+
     public static String stockInitLockKey(Long skuId) {
         return "seckill:lock:stock:init:" + skuId;
     }

@@ -38,6 +38,17 @@ seckill:
   order-status-ttl: 2h
   default-activity-id: 1
   mq-fallback-sync: false
+  user-auth:
+    enabled: false
+    jwt-secret: ${MINI_SECKILL_JWT_SECRET:mini-seckill-demo-jwt-secret-change-me-32-bytes}
+    token-ttl: 30m
+    demo-username: ${MINI_SECKILL_DEMO_USERNAME:demo}
+    demo-password: ${MINI_SECKILL_DEMO_PASSWORD:demo123456}
+    demo-user-id: ${MINI_SECKILL_DEMO_USER_ID:10001}
+  admin-auth:
+    enabled: false
+    token: ${MINI_SECKILL_ADMIN_TOKEN:}
+    header-name: X-Admin-Token
   rate-limit:
     enabled: true
     window: 1s
@@ -49,6 +60,9 @@ seckill:
     token-ttl: 2m
     token-quota-enabled: true
     token-quota-multiplier: 3
+    hidden-path-enabled: true
+    captcha-enabled: false
+    captcha-ttl: 2m
   stock-shard:
     enabled: true
     bucket-count: 64
@@ -82,6 +96,11 @@ seckill:
     fixed-delay: 60000
     queued-timeout: 10m
     batch-size: 100
+  consuming-recovery:
+    enabled: true
+    fixed-delay: 60000
+    stale-timeout: 2m
+    batch-size: 50
   redis-recovery:
     enabled: true
     health-check-delay: 5000
@@ -100,3 +119,11 @@ management:
   metrics:
     tags:
       application: mini-seckill
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

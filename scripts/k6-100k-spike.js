@@ -23,6 +23,7 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:80';
 const ACTIVITY_ID = Number(__ENV.ACTIVITY_ID || 1);
 const SKU_ID = Number(__ENV.SKU_ID || 1001);
 const USER_BASE = Number(__ENV.USER_BASE || 90000000);
+const USE_HIDDEN_PATH = (__ENV.USE_HIDDEN_PATH || 'false').toLowerCase() === 'true';
 
 export function setup() {
   const stock = Number(__ENV.STOCK || 1000);
@@ -35,16 +36,21 @@ export default function () {
   const tokenRes = http.get(`${BASE_URL}/api/seckill/token?activityId=${ACTIVITY_ID}&userId=${userId}&skuId=${SKU_ID}`);
 
   let token = '';
+  let orderPath = '';
   try {
     const body = JSON.parse(tokenRes.body);
     token = body.data && body.data.token ? body.data.token : '';
+    orderPath = body.data && body.data.orderPath ? body.data.orderPath : '';
   } catch (e) {
     token = '';
   }
 
   if (token) {
     const payload = JSON.stringify({ activityId: ACTIVITY_ID, userId, skuId: SKU_ID, token });
-    const orderRes = http.post(`${BASE_URL}/api/seckill/order`, payload, {
+    const orderUrl = USE_HIDDEN_PATH && orderPath
+      ? `${BASE_URL}/api/seckill/order/${orderPath}`
+      : `${BASE_URL}/api/seckill/order`;
+    const orderRes = http.post(orderUrl, payload, {
       headers: { 'Content-Type': 'application/json' },
     });
     check(orderRes, {
@@ -59,7 +65,17 @@ export default function () {
     });
   } else {
     check(tokenRes, {
-      'token rejected or parsed': (r) => r.status === 200,
+      'token rejected or parsed': (r) => {
+        if (r.status >= 500) {
+          return false;
+        }
+        try {
+          JSON.parse(r.body);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      },
     });
   }
 

@@ -1,0 +1,38 @@
+groups:
+  - name: mini-seckill
+    rules:
+      - alert: MiniSeckillHigh5xxRate
+        expr: sum(rate(http_server_requests_seconds_count{uri=~"/api/.*",status=~"5.."}[2m])) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MiniSeckill API 5xx rate is high"
+          description: "More than 1 API 5xx response per second over 2 minutes."
+
+      - alert: MiniSeckillMqDeadEvents
+        expr: sum(rate(seckill_mq_total{result=~"dead_lettered|retry_exhausted_dead"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MiniSeckill has MQ dead events"
+          description: "MQ consumer or retry flow produced dead events. Check local message table and compensation records."
+
+      - alert: MiniSeckillAdmissionSystemErrors
+        expr: sum(rate(seckill_admission_total{result=~"local_message_failed|sync_fallback_failed"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MiniSeckill admission has system failures"
+          description: "Admission path produced system failure counters. Check Redis, MySQL local message writes, and RabbitMQ publishing."
+
+      - alert: MiniSeckillOrderGuardFailures
+        expr: sum(rate(seckill_order_total{result="mysql_stock_guard_failed"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MiniSeckill MySQL stock guard rejected orders"
+          description: "MySQL guarded stock deduction failed. Verify Redis stock, unfinished messages, and reconciliation records."
