@@ -70,6 +70,8 @@ class SeckillServiceImplHiddenPathTest {
     @Mock
     private DefaultRedisScript<Long> rateLimitScript;
     @Mock
+    private DefaultRedisScript<Long> rateLimitSlidingScript;
+    @Mock
     private DefaultRedisScript<Long> compareAndDeleteScript;
     @Mock
     private SeckillProducer seckillProducer;
@@ -107,6 +109,7 @@ class SeckillServiceImplHiddenPathTest {
                 stringRedisTemplate,
                 seckillStockScript,
                 rateLimitScript,
+                rateLimitSlidingScript,
                 compareAndDeleteScript,
                 seckillProducer,
                 orderService,

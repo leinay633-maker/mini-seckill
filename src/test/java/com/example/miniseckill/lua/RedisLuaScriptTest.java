@@ -67,6 +67,37 @@ class RedisLuaScriptTest {
         assertEquals(-1, runScript("lua/compare_delete.lua", redis, new String[] {"token:user:10001"}, "token-001").toint());
     }
 
+    @Test
+    void slidingWindowAllowsUpToLimitAndRejectsOverflowWithinWindow() {
+        FakeRedis redis = new FakeRedis();
+        String key = "rate:sliding:sku:1001";
+        // window=1000ms, max=3, all at t=500
+        assertEquals(1, runSliding(redis, key, 1000, 3, 500, "r1").toint());
+        assertEquals(1, runSliding(redis, key, 1000, 3, 500, "r2").toint());
+        assertEquals(1, runSliding(redis, key, 1000, 3, 500, "r3").toint());
+        assertEquals(0, runSliding(redis, key, 1000, 3, 500, "r4").toint());
+    }
+
+    @Test
+    void slidingWindowHasNoBoundaryDoubleBurstUnlikeFixedWindow() {
+        FakeRedis redis = new FakeRedis();
+        String key = "rate:sliding:boundary";
+        // A fixed 1s window lets max requests land at t=999 and max more at t=1001 (2x burst across
+        // the bucket boundary). The trailing sliding window must reject that.
+        assertEquals(1, runSliding(redis, key, 1000, 2, 999, "a1").toint());
+        assertEquals(1, runSliding(redis, key, 1000, 2, 999, "a2").toint());
+        // Crossing the would-be bucket boundary: trailing window [1, 1001] still contains a1+a2.
+        assertEquals(0, runSliding(redis, key, 1000, 2, 1001, "b1").toint());
+        assertEquals(0, runSliding(redis, key, 1000, 2, 1500, "b2").toint());
+        // Once the first two fall out of the trailing window, capacity frees up again.
+        assertEquals(1, runSliding(redis, key, 1000, 2, 2100, "c1").toint());
+    }
+
+    private LuaValue runSliding(FakeRedis redis, String key, long windowMillis, int max, long nowMillis, String member) {
+        return runScript("lua/rate_limit_sliding.lua", redis, new String[] {key},
+                String.valueOf(windowMillis), String.valueOf(max), String.valueOf(nowMillis), member);
+    }
+
     private LuaValue runScript(String resourcePath, FakeRedis redis, String[] keys, String... args) {
         Globals globals = JsePlatform.standardGlobals();
         globals.set("redis", redis.asLuaTable());
@@ -97,6 +128,7 @@ class RedisLuaScriptTest {
     private static final class FakeRedis {
         private final Map<String, String> values = new HashMap<>();
         private final Map<String, Integer> expirations = new HashMap<>();
+        private final Map<String, Map<String, Double>> zsets = new HashMap<>();
 
         void set(String key, int value) {
             values.put(key, String.valueOf(value));
@@ -141,6 +173,39 @@ class RedisLuaScriptTest {
                 if ("EXPIRE".equals(command)) {
                     expirations.put(key, args.arg(3).checkint());
                     return LuaValue.ONE;
+                }
+                if ("PEXPIRE".equals(command)) {
+                    expirations.put(key, args.arg(3).checkint());
+                    return LuaValue.ONE;
+                }
+                if ("ZREMRANGEBYSCORE".equals(command)) {
+                    Map<String, Double> zset = zsets.get(key);
+                    if (zset == null) {
+                        return LuaValue.ZERO;
+                    }
+                    double min = args.arg(3).todouble();
+                    double max = args.arg(4).todouble();
+                    int removed = 0;
+                    var it = zset.entrySet().iterator();
+                    while (it.hasNext()) {
+                        double score = it.next().getValue();
+                        if (score >= min && score <= max) {
+                            it.remove();
+                            removed++;
+                        }
+                    }
+                    return LuaValue.valueOf(removed);
+                }
+                if ("ZCARD".equals(command)) {
+                    Map<String, Double> zset = zsets.get(key);
+                    return LuaValue.valueOf(zset == null ? 0 : zset.size());
+                }
+                if ("ZADD".equals(command)) {
+                    Map<String, Double> zset = zsets.computeIfAbsent(key, k -> new HashMap<>());
+                    double score = args.arg(3).todouble();
+                    String member = args.arg(4).checkjstring();
+                    boolean added = zset.put(member, score) == null;
+                    return added ? LuaValue.ONE : LuaValue.ZERO;
                 }
                 throw new UnsupportedOperationException("Unsupported redis command in test: " + command);
             }

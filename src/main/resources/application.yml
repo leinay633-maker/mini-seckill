@@ -66,6 +66,7 @@ seckill:
     header-name: X-Admin-Token
   rate-limit:
     enabled: true
+    algorithm: SLIDING_WINDOW
     window: 1s
     sku-limit: 300
     user-limit: 5
