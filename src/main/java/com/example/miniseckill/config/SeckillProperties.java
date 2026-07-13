@@ -28,6 +28,7 @@ public class SeckillProperties {
     private RedisRecovery redisRecovery = new RedisRecovery();
     private AdminAuth adminAuth = new AdminAuth();
     private Snowflake snowflake = new Snowflake();
+    private AsyncLog asyncLog = new AsyncLog();
 
     public Duration getIdempotentTtl() {
         return idempotentTtl;
@@ -179,6 +180,14 @@ public class SeckillProperties {
 
     public void setSnowflake(Snowflake snowflake) {
         this.snowflake = snowflake;
+    }
+
+    public AsyncLog getAsyncLog() {
+        return asyncLog;
+    }
+
+    public void setAsyncLog(AsyncLog asyncLog) {
+        this.asyncLog = asyncLog;
     }
 
     public static class RateLimit {
@@ -720,6 +729,47 @@ public class SeckillProperties {
 
         public void setEpochMillis(long epochMillis) {
             this.epochMillis = epochMillis;
+        }
+    }
+
+    public static class AsyncLog {
+        /** When false, seckill_log writes stay synchronous (useful for A/B benchmarking and debugging). */
+        private boolean enabled = true;
+        private int corePoolSize = 2;
+        private int maxPoolSize = 4;
+        /** Bounded queue; overflow is dropped and counted (seckill_log_async_total{result=dropped}), never blocks admission. */
+        private int queueCapacity = 10000;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getCorePoolSize() {
+            return corePoolSize;
+        }
+
+        public void setCorePoolSize(int corePoolSize) {
+            this.corePoolSize = corePoolSize;
+        }
+
+        public int getMaxPoolSize() {
+            return maxPoolSize;
+        }
+
+        public void setMaxPoolSize(int maxPoolSize) {
+            this.maxPoolSize = maxPoolSize;
+        }
+
+        public int getQueueCapacity() {
+            return queueCapacity;
+        }
+
+        public void setQueueCapacity(int queueCapacity) {
+            this.queueCapacity = queueCapacity;
         }
     }
 }

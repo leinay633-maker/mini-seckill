@@ -38,4 +38,8 @@ public class SeckillMetrics {
     public void orderId(String result) {
         meterRegistry.counter("seckill_order_id_total", "result", result).increment();
     }
+
+    public void asyncLog(String result) {
+        meterRegistry.counter("seckill_log_async_total", "result", result).increment();
+    }
 }
