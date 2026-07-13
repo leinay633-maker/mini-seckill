@@ -13,7 +13,6 @@ public class SkuStock {
     private Integer totalStock;
     private Integer availableStock;
     private Integer soldCount;
-    private Integer version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -63,14 +62,6 @@ public class SkuStock {
 
     public void setSoldCount(Integer soldCount) {
         this.soldCount = soldCount;
-    }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
     }
 
     public LocalDateTime getCreatedAt() {
