@@ -15,13 +15,12 @@ import java.util.List;
 public interface SkuStockMapper {
 
     @Insert("""
-            INSERT INTO sku_stock (activity_id, sku_id, total_stock, available_stock, sold_count, version, created_at, updated_at)
-            VALUES (#{activityId}, #{skuId}, #{stock}, #{stock}, 0, 0, NOW(), NOW())
+            INSERT INTO sku_stock (activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at)
+            VALUES (#{activityId}, #{skuId}, #{stock}, #{stock}, 0, NOW(), NOW())
             ON DUPLICATE KEY UPDATE
                 total_stock = VALUES(total_stock),
                 available_stock = VALUES(available_stock),
                 sold_count = 0,
-                version = version + 1,
                 updated_at = NOW()
             """)
     int upsertStock(@Param("activityId") Long activityId, @Param("skuId") Long skuId, @Param("stock") Integer stock);
@@ -38,7 +37,7 @@ public interface SkuStockMapper {
     int decreaseStock(@Param("activityId") Long activityId, @Param("skuId") Long skuId);
 
     @Select("""
-            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, version, created_at, updated_at
+            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at
             FROM sku_stock
             WHERE activity_id = #{activityId}
               AND sku_id = #{skuId}
@@ -47,7 +46,7 @@ public interface SkuStockMapper {
     SkuStock selectBySkuId(@Param("activityId") Long activityId, @Param("skuId") Long skuId);
 
     @Select("""
-            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, version, created_at, updated_at
+            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at
             FROM sku_stock
             WHERE id > #{lastId}
             ORDER BY id ASC
@@ -56,7 +55,7 @@ public interface SkuStockMapper {
     List<SkuStock> selectPageAfterId(@Param("lastId") long lastId, @Param("limit") int limit);
 
     @Select("""
-            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, version, created_at, updated_at
+            SELECT id, activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at
             FROM sku_stock
             ORDER BY updated_at DESC
             LIMIT #{limit}

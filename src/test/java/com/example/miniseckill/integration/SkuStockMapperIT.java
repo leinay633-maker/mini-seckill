@@ -76,7 +76,6 @@ class SkuStockMapperIT {
                   total_stock INT NOT NULL,
                   available_stock INT NOT NULL,
                   sold_count INT NOT NULL DEFAULT 0,
-                  version INT NOT NULL DEFAULT 0,
                   created_at DATETIME NOT NULL,
                   updated_at DATETIME NOT NULL,
                   UNIQUE KEY uk_activity_sku (activity_id, sku_id)
