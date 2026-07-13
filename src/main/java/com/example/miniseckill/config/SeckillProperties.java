@@ -27,6 +27,7 @@ public class SeckillProperties {
     private ConsumingRecovery consumingRecovery = new ConsumingRecovery();
     private RedisRecovery redisRecovery = new RedisRecovery();
     private AdminAuth adminAuth = new AdminAuth();
+    private Snowflake snowflake = new Snowflake();
 
     public Duration getIdempotentTtl() {
         return idempotentTtl;
@@ -170,6 +171,14 @@ public class SeckillProperties {
 
     public void setAdminAuth(AdminAuth adminAuth) {
         this.adminAuth = adminAuth;
+    }
+
+    public Snowflake getSnowflake() {
+        return snowflake;
+    }
+
+    public void setSnowflake(Snowflake snowflake) {
+        this.snowflake = snowflake;
     }
 
     public static class RateLimit {
@@ -688,6 +697,29 @@ public class SeckillProperties {
 
         public void setHeaderName(String headerName) {
             this.headerName = headerName;
+        }
+    }
+
+    public static class Snowflake {
+        /** Distinct per application instance; inject via env MINI_SECKILL_WORKER_ID in multi-instance deployments. Range [0, 1023]. */
+        private long workerId = 0L;
+        /** Epoch start in epoch-millis. Default 2024-01-01T00:00:00Z. */
+        private long epochMillis = 1704067200000L;
+
+        public long getWorkerId() {
+            return workerId;
+        }
+
+        public void setWorkerId(long workerId) {
+            this.workerId = workerId;
+        }
+
+        public long getEpochMillis() {
+            return epochMillis;
+        }
+
+        public void setEpochMillis(long epochMillis) {
+            this.epochMillis = epochMillis;
         }
     }
 }

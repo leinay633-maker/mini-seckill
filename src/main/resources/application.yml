@@ -38,6 +38,9 @@ seckill:
   order-status-ttl: 2h
   default-activity-id: 1
   mq-fallback-sync: false
+  snowflake:
+    worker-id: ${MINI_SECKILL_WORKER_ID:0}
+    epoch-millis: 1704067200000
   user-auth:
     enabled: false
     jwt-secret: ${MINI_SECKILL_JWT_SECRET:mini-seckill-demo-jwt-secret-change-me-32-bytes}

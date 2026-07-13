@@ -34,4 +34,8 @@ public class SeckillMetrics {
     public void replay(String result) {
         meterRegistry.counter("seckill_replay_total", "result", result).increment();
     }
+
+    public void orderId(String result) {
+        meterRegistry.counter("seckill_order_id_total", "result", result).increment();
+    }
 }

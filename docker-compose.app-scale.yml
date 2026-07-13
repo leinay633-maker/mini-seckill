@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
+      MINI_SECKILL_WORKER_ID: 0
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: miniseckill
       SPRING_DATASOURCE_PASSWORD: miniseckill
@@ -25,6 +26,7 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
+      MINI_SECKILL_WORKER_ID: 1
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: miniseckill
       SPRING_DATASOURCE_PASSWORD: miniseckill
@@ -46,6 +48,7 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
+      MINI_SECKILL_WORKER_ID: 2
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: miniseckill
       SPRING_DATASOURCE_PASSWORD: miniseckill
@@ -67,6 +70,7 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
+      MINI_SECKILL_WORKER_ID: 3
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/mini_seckill?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: miniseckill
       SPRING_DATASOURCE_PASSWORD: miniseckill
