@@ -68,6 +68,8 @@ class SeckillServiceImplHiddenPathTest {
     @Mock
     private DefaultRedisScript<Long> seckillStockScript;
     @Mock
+    private DefaultRedisScript<Long> seckillStockShardedScript;
+    @Mock
     private DefaultRedisScript<Long> rateLimitScript;
     @Mock
     private DefaultRedisScript<Long> rateLimitSlidingScript;
@@ -108,6 +110,7 @@ class SeckillServiceImplHiddenPathTest {
                 seckillOrderMapper,
                 stringRedisTemplate,
                 seckillStockScript,
+                seckillStockShardedScript,
                 rateLimitScript,
                 rateLimitSlidingScript,
                 compareAndDeleteScript,
@@ -217,7 +220,8 @@ class SeckillServiceImplHiddenPathTest {
                 anyString(),
                 eq(properties.getIdempotentTtl())
         )).thenReturn(true);
-        when(stringRedisTemplate.execute(eq(seckillStockScript), anyList())).thenReturn(1L);
+        // Default sharded path is now the single-Lua bucket scan (A3): one call, returns the hit bucket index.
+        when(stringRedisTemplate.execute(eq(seckillStockShardedScript), anyList(), any())).thenReturn(0L);
         when(seckillMessageMapper.insertPending(
                 anyString(),
                 eq(ACTIVITY_ID),

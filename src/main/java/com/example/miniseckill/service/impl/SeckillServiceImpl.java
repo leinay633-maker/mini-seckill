@@ -55,6 +55,7 @@ public class SeckillServiceImpl implements SeckillService {
     private final SeckillOrderMapper seckillOrderMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final DefaultRedisScript<Long> seckillStockScript;
+    private final DefaultRedisScript<Long> seckillStockShardedScript;
     private final DefaultRedisScript<Long> rateLimitScript;
     private final DefaultRedisScript<Long> rateLimitSlidingScript;
     private final DefaultRedisScript<Long> compareAndDeleteScript;
@@ -76,6 +77,7 @@ public class SeckillServiceImpl implements SeckillService {
                               SeckillOrderMapper seckillOrderMapper,
                               StringRedisTemplate stringRedisTemplate,
                               DefaultRedisScript<Long> seckillStockScript,
+                              DefaultRedisScript<Long> seckillStockShardedScript,
                               DefaultRedisScript<Long> rateLimitScript,
                               DefaultRedisScript<Long> rateLimitSlidingScript,
                               DefaultRedisScript<Long> compareAndDeleteScript,
@@ -96,6 +98,7 @@ public class SeckillServiceImpl implements SeckillService {
         this.seckillOrderMapper = seckillOrderMapper;
         this.stringRedisTemplate = stringRedisTemplate;
         this.seckillStockScript = seckillStockScript;
+        this.seckillStockShardedScript = seckillStockShardedScript;
         this.rateLimitScript = rateLimitScript;
         this.rateLimitSlidingScript = rateLimitSlidingScript;
         this.compareAndDeleteScript = compareAndDeleteScript;
@@ -480,6 +483,19 @@ public class SeckillServiceImpl implements SeckillService {
 
         List<String> bucketKeys = stockBucketKeys(activityId, skuId);
         int start = Math.floorMod(userId.hashCode(), bucketKeys.size());
+
+        if (seckillProperties.getStockShard().isSingleLuaEnabled()) {
+            // One round trip: the Lua scans buckets from `start` and decrements the first non-empty one.
+            // Replaces the up-to-N DECR round trips near sell-out. Single-Redis only (bucket keys share
+            // no hash tag, so this must be disabled under Cluster where they span slots).
+            Long hit = stringRedisTemplate.execute(seckillStockShardedScript, bucketKeys, String.valueOf(start));
+            if (hit != null && hit >= 0L) {
+                return new StockAdmission(1L, bucketKeys.get(hit.intValue()));
+            }
+            // -1 = buckets exist but all empty (sold out); -2 = no bucket (not initialized).
+            return new StockAdmission(Long.valueOf(-2L).equals(hit) ? -1L : 0L, null);
+        }
+
         boolean hasAnyBucket = false;
         for (int offset = 0; offset < bucketKeys.size(); offset++) {
             String bucketKey = bucketKeys.get((start + offset) % bucketKeys.size());
