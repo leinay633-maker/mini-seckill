@@ -69,7 +69,8 @@ class OrderServiceImplTest {
                 skuStockSegmentMapper,
                 stringRedisTemplate,
                 seckillProperties,
-                seckillMetrics
+                seckillMetrics,
+                new SnowflakeOrderIdGenerator(seckillProperties, seckillMetrics)
         );
     }
 

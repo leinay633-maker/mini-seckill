@@ -12,9 +12,9 @@ import com.example.miniseckill.mapper.SeckillMessageMapper;
 import com.example.miniseckill.mapper.SeckillOrderMapper;
 import com.example.miniseckill.mapper.SkuStockMapper;
 import com.example.miniseckill.mapper.SkuStockSegmentMapper;
+import com.example.miniseckill.service.OrderIdGenerator;
 import com.example.miniseckill.service.OrderService;
 import com.example.miniseckill.service.SeckillMetrics;
-import com.example.miniseckill.util.OrderIdGenerator;
 import com.example.miniseckill.util.RedisKeyUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final SeckillProperties seckillProperties;
     private final SkuStockSegmentMapper skuStockSegmentMapper;
     private final SeckillMetrics seckillMetrics;
+    private final OrderIdGenerator orderIdGenerator;
 
     public OrderServiceImpl(SeckillOrderMapper seckillOrderMapper,
                             SkuStockMapper skuStockMapper,
@@ -42,7 +43,8 @@ public class OrderServiceImpl implements OrderService {
                             SkuStockSegmentMapper skuStockSegmentMapper,
                             StringRedisTemplate stringRedisTemplate,
                             SeckillProperties seckillProperties,
-                            SeckillMetrics seckillMetrics) {
+                            SeckillMetrics seckillMetrics,
+                            OrderIdGenerator orderIdGenerator) {
         this.seckillOrderMapper = seckillOrderMapper;
         this.skuStockMapper = skuStockMapper;
         this.seckillLogMapper = seckillLogMapper;
@@ -51,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
         this.stringRedisTemplate = stringRedisTemplate;
         this.seckillProperties = seckillProperties;
         this.seckillMetrics = seckillMetrics;
+        this.orderIdGenerator = orderIdGenerator;
     }
 
     @Override
@@ -67,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void createOrder(SeckillMessage message, boolean requireConsumingStatus) {
         SeckillOrder order = new SeckillOrder();
-        order.setOrderId(OrderIdGenerator.nextId());
+        order.setOrderId(orderIdGenerator.nextId());
         order.setActivityId(message.getActivityId());
         order.setUserId(message.getUserId());
         order.setSkuId(message.getSkuId());
