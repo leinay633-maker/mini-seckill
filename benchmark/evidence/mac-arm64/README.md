@@ -1,6 +1,6 @@
 # Mac ARM64 压测精选证据
 
-本目录保存 2026-07-13 在同一台 Apple M1 Mac 上完成的基线与优化版对照证据。完整临时输出在 `benchmark/results/`，该目录不进入 Git；这里保留报告引用所需的代表轮次、全开数据库计数、异步日志开关对照，以及可独立重算中位数的三轮 summary。
+本目录保存 2026-07-13 和 2026-07-21 在同一台 Apple M1 Mac 上完成的性能对照与可靠性演练证据。完整临时输出在 `benchmark/results/`，该目录不进入 Git；这里保留报告引用所需的代表轮次、可独立重算的 summary、多实例订单号对账、Redis 故障时间线、MQ 积压追赶、监控告警和 soak 采样。
 
 ## 环境
 
@@ -53,6 +53,18 @@
 | selltail r3 | 2.1160 | 3.0890 | 10.9850 | 10.3550 | 20.7095 | 25.7311 |
 
 单位均为毫秒。完整中位数及百分比见项目根 `REPORT.md`。
+
+## 2026-07-21 可靠性演练
+
+| 场景 | 关键结果 | 精选证据 |
+|---|---|---|
+| 四实例 unique/duplicate/selltail | 三场景系统错误率均为 0；workerId 0–3 均出单；order_id 与用户订单重复均为 0 | `multi-*-summary.json`、`multi-*-verify.txt` |
+| Redis 停止 180 秒 | 5000 初始库存，故障窗 3918 次 fail-closed，最终 2082 单、剩余 2918、零重复、队列清零 | `fault-summary.json`、`fault-timeline.txt`、`fault-alerts.jsonl`、`fault-verify.txt` |
+| MQ 积压追赶 | 无消费者时 ready=1000，恢复后 9 秒清空，最终 1000 单、零重复 | `backlog-summary.json`、`backlog-timeline.txt`、`backlog-verify.txt` |
+| Prometheus / 告警 | 正常轮采到 admission/MQ 序列，HTTP histogram 有 p95 序列；Redis 故障触发 High5xxRate firing | `monitoring-*.json`、`monitoring-*-summary.txt` |
+| 45 分钟 soak | 27001 次迭代，系统错误率 0；heap 6–132 MiB、Hikari pending 最大 0；最终 27001 单、零重复 | `soak-summary.json`、`soak-metrics.csv`、`soak-timeline.txt`、`soak-verify.txt` |
+
+完整口径、数字和边界见项目根 `REPORT-RELIABILITY.md`。四实例轮使用 `nginx-bench.conf` 将边缘限流提高到 1000 req/s，因为一次 k6 迭代包含 token 与 order 两个 HTTP 请求；该配置用于隔离应用正确性，不代表生产阈值。
 
 ## 文件选择说明
 

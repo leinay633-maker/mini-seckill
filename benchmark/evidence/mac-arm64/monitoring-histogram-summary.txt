@@ -1,0 +1,7 @@
+window_start=1784628606
+window_end=1784628906
+admission: status=success series=0
+alerts_firing=none
+api-5xx: status=success series=0
+api-p95: status=success series=1
+mq: status=success series=0

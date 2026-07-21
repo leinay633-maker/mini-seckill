@@ -3,7 +3,7 @@
 [![CI](https://github.com/leinay633-maker/mini-seckill/actions/workflows/ci.yml/badge.svg)](https://github.com/leinay633-maker/mini-seckill/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-6DB33F)
-![JaCoCo](https://img.shields.io/badge/JaCoCo-line%20coverage%20%E2%89%A535%25-brightgreen)
+![JaCoCo](https://img.shields.io/badge/JaCoCo-line%20coverage%20%E2%89%A545%25-brightgreen)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 MiniSeckill 是一个聚焦秒杀下单核心链路的 Java 后端面试项目。它不追求完整商城功能，而是用可运行代码、自动化测试和真实压测证据回答几个关键问题：高并发下如何防超卖、防重复、削峰、保证消息可恢复，以及如何让优化结论可复现。
@@ -112,6 +112,21 @@ docker compose \
   up -d --build
 ```
 
+本机可靠性演练使用资源限制 overlay，并把 Nginx 边缘限流与应用压测隔离开：
+
+```bash
+docker build -t mini-seckill:local .
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.app-scale.yml \
+  -f docker-compose.nginx.yml \
+  -f docker-compose.monitoring.yml \
+  -f docker-compose.bench-limits.yml \
+  up -d
+```
+
+`nginx-bench.conf` 只用于隔离应用正确性压测，不能替代生产限流值。
+
 ### 3. 打开接口文档
 
 - Swagger UI：`http://localhost:8080/swagger-ui.html`
@@ -168,6 +183,7 @@ HTTP 状态码与 body `code` 同时表达语义：参数错误、鉴权失败�
 | `seckill.stock-shard.single-lua-enabled` | `true` | 单机 Redis 用一次 Lua 遍历分片；Cluster 配置关闭 |
 | `seckill.dynamic-rate-limit.cache-ttl` | `5s` | 动态规则及“无规则”负缓存 TTL |
 | `seckill.order-timeout.queued-timeout` | `10m` | 排队超时后关闭并释放用户 SKU 幂等 key |
+| `seckill.mq-consumer.auto-startup` | `true` | 演练时可关闭消费者制造可控积压，默认正常消费 |
 | `seckill.security.trust-forwarded-header` | `false` | 默认不信任 X-Forwarded-For |
 | `seckill.security.trusted-proxies` | 本地私网前缀 | 仅在开启转发头后使用；生产应配置精确代理 IP（当前也支持以点结尾的简化前缀，标准 CIDR 待实现） |
 
@@ -219,7 +235,7 @@ mvn -B clean -Pintegration-test verify
 ./scripts/check-evidence.sh
 ```
 
-CI 还会执行三组 Docker Compose 配置解析，避免提交无法组合的多实例、Nginx 或监控配置。
+CI 还会逐层解析基础依赖、多实例、Nginx、监控和资源限制 overlay，避免提交无法组合的 Compose 配置。
 
 ## 压测结果
 
@@ -235,7 +251,10 @@ CI 还会执行三组 Docker Compose 配置解析，避免提交无法组合的�
 
 所有优化百分比只比较同一台 Mac 上的基线与优化版。旧 Windows 数据真实保留，但不参与跨机计算。
 
-- 完整方法、异常轮次和证据边界：[REPORT.md](REPORT.md)
+2026-07-21 又补了四条可靠性证据：四实例三场景 `order_id` 零重复；Redis 停止 180 秒后按 MySQL 事实恢复并继续放量；1000 条 MQ 积压 9 秒追平；45 分钟 soak 持续采集 JVM/连接池/消息表数据。它们只验证本机正确性与恢复语义，不外推生产容量；backlog 与 soak 必须先停止 app-scale 实例，避免其它消费者抢走演练消息，具体顺序见可靠性报告。
+
+- 优化前后性能报告：[REPORT.md](REPORT.md)
+- 多实例、故障、积压、soak 与告警报告：[REPORT-RELIABILITY.md](REPORT-RELIABILITY.md)
 - 阶段 0 冻结基线：[benchmark/BASELINE.md](benchmark/BASELINE.md)
 - 精选原始证据：[benchmark/evidence/mac-arm64/README.md](benchmark/evidence/mac-arm64/README.md)
 
