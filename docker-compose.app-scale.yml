@@ -1,5 +1,6 @@
 services:
   app-1:
+    image: mini-seckill:local
     build: .
     restart: unless-stopped
     environment:
@@ -22,7 +23,7 @@ services:
       - rabbitmq
 
   app-2:
-    build: .
+    image: mini-seckill:local
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
@@ -44,7 +45,7 @@ services:
       - rabbitmq
 
   app-3:
-    build: .
+    image: mini-seckill:local
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k
@@ -66,7 +67,7 @@ services:
       - rabbitmq
 
   app-4:
-    build: .
+    image: mini-seckill:local
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: 100k

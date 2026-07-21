@@ -96,6 +96,7 @@ seckill:
     concurrent-consumers: 2
     max-concurrent-consumers: 8
     prefetch-count: 50
+    auto-startup: true
   message-retry:
     enabled: true
     fixed-delay: 15000
@@ -136,6 +137,9 @@ management:
   metrics:
     tags:
       application: mini-seckill
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
 
 springdoc:
   api-docs:

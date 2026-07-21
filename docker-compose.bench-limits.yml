@@ -1,0 +1,58 @@
+services:
+  nginx:
+    volumes:
+      - ./nginx/nginx-bench.conf:/etc/nginx/nginx.conf:ro
+
+  mysql:
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max-connections=300
+
+  app-1:
+    image: mini-seckill:local
+    mem_limit: 768m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/api/recovery/redis/status >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  app-2:
+    image: mini-seckill:local
+    mem_limit: 768m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/api/recovery/redis/status >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  app-3:
+    image: mini-seckill:local
+    mem_limit: 768m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/api/recovery/redis/status >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  app-4:
+    image: mini-seckill:local
+    mem_limit: 768m
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/api/recovery/redis/status >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
