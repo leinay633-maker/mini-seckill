@@ -93,6 +93,7 @@ public class RabbitMQConfig {
         factory.setConcurrentConsumers(Math.max(1, consumer.getConcurrentConsumers()));
         factory.setMaxConcurrentConsumers(Math.max(consumer.getConcurrentConsumers(), consumer.getMaxConcurrentConsumers()));
         factory.setPrefetchCount(Math.max(1, consumer.getPrefetchCount()));
+        factory.setAutoStartup(consumer.isAutoStartup());
         return factory;
     }
 }

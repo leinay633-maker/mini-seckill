@@ -487,6 +487,7 @@ public class SeckillProperties {
         private int concurrentConsumers = 2;
         private int maxConcurrentConsumers = 8;
         private int prefetchCount = 50;
+        private boolean autoStartup = true;
 
         public int getConcurrentConsumers() {
             return concurrentConsumers;
@@ -510,6 +511,14 @@ public class SeckillProperties {
 
         public void setPrefetchCount(int prefetchCount) {
             this.prefetchCount = prefetchCount;
+        }
+
+        public boolean isAutoStartup() {
+            return autoStartup;
+        }
+
+        public void setAutoStartup(boolean autoStartup) {
+            this.autoStartup = autoStartup;
         }
     }
 

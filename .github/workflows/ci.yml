@@ -32,6 +32,7 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.app-scale.yml -f docker-compose.nginx.yml config --quiet
           docker compose -f docker-compose.yml -f docker-compose.app-scale.yml -f docker-compose.monitoring.yml config --quiet
           docker compose -f docker-compose.yml -f docker-compose.app-scale.yml -f docker-compose.nginx.yml -f docker-compose.monitoring.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.app-scale.yml -f docker-compose.nginx.yml -f docker-compose.monitoring.yml -f docker-compose.bench-limits.yml config --quiet
 
       - name: Check benchmark evidence files
         run: ./scripts/check-evidence.sh
