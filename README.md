@@ -239,10 +239,6 @@ CI 还会执行三组 Docker Compose 配置解析，避免提交无法组合的�
 - 阶段 0 冻结基线：[benchmark/BASELINE.md](benchmark/BASELINE.md)
 - 精选原始证据：[benchmark/evidence/mac-arm64/README.md](benchmark/evidence/mac-arm64/README.md)
 
-## 文档导航
-
-架构、核心链路、一致性、故障恢复、压测口径和面试讲解统一收录在 [docs/README.md](docs/README.md)。
-
 ## 项目边界
 
 这是面向学习和面试展示的单机/多实例样板，不是生产级电商系统。项目没有实现支付、商品中心、生产风控、跨地域容灾和容量自动扩缩；压测也不用于外推生产集群容量。文档会明确区分“已经由代码或证据验证”与“生产环境仍需补齐”的部分。
