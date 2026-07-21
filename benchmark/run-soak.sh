@@ -9,7 +9,8 @@ DURATION="${DURATION:-45m}"
 STOCK="${STOCK:-30000}"
 IMAGE="${IMAGE:-mini-seckill:local}"
 APP_CONTAINER="${APP_CONTAINER:-mini-seckill-soak-app}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-mini-seckill_default}"
+COMPOSE_PROJECT="$(docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' mini-seckill-mysql 2>/dev/null || true)"
+DOCKER_NETWORK="${DOCKER_NETWORK:-${COMPOSE_PROJECT:-mini-seckill}_default}"
 NAME="${NAME:-soak-single}"
 RESULT_DIR="$HERE/results"
 mkdir -p "$RESULT_DIR"
@@ -39,6 +40,21 @@ metric() {
 message_count() {
   docker exec -i mini-seckill-mysql mysql -N -B -uminiseckill -pminiseckill mini_seckill \
     -e "SELECT COUNT(*) FROM seckill_message WHERE activity_id=1 AND sku_id=1001" 2>/dev/null || printf 'NA'
+}
+mysql_scalar() {
+  docker exec -i mini-seckill-mysql mysql -N -B -uminiseckill -pminiseckill mini_seckill -e "$1" 2>/dev/null
+}
+wait_reconcile() {
+  for _ in $(seq 1 24); do
+    orders="$(mysql_scalar 'SELECT COUNT(*) FROM seckill_order WHERE activity_id=1 AND sku_id=1001 AND status=2')"
+    sold="$(mysql_scalar 'SELECT sold_count FROM sku_stock WHERE activity_id=1 AND sku_id=1001')"
+    total="$(docker exec mini-seckill-redis redis-cli GET seckill:stock:1:1001 2>/dev/null)"
+    buckets="$(docker exec mini-seckill-redis sh -c "redis-cli --scan --pattern 'seckill:stock:1:1001:bucket:*' | while read k; do redis-cli get \"\$k\"; done" 2>/dev/null | paste -sd+ - | bc)"
+    log "等待对账收敛 orders=$orders sold=$sold redis_total=$total bucket_sum=$buckets"
+    [ "$orders" = "$sold" ] && [ -n "$total" ] && [ -n "$buckets" ] && [ "$total" = "$buckets" ] && return 0
+    sleep 5
+  done
+  return 1
 }
 
 : > "$TIMELINE"
@@ -70,6 +86,7 @@ while kill -0 "$K6_PID" 2>/dev/null; do
 done
 wait "$K6_PID"
 K6_PID=""
+wait_reconcile || { log "120 秒内库存事实未收敛"; exit 1; }
 log "k6 完成,执行最终对账"
 bash "$HERE/run-verify.sh" "$NAME" | tee -a "$TIMELINE"
 log "soak 完成; metrics=$METRICS timeline=$TIMELINE"

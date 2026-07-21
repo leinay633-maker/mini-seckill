@@ -9,7 +9,8 @@ DURATION="${DURATION:-60s}"
 STOCK="${STOCK:-1000}"
 IMAGE="${IMAGE:-mini-seckill:local}"
 APP_CONTAINER="${APP_CONTAINER:-mini-seckill-backlog-app}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-mini-seckill_default}"
+COMPOSE_PROJECT="$(docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' mini-seckill-mysql 2>/dev/null || true)"
+DOCKER_NETWORK="${DOCKER_NETWORK:-${COMPOSE_PROJECT:-mini-seckill}_default}"
 NAME="${NAME:-backlog-single}"
 RESULT_DIR="$HERE/results"
 mkdir -p "$RESULT_DIR"
@@ -34,7 +35,7 @@ wait_reconcile() {
     total="$(docker exec mini-seckill-redis redis-cli GET seckill:stock:1:1001 2>/dev/null)"
     buckets="$(docker exec mini-seckill-redis sh -c "redis-cli --scan --pattern 'seckill:stock:1:1001:bucket:*' | while read k; do redis-cli get \"\$k\"; done" 2>/dev/null | paste -sd+ - | bc)"
     log "等待对账收敛 orders=$orders sold=$sold redis_total=$total bucket_sum=$buckets"
-    [ "$orders" = "$sold" ] && [ "$total" = "$buckets" ] && return 0
+    [ "$orders" = "$sold" ] && [ -n "$total" ] && [ -n "$buckets" ] && [ "$total" = "$buckets" ] && return 0
     sleep 5
   done
   return 1

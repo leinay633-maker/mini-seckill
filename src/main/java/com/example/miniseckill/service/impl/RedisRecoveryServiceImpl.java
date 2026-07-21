@@ -91,8 +91,8 @@ public class RedisRecoveryServiceImpl implements RedisRecoveryService {
             } catch (BusinessException ex) {
                 failedCount++;
                 response.setSkippedSkuCount(response.getSkippedSkuCount() + 1);
-                log.warn("skip Redis stock recovery because lock is busy, activityId={}, skuId={}",
-                        stock.getActivityId(), stock.getSkuId());
+                log.warn("skip Redis stock recovery, activityId={}, skuId={}, error={}",
+                        stock.getActivityId(), stock.getSkuId(), ex.getMessage());
             } catch (Exception ex) {
                 failedCount++;
                 response.setSkippedSkuCount(response.getSkippedSkuCount() + 1);
