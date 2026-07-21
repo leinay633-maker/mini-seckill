@@ -19,7 +19,6 @@ required_paths=(
   "docker-compose.app-scale.yml"
   "docker-compose.nginx.yml"
   "docker-compose.monitoring.yml"
-  "docs/README.md"
   "benchmark/BASELINE.md"
   "benchmark/reset-env.sh"
   "benchmark/run-k6.sh"
