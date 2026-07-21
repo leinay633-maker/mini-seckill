@@ -50,6 +50,23 @@ FROM (
   HAVING COUNT(*) > 1
 ) t;
 
+SELECT 'order_id_uniqueness' AS section,
+       COUNT(*) AS order_count,
+       COUNT(DISTINCT order_id) AS distinct_order_id_count,
+       COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_order_id_count
+FROM seckill_order
+WHERE activity_id = @activity_id
+  AND sku_id = @sku_id;
+
+SELECT 'order_worker_distribution' AS section,
+       ((order_id >> 12) & 1023) AS worker_id,
+       COUNT(*) AS order_count
+FROM seckill_order
+WHERE activity_id = @activity_id
+  AND sku_id = @sku_id
+GROUP BY ((order_id >> 12) & 1023)
+ORDER BY worker_id;
+
 SELECT 'messages_by_status' AS section,
        status,
        retry_count,
