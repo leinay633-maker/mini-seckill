@@ -1,0 +1,210 @@
+[2026-07-21 16:56:43] 故障演练开始 BASE_URL=http://localhost:80 rate=20 total=300s stock=5000 failure_at=60s recovery_after=180s
+== reset mysql tables ==
+== clear redis seckill keys ==
+857
+861
+421
+== purge rabbitmq queues ==
+Purging queue 'mini.seckill.order.queue' in vhost '/' ...
+Purging queue 'mini.seckill.dead.queue' in vhost '/' ...
+== initialize stock through application ==
+{"code":0,"message":"初始化成功"}
+{"code":0,"message":"预热成功"}
+{"code":0,"message":"success","data":{"skuId":1001,"activityId":1,"redisStock":5000,"mysqlTotalStock":5000,"mysqlAvailableStock":5000,"mysqlSoldCount":0,"shardingEnabled":true,"bucketCount":128,"mysqlSegmentEnabled":true,"mysqlSegmentCount":128}}
+[2026-07-21 16:56:45] 启动 k6 故障压力
+[2026-07-21 16:57:45] 停止 Redis
+mini-seckill-redis
+Redis 容器已停止: mini-seckill-redis
+等待应用健康检查进入恢复态后,再运行 recovery-check.sh。
+[2026-07-21 17:00:45] 启动 Redis
+mini-seckill-redis
+Redis 容器已启动: mini-seckill-redis
+请确认应用已进入恢复态后运行 recovery-check.sh 重建库存。
+[2026-07-21 17:01:01] 逐实例串行执行 Redis 恢复
+
+== Redis recovery: http://localhost:8080 ==
+{"code":0,"message":"success","data":{"recovering":true,"consecutiveFailures":0,"lastReason":"Redis health check failed 26 times: Redis command timed out","lastFailureTime":"2026-07-21T09:00:52.87375463","lastStateChangeTime":"2026-07-21T08:58:05.576854344"}}
+{"code":0,"message":"success","data":{"scannedSkuCount":1,"recoveredSkuCount":1,"skippedSkuCount":0,"totalExpectedRedisStock":3803,"startedAt":"2026-07-21T09:01:01.120996842","finishedAt":"2026-07-21T09:01:01.163850217","message":"Redis 库存恢复完成，入口可以继续放量"}}
+{"code":0,"message":"success","data":{"recovering":false,"consecutiveFailures":0,"lastReason":"Redis stock has been rebuilt from MySQL","lastFailureTime":"2026-07-21T09:00:52.87375463","lastStateChangeTime":"2026-07-21T09:01:01.163857009"}}
+
+== Redis recovery: http://localhost:8081 ==
+{"code":0,"message":"success","data":{"recovering":true,"consecutiveFailures":0,"lastReason":"Redis health check failed 25 times: Redis command timed out","lastFailureTime":"2026-07-21T09:00:46.92000271","lastStateChangeTime":"2026-07-21T08:58:06.610781345"}}
+{"code":0,"message":"success","data":{"scannedSkuCount":1,"recoveredSkuCount":1,"skippedSkuCount":0,"totalExpectedRedisStock":3803,"startedAt":"2026-07-21T09:01:01.284484384","finishedAt":"2026-07-21T09:01:01.340128634","message":"Redis 库存恢复完成，入口可以继续放量"}}
+{"code":0,"message":"success","data":{"recovering":false,"consecutiveFailures":0,"lastReason":"Redis stock has been rebuilt from MySQL","lastFailureTime":"2026-07-21T09:00:46.92000271","lastStateChangeTime":"2026-07-21T09:01:01.340134717"}}
+
+== Redis recovery: http://localhost:8082 ==
+{"code":0,"message":"success","data":{"recovering":true,"consecutiveFailures":0,"lastReason":"Redis health check failed 25 times: Redis command timed out","lastFailureTime":"2026-07-21T09:00:44.592971876","lastStateChangeTime":"2026-07-21T08:58:02.320221967"}}
+{"code":0,"message":"success","data":{"scannedSkuCount":1,"recoveredSkuCount":1,"skippedSkuCount":0,"totalExpectedRedisStock":3803,"startedAt":"2026-07-21T09:01:01.408534509","finishedAt":"2026-07-21T09:01:01.447802259","message":"Redis 库存恢复完成，入口可以继续放量"}}
+{"code":0,"message":"success","data":{"recovering":false,"consecutiveFailures":0,"lastReason":"Redis stock has been rebuilt from MySQL","lastFailureTime":"2026-07-21T09:00:44.592971876","lastStateChangeTime":"2026-07-21T09:01:01.4478063"}}
+
+== Redis recovery: http://localhost:8083 ==
+{"code":0,"message":"success","data":{"recovering":true,"consecutiveFailures":0,"lastReason":"Redis health check failed 26 times: Redis command timed out","lastFailureTime":"2026-07-21T09:00:51.123820629","lastStateChangeTime":"2026-07-21T08:58:05.004090885"}}
+{"code":0,"message":"success","data":{"scannedSkuCount":1,"recoveredSkuCount":1,"skippedSkuCount":0,"totalExpectedRedisStock":3802,"startedAt":"2026-07-21T09:01:01.507765259","finishedAt":"2026-07-21T09:01:01.544481509","message":"Redis 库存恢复完成，入口可以继续放量"}}
+{"code":0,"message":"success","data":{"recovering":false,"consecutiveFailures":0,"lastReason":"Redis stock has been rebuilt from MySQL","lastFailureTime":"2026-07-21T09:00:51.123820629","lastStateChangeTime":"2026-07-21T09:01:01.544484134"}}
+[2026-07-21 17:01:01] 等待 k6 完成
+[2026-07-21 17:01:46] 执行最终对账
+===== MySQL verify.sql =====
+section	activity_id	sku_id	total_stock	available_stock	sold_count
+stock_summary	1	1001	5000	3074	1926
+section	activity_id	sku_id	segment_count	segment_total_stock	segment_available_stock	segment_sold_count	min_segment_available
+stock_segments	1	1001	128	5000	2918	2082	22
+section	total_orders	success_orders	distinct_order_users	first_order_at	last_order_at	mysql_order_span_ms
+orders	2082	2082	2082	2026-07-21 16:56:45	2026-07-21 17:01:45	300000.0000
+section	duplicate_group_count
+duplicate_order_groups	0
+section	order_count	distinct_order_id_count	duplicate_order_id_count
+order_id_uniqueness	2082	2082	0
+section	worker_id	order_count
+order_worker_distribution	0	520
+order_worker_distribution	1	520
+order_worker_distribution	2	519
+order_worker_distribution	3	523
+section	status	retry_count	message_count
+messages_by_status	2	0	2082
+section	local_messages	consumed_messages	success_orders	consumed_equals_orders
+message_order_consistency	2082	2082	2082	1
+section	type	status	compensation_count
+compensations	MYSQL_ORDER_STOCK_MISMATCH	WAIT_MANUAL_CHECK	2
+compensations	RECONCILE_FAILED	FAILED	12
+compensations	REDIS_RECOVERY_REBUILD	DONE	4
+compensations	REDIS_STOCK_REPAIR	DONE	5
+
+===== Redis stock keys (total + buckets) =====
+seckill:stock:1:1001 = 3075
+seckill:stock:1:1001:bucket:0 = 24
+seckill:stock:1:1001:bucket:1 = 24
+seckill:stock:1:1001:bucket:10 = 23
+seckill:stock:1:1001:bucket:100 = 22
+seckill:stock:1:1001:bucket:101 = 22
+seckill:stock:1:1001:bucket:102 = 22
+seckill:stock:1:1001:bucket:103 = 22
+seckill:stock:1:1001:bucket:104 = 22
+seckill:stock:1:1001:bucket:105 = 22
+seckill:stock:1:1001:bucket:106 = 22
+seckill:stock:1:1001:bucket:107 = 22
+seckill:stock:1:1001:bucket:108 = 22
+seckill:stock:1:1001:bucket:109 = 22
+seckill:stock:1:1001:bucket:11 = 23
+seckill:stock:1:1001:bucket:110 = 22
+seckill:stock:1:1001:bucket:111 = 22
+seckill:stock:1:1001:bucket:112 = 23
+seckill:stock:1:1001:bucket:113 = 23
+seckill:stock:1:1001:bucket:114 = 23
+seckill:stock:1:1001:bucket:115 = 23
+seckill:stock:1:1001:bucket:116 = 23
+seckill:stock:1:1001:bucket:117 = 23
+seckill:stock:1:1001:bucket:118 = 23
+seckill:stock:1:1001:bucket:119 = 23
+seckill:stock:1:1001:bucket:12 = 23
+seckill:stock:1:1001:bucket:120 = 23
+seckill:stock:1:1001:bucket:121 = 23
+seckill:stock:1:1001:bucket:122 = 23
+seckill:stock:1:1001:bucket:123 = 23
+seckill:stock:1:1001:bucket:124 = 23
+seckill:stock:1:1001:bucket:125 = 23
+seckill:stock:1:1001:bucket:126 = 23
+seckill:stock:1:1001:bucket:127 = 23
+seckill:stock:1:1001:bucket:13 = 23
+seckill:stock:1:1001:bucket:14 = 23
+seckill:stock:1:1001:bucket:15 = 23
+seckill:stock:1:1001:bucket:16 = 23
+seckill:stock:1:1001:bucket:17 = 23
+seckill:stock:1:1001:bucket:18 = 23
+seckill:stock:1:1001:bucket:19 = 23
+seckill:stock:1:1001:bucket:2 = 24
+seckill:stock:1:1001:bucket:20 = 23
+seckill:stock:1:1001:bucket:21 = 23
+seckill:stock:1:1001:bucket:22 = 23
+seckill:stock:1:1001:bucket:23 = 23
+seckill:stock:1:1001:bucket:24 = 23
+seckill:stock:1:1001:bucket:25 = 23
+seckill:stock:1:1001:bucket:26 = 23
+seckill:stock:1:1001:bucket:27 = 23
+seckill:stock:1:1001:bucket:28 = 23
+seckill:stock:1:1001:bucket:29 = 23
+seckill:stock:1:1001:bucket:3 = 23
+seckill:stock:1:1001:bucket:30 = 23
+seckill:stock:1:1001:bucket:31 = 23
+seckill:stock:1:1001:bucket:32 = 23
+seckill:stock:1:1001:bucket:33 = 23
+seckill:stock:1:1001:bucket:34 = 23
+seckill:stock:1:1001:bucket:35 = 23
+seckill:stock:1:1001:bucket:36 = 23
+seckill:stock:1:1001:bucket:37 = 23
+seckill:stock:1:1001:bucket:38 = 23
+seckill:stock:1:1001:bucket:39 = 23
+seckill:stock:1:1001:bucket:4 = 23
+seckill:stock:1:1001:bucket:40 = 23
+seckill:stock:1:1001:bucket:41 = 23
+seckill:stock:1:1001:bucket:42 = 23
+seckill:stock:1:1001:bucket:43 = 23
+seckill:stock:1:1001:bucket:44 = 23
+seckill:stock:1:1001:bucket:45 = 23
+seckill:stock:1:1001:bucket:46 = 23
+seckill:stock:1:1001:bucket:47 = 23
+seckill:stock:1:1001:bucket:48 = 23
+seckill:stock:1:1001:bucket:49 = 23
+seckill:stock:1:1001:bucket:5 = 23
+seckill:stock:1:1001:bucket:50 = 23
+seckill:stock:1:1001:bucket:51 = 23
+seckill:stock:1:1001:bucket:52 = 23
+seckill:stock:1:1001:bucket:53 = 23
+seckill:stock:1:1001:bucket:54 = 23
+seckill:stock:1:1001:bucket:55 = 23
+seckill:stock:1:1001:bucket:56 = 23
+seckill:stock:1:1001:bucket:57 = 23
+seckill:stock:1:1001:bucket:58 = 23
+seckill:stock:1:1001:bucket:59 = 23
+seckill:stock:1:1001:bucket:6 = 23
+seckill:stock:1:1001:bucket:60 = 23
+seckill:stock:1:1001:bucket:61 = 23
+seckill:stock:1:1001:bucket:62 = 23
+seckill:stock:1:1001:bucket:63 = 23
+seckill:stock:1:1001:bucket:64 = 23
+seckill:stock:1:1001:bucket:65 = 23
+seckill:stock:1:1001:bucket:66 = 23
+seckill:stock:1:1001:bucket:67 = 23
+seckill:stock:1:1001:bucket:68 = 23
+seckill:stock:1:1001:bucket:69 = 23
+seckill:stock:1:1001:bucket:7 = 23
+seckill:stock:1:1001:bucket:70 = 23
+seckill:stock:1:1001:bucket:71 = 23
+seckill:stock:1:1001:bucket:72 = 23
+seckill:stock:1:1001:bucket:73 = 23
+seckill:stock:1:1001:bucket:74 = 23
+seckill:stock:1:1001:bucket:75 = 23
+seckill:stock:1:1001:bucket:76 = 23
+seckill:stock:1:1001:bucket:77 = 23
+seckill:stock:1:1001:bucket:78 = 23
+seckill:stock:1:1001:bucket:79 = 23
+seckill:stock:1:1001:bucket:8 = 23
+seckill:stock:1:1001:bucket:80 = 23
+seckill:stock:1:1001:bucket:81 = 23
+seckill:stock:1:1001:bucket:82 = 23
+seckill:stock:1:1001:bucket:83 = 23
+seckill:stock:1:1001:bucket:84 = 22
+seckill:stock:1:1001:bucket:85 = 22
+seckill:stock:1:1001:bucket:86 = 22
+seckill:stock:1:1001:bucket:87 = 22
+seckill:stock:1:1001:bucket:88 = 22
+seckill:stock:1:1001:bucket:89 = 22
+seckill:stock:1:1001:bucket:9 = 23
+seckill:stock:1:1001:bucket:90 = 22
+seckill:stock:1:1001:bucket:91 = 22
+seckill:stock:1:1001:bucket:92 = 22
+seckill:stock:1:1001:bucket:93 = 22
+seckill:stock:1:1001:bucket:94 = 22
+seckill:stock:1:1001:bucket:95 = 22
+seckill:stock:1:1001:bucket:96 = 22
+seckill:stock:1:1001:bucket:97 = 22
+seckill:stock:1:1001:bucket:98 = 22
+seckill:stock:1:1001:bucket:99 = 22
+
+===== RabbitMQ queues =====
+Timeout: 60.0 seconds ...
+Listing queues for vhost / ...
+name	messages	messages_ready	messages_unacknowledged
+mini.seckill.order.queue	0	0	0
+mini.seckill.dead.queue	0	0	0
+verify saved to /Users/bilibili/后端项目文件/mini-seckill/benchmark/results/20260721-170146-fault-final-v2-verify.txt
+[2026-07-21 17:01:47] 故障演练完成; alerts=/Users/bilibili/后端项目文件/mini-seckill/benchmark/results/20260721-165643-fault-final-v2-alerts.jsonl timeline=/Users/bilibili/后端项目文件/mini-seckill/benchmark/results/20260721-165643-fault-final-v2-timeline.txt
