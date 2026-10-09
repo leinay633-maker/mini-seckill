@@ -78,6 +78,7 @@ class OrderServiceImplTest {
     void createOrderFromMessageDeductsPreferredSegmentWhenAvailable() {
         int preferredSegment = preferredSegment(USER_ID);
         stubOrderStatusWrite();
+        when(seckillMessageMapper.updateStatus(REQUEST_ID, MessageStatus.CONSUMED.getCode())).thenReturn(1);
         when(skuStockSegmentMapper.countSegments(ACTIVITY_ID, SKU_ID)).thenReturn(4);
         when(skuStockSegmentMapper.decreaseSegmentStock(ACTIVITY_ID, SKU_ID, preferredSegment)).thenReturn(1);
 
@@ -93,6 +94,7 @@ class OrderServiceImplTest {
     void createOrderFromMessageFallsBackToAnySegmentWhenPreferredSegmentIsEmpty() {
         int preferredSegment = preferredSegment(USER_ID);
         stubOrderStatusWrite();
+        when(seckillMessageMapper.updateStatus(REQUEST_ID, MessageStatus.CONSUMED.getCode())).thenReturn(1);
         when(skuStockSegmentMapper.countSegments(ACTIVITY_ID, SKU_ID)).thenReturn(4);
         when(skuStockSegmentMapper.decreaseSegmentStock(ACTIVITY_ID, SKU_ID, preferredSegment)).thenReturn(0);
         when(skuStockSegmentMapper.decreaseAnySegmentStock(ACTIVITY_ID, SKU_ID)).thenReturn(1);
@@ -108,6 +110,7 @@ class OrderServiceImplTest {
     @Test
     void createOrderFromMessageFallsBackToMainStockWhenSegmentsAreNotInitialized() {
         stubOrderStatusWrite();
+        when(seckillMessageMapper.updateStatus(REQUEST_ID, MessageStatus.CONSUMED.getCode())).thenReturn(1);
         when(skuStockSegmentMapper.countSegments(ACTIVITY_ID, SKU_ID)).thenReturn(0);
         when(skuStockMapper.decreaseStock(ACTIVITY_ID, SKU_ID)).thenReturn(1);
 

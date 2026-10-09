@@ -79,12 +79,16 @@ public class SeckillMessageRetryJob {
             log.info("retry seckill message published, waiting confirm, requestId={}, activityId={}, userId={}, skuId={}",
                     record.getRequestId(), record.getActivityId(), record.getUserId(), record.getSkuId());
         } catch (Exception ex) {
-            seckillMessageMapper.markFailedForRetry(
+            int updated = seckillMessageMapper.markFailedForRetry(
                     record.getRequestId(),
                     MessageStatus.FAILED.getCode(),
                     shortError(ex),
                     nextRetryAt(record)
             );
+            if (updated != 1) {
+                log.info("skip stale retry failure because message state changed, requestId={}", record.getRequestId());
+                return;
+            }
             seckillMetrics.mq("retry_failed");
             log.warn("retry seckill message failed, requestId={}, error={}", record.getRequestId(), ex.getMessage());
         }
@@ -101,12 +105,16 @@ public class SeckillMessageRetryJob {
                 retry.getBatchSize()
         );
         for (SeckillMessageRecord record : exhausted) {
-            seckillMessageMapper.markDead(
+            int updated = seckillMessageMapper.markDead(
                     record.getRequestId(),
                     MessageStatus.DEAD.getCode(),
                     MessageStatus.CONSUMED.getCode(),
                     "message retry exhausted"
             );
+            if (updated != 1) {
+                // The scan is a snapshot, not authority to close a now-consuming or terminal row.
+                continue;
+            }
             insertCompensation(record, "MQ_RETRY_EXHAUSTED", "WAIT_REPLAY", "retryCount=" + record.getRetryCount());
             seckillMetrics.mq("retry_exhausted_dead");
         }

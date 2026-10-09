@@ -22,6 +22,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Persists orders and MySQL stock changes in one transaction.
@@ -74,10 +76,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void reconcileExistingOrderFromConsumingMessage(SeckillMessage message) {
+        // The business order is immutable in this project. A duplicate order_id
+        // (e.g. a worker-id collision) without this business key is NOT success.
+        SeckillOrder existing = seckillOrderMapper.selectByUserSku(
+                message.getActivityId(), message.getUserId(), message.getSkuId());
+        if (existing == null) {
+            throw new IllegalStateException("duplicate key without a matching business order");
+        }
+        completeFromOrderFact(message, existing);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void recordFailedOrder(SeckillMessage message) {
-        // Runs after the consume transaction rolled back, so this is its own auto-committed insert.
-        // Persisting a FAILED row keeps the failure queryable after the Redis status key's TTL expires,
-        // and occupies the (activity,user,sku) unique key so the user isn't told "not ordered" later.
+        // Called through the service proxy after the original consume transaction
+        // rolled back. The FAILED order and terminal message commit together.
         SeckillOrder order = new SeckillOrder();
         order.setOrderId(orderIdGenerator.nextId());
         order.setActivityId(message.getActivityId());
@@ -87,12 +102,31 @@ public class OrderServiceImpl implements OrderService {
         try {
             seckillOrderMapper.insert(order);
         } catch (DuplicateKeyException ex) {
-            // A row already exists for this user/sku (e.g. a prior attempt) — the failure is already recorded.
-            log.debug("failed-order row already exists, requestId={}", message.getRequestId());
-        } catch (Exception ex) {
-            // Best-effort: a failed audit row must not turn a handled failure back into an unacked message.
-            log.warn("record failed order row failed, requestId={}", message.getRequestId(), ex);
+            // This call deliberately joins the current transaction. Do not replace
+            // the actual SUCCESS/FAILED fact with an assumed failure.
+            reconcileExistingOrderFromConsumingMessage(message);
+            return;
         }
+        completeFromOrderFact(message, order);
+    }
+
+    private void completeFromOrderFact(SeckillMessage message, SeckillOrder order) {
+        OrderStatus status;
+        if (Integer.valueOf(OrderStatus.SUCCESS.getCode()).equals(order.getStatus())) {
+            status = OrderStatus.SUCCESS;
+            markMessageConsumed(message, true);
+        } else if (Integer.valueOf(OrderStatus.FAILED.getCode()).equals(order.getStatus())) {
+            status = OrderStatus.FAILED;
+            int updated = seckillMessageMapper.markDeadFromConsuming(
+                    message.getRequestId(), MessageStatus.DEAD.getCode(),
+                    MessageStatus.CONSUMING.getCode(), "terminal business failure: persisted FAILED order");
+            if (updated != 1) {
+                throw new IllegalStateException("message is no longer CONSUMING while recording failure");
+            }
+        } else {
+            throw new IllegalStateException("existing order has no supported terminal status");
+        }
+        publishStatusAfterCommit(message, status, false);
     }
 
     private void createOrder(SeckillMessage message, boolean requireConsumingStatus) {
@@ -119,8 +153,48 @@ public class OrderServiceImpl implements OrderService {
                 "ORDER_SUCCESS"
         );
         markMessageConsumed(message, requireConsumingStatus);
-        setOrderStatus(message.getActivityId(), message.getUserId(), message.getSkuId(), OrderStatus.SUCCESS);
-        seckillMetrics.order("success");
+        publishStatusAfterCommit(message, OrderStatus.SUCCESS, true);
+    }
+
+    /**
+     * Redis is a disposable projection, not a participant in the MySQL transaction.
+     * afterCommit exceptions would otherwise escape through the service proxy even
+     * though MySQL has committed. Keep both projection and metric failures contained.
+     * No SQL is executed from this callback.
+     */
+    private void publishStatusAfterCommit(SeckillMessage message, OrderStatus status, boolean newSuccess) {
+        Runnable publish = () -> {
+            try {
+                setOrderStatus(message.getActivityId(), message.getUserId(), message.getSkuId(), status);
+            } catch (Exception ex) {
+                log.warn("committed order status cache write failed, requestId={}, status={}",
+                        message.getRequestId(), status, ex);
+                safeOrderMetric("status_cache_write_failed");
+            }
+            if (newSuccess) {
+                safeOrderMetric("success");
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publish.run();
+                }
+            });
+        } else {
+            // Supports direct unit-test construction. Production callers must use
+            // the transactional Spring service; MySQL ITs exercise that proxy.
+            publish.run();
+        }
+    }
+
+    private void safeOrderMetric(String result) {
+        try {
+            seckillMetrics.order(result);
+        } catch (Exception ex) {
+            log.warn("order metric failed, result={}", result, ex);
+        }
     }
 
     @Override
@@ -179,17 +253,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void markMessageConsumed(SeckillMessage message, boolean requireConsumingStatus) {
+        int updated;
         if (!requireConsumingStatus) {
-            seckillMessageMapper.updateStatus(message.getRequestId(), MessageStatus.CONSUMED.getCode());
-            return;
+            updated = seckillMessageMapper.updateStatus(message.getRequestId(), MessageStatus.CONSUMED.getCode());
+        } else {
+            updated = seckillMessageMapper.markConsumedFromConsuming(
+                    message.getRequestId(),
+                    MessageStatus.CONSUMED.getCode(),
+                    MessageStatus.CONSUMING.getCode()
+            );
         }
-        int updated = seckillMessageMapper.markConsumedFromConsuming(
-                message.getRequestId(),
-                MessageStatus.CONSUMED.getCode(),
-                MessageStatus.CONSUMING.getCode()
-        );
         if (updated != 1) {
-            throw new IllegalStateException("message is not in CONSUMING status");
+            throw new IllegalStateException("message status no longer permits order completion");
         }
     }
 
