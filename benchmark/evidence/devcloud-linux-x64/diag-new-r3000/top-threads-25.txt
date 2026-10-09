@@ -1,0 +1,40 @@
+top - 16:34:59 up 275 days, 18:32,  0 users,  load average: 33.08, 44.90, 36.32
+Threads: 625 total,   9 running, 616 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 20.3 us, 15.5 sy,  0.1 ni, 61.9 id,  0.7 wa,  0.0 hi,  1.4 si,  0.0 st
+MiB Mem : 252922.9 total,  95133.2 free, 102287.7 used,  55502.0 buff/cache
+MiB Swap: 252922.9 total, 177805.2 free,  75117.7 used. 142017.1 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+  18891 root      20   0   45.3g   2.4g  23896 R  43.8   1.0   1:22.67 lettuce+
+  18860 root      20   0   45.3g   2.4g  23896 S  18.8   1.0   0:25.57 http-ni+
+  36568 root      20   0   45.3g   2.4g  23896 S  18.8   1.0   0:02.34 HikariP+
+  18862 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:19.93 AMQP Co+
+  32482 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:04.61 org.spr+
+  36614 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:00.39 http-ni+
+  36628 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:00.40 http-ni+
+  36643 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:00.38 http-ni+
+  36752 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:00.38 http-ni+
+  36791 root      20   0   45.3g   2.4g  23896 S  12.5   1.0   0:00.39 http-ni+
+  18864 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:14.99 org.spr+
+  18867 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:14.99 org.spr+
+  19388 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:10.48 seckill+
+  19480 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.32 pool-3-+
+  19482 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.32 pool-3-+
+  26178 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:14.22 org.spr+
+  28635 root      20   0   45.3g   2.4g  23896 R   6.2   1.0   0:13.42 org.spr+
+  30290 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:13.04 org.spr+
+  30567 root      20   0   45.3g   2.4g  23896 R   6.2   1.0   0:10.27 org.spr+
+  30626 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:09.82 org.spr+
+  31885 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:09.30 org.spr+
+  32116 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:07.90 org.spr+
+  32271 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:06.68 org.spr+
+  33850 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:03.63 org.spr+
+  34068 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:02.24 org.spr+
+  34149 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:01.45 org.spr+
+  35091 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.04 rabbitC+
+  36570 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.38 http-ni+
+  36572 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.37 http-ni+
+  36575 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.39 http-ni+
+  36578 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.39 http-ni+
+  36586 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.38 http-ni+
+  36587 root      20   0   45.3g   2.4g  23896 S   6.2   1.0   0:00.38 http-ni+
