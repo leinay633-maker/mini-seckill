@@ -1,226 +1,268 @@
 package com.example.miniseckill.mq;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.example.miniseckill.common.InsufficientStockException;
-import com.example.miniseckill.common.MessageStatus;
+import com.example.miniseckill.config.ConsumerExecutionProperties;
+import com.example.miniseckill.config.ConsumerPoolContext;
 import com.example.miniseckill.config.SeckillProperties;
 import com.example.miniseckill.dto.SeckillMessage;
 import com.example.miniseckill.mapper.CompensationRecordMapper;
 import com.example.miniseckill.mapper.SeckillLogMapper;
-import com.example.miniseckill.mapper.SeckillMessageMapper;
-import com.example.miniseckill.service.OrderService;
+import com.example.miniseckill.service.ConsumerOrderTransactions;
 import com.example.miniseckill.service.SeckillMetrics;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
+import java.time.Duration;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.ChannelProxy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.transaction.CannotCreateTransactionException;
 
 @ExtendWith(MockitoExtension.class)
 class SeckillConsumerTest {
-
-    private static final String REQUEST_ID = "req-001";
-    private static final long DELIVERY_TAG = 42L;
-
-    @Mock private OrderService orderService;
-    @Mock private SeckillLogMapper seckillLogMapper;
-    @Mock private SeckillMessageMapper seckillMessageMapper;
-    @Mock private CompensationRecordMapper compensationRecordMapper;
-    @Mock private StringRedisTemplate stringRedisTemplate;
-    @Mock private SeckillMetrics seckillMetrics;
-    @Mock private Channel channel;
-
+    @Mock ConsumerOrderTransactions transactions;
+    @Mock SeckillLogMapper logs;
+    @Mock CompensationRecordMapper compensation;
+    @Mock StringRedisTemplate redis;
+    @Mock SeckillMetrics metrics;
+    @Mock Channel channel;
     private SeckillConsumer consumer;
+    private final SeckillMessage message = new SeckillMessage("req-001", 1L, 10007L, 1001L, 1L);
 
     @BeforeEach
     void setUp() {
-        consumer = new SeckillConsumer(orderService, seckillLogMapper, seckillMessageMapper,
-                compensationRecordMapper, stringRedisTemplate, new SeckillProperties(), seckillMetrics);
+        ConsumerExecutionProperties execution = new ConsumerExecutionProperties();
+        execution.setRetryBackoff(Duration.ZERO);
+        consumer = new SeckillConsumer(transactions, logs, compensation, redis,
+                new SeckillProperties(), execution, metrics);
     }
 
     @Test
-    void consumeSkipsMessageWhenStatusIsNoLongerConsumable() throws Exception {
-        SeckillMessage message = message();
-        consumer.consume(message, rawMessage(), channel);
-        verify(orderService, never()).createOrderFromConsumingMessage(message);
-        verify(seckillMetrics).mq("consume_skipped");
-        verify(channel).basicAck(DELIVERY_TAG, false);
+    void terminalMessageIsAcknowledgedWithoutBusinessWrites() throws Exception {
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+        verify(metrics).mq("consume_skipped");
+        verifyNoInteractions(compensation, redis);
     }
 
     @Test
-    void consumeMarksConsumingBeforeCreatingOrderAndAcksAfterServiceReturns() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        consumer.consume(message, rawMessage(), channel);
-        InOrder order = inOrder(seckillMessageMapper, orderService, channel);
-        order.verify(seckillMessageMapper).markConsuming(REQUEST_ID, MessageStatus.CONSUMING.getCode(),
-                MessageStatus.SENT.getCode(), MessageStatus.SENDING.getCode(), MessageStatus.REPLAYED.getCode());
-        order.verify(orderService).createOrderFromConsumingMessage(message);
-        order.verify(channel).basicAck(DELIVERY_TAG, false);
-        verify(seckillMetrics).mq("consume_success");
+    void successUsesConsumerRoleAndAcksOnlyAfterTransactionReturns() throws Exception {
+        when(transactions.create(message)).thenAnswer(invocation -> {
+            assertTrue(ConsumerPoolContext.isConsumer());
+            verifyNoInteractions(channel);
+            return true;
+        });
+        doAnswer(invocation -> {
+            assertFalse(ConsumerPoolContext.isConsumer());
+            return null;
+        }).when(channel).basicAck(42L, false);
+        consumer.consume(message, raw(), channel);
+        verify(metrics).mq("consume_success");
+        verifyNoInteractions(compensation, redis);
+        assertFalse(ConsumerPoolContext.isConsumer());
+    }
+
+    static Stream<RuntimeException> infrastructureFailures() {
+        return Stream.of(new CannotGetJdbcConnectionException("claim cannot borrow"),
+                new CannotCreateTransactionException("transaction cannot borrow"),
+                new TransientDataAccessResourceException("temporary database failure"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("infrastructureFailures")
+    void infrastructureFailureNacksWithoutRetryStateWriteOrDead(RuntimeException failure) throws Exception {
+        when(transactions.create(message)).thenThrow(failure);
+        consumer.consume(message, raw(), channel);
+        requeued();
+        verify(transactions, never()).markDead(any(), any());
+        verifyNoInteractions(compensation, redis);
+        assertFalse(ConsumerPoolContext.isConsumer());
     }
 
     @Test
-    void duplicateConsumeReconcilesDurableFactBeforeAcking() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        doThrow(new DuplicateKeyException("duplicate"))
-                .when(orderService).createOrderFromConsumingMessage(message);
-        consumer.consume(message, rawMessage(), channel);
-        InOrder order = inOrder(orderService, channel);
-        order.verify(orderService).createOrderFromConsumingMessage(message);
-        order.verify(orderService).reconcileExistingOrderFromConsumingMessage(message);
-        order.verify(channel).basicAck(DELIVERY_TAG, false);
-        verify(seckillMessageMapper, never()).markConsumedFromConsuming(any(), anyInt(), anyInt());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(seckillMetrics).mq("duplicate_acked");
+    void wrappedConnectionFailureIsAlsoRetryable() throws Exception {
+        when(transactions.create(message)).thenThrow(new IllegalStateException("mybatis wrapper",
+                new CannotGetJdbcConnectionException("connection timeout")));
+        consumer.consume(message, raw(), channel);
+        requeued();
+        verify(transactions, never()).markDead(any(), any());
     }
 
     @Test
-    void duplicateWithoutBusinessFactIsNotAcknowledgedAsSuccess() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        doThrow(new DuplicateKeyException("order_id collision"))
-                .when(orderService).createOrderFromConsumingMessage(message);
-        doThrow(new IllegalStateException("missing business order"))
-                .when(orderService).reconcileExistingOrderFromConsumingMessage(message);
-        assertThrows(IllegalStateException.class, () -> consumer.consume(message, rawMessage(), channel));
+    void duplicateReconciliationMustCommitBeforeAck() throws Exception {
+        when(transactions.create(message)).thenThrow(new DuplicateKeyException("duplicate"));
+        when(transactions.reconcile(message)).thenReturn(true);
+        consumer.consume(message, raw(), channel);
+        var order = inOrder(transactions, channel);
+        order.verify(transactions).create(message);
+        order.verify(transactions).reconcile(message);
+        order.verify(channel).basicAck(42L, false);
+        verify(metrics).mq("duplicate_acked");
+    }
+
+    @Test
+    void reconciliationFailureDoesNotLeaveAnUnsettledDeliveryOrPretendSuccess() throws Exception {
+        when(transactions.create(message)).thenThrow(new DuplicateKeyException("order id collision"));
+        when(transactions.reconcile(message)).thenThrow(new IllegalStateException("no matching business fact"));
+        consumer.consume(message, raw(), channel);
+        requeued();
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void stockFailureIsAckedOnlyAfterDurableFailureCommit() throws Exception {
+        when(transactions.create(message)).thenThrow(new InsufficientStockException("empty"));
+        when(transactions.failStock(message)).thenReturn(true);
+        consumer.consume(message, raw(), channel);
+        var order = inOrder(transactions, channel);
+        order.verify(transactions).create(message);
+        order.verify(transactions).failStock(message);
+        order.verify(channel).basicAck(42L, false);
+        verify(metrics).mq("stock_guard_failed");
+    }
+
+    @Test
+    void failedOrderHandlerCannotBorrowSoDeliveryIsRequeued() throws Exception {
+        when(transactions.create(message)).thenThrow(new InsufficientStockException("empty"));
+        when(transactions.failStock(message)).thenThrow(new CannotCreateTransactionException("starved"));
+        consumer.consume(message, raw(), channel);
+        requeued();
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void deadHandlerFailureIsRequeuedWithoutFailureProjection() throws Exception {
+        when(transactions.create(message)).thenThrow(new IllegalArgumentException("bad payload"));
+        when(transactions.markDead(eq(message), any())).thenThrow(new CannotGetJdbcConnectionException("starved"));
+        consumer.consume(message, raw(), channel);
+        requeued();
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void committedPermanentFailureIsDeadLettered() throws Exception {
+        when(transactions.create(message)).thenThrow(new IllegalArgumentException("bad payload"));
+        when(transactions.markDead(eq(message), any())).thenReturn(true);
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicNack(42L, false, false);
         verify(channel, never()).basicAck(anyLong(), anyBoolean());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(seckillMetrics, never()).mq("consume_success");
+        verify(compensation).insert(any());
+        verify(metrics).mq("dead_lettered");
     }
 
     @Test
-    void transientDataAccessFailureReturnsMessageToRetryStateAndAcks() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        doThrow(new TransientDataAccessResourceException("temporary database failure"))
-                .when(orderService).createOrderFromConsumingMessage(message);
-        when(seckillMessageMapper.markFailedFromConsuming(eq(REQUEST_ID), eq(MessageStatus.FAILED.getCode()),
-                eq(MessageStatus.CONSUMING.getCode()), eq("temporary database failure"), any())).thenReturn(1);
-        consumer.consume(message, rawMessage(), channel);
-        verify(seckillMetrics).mq("transient_requeued");
-        verify(seckillMessageMapper, never()).markDeadFromConsuming(any(), anyInt(), anyInt(), any());
-        verify(compensationRecordMapper, never()).insert(any());
-        verify(channel).basicAck(DELIVERY_TAG, false);
+    void lostDeadClaimNeverOverwritesANewerOutcome() throws Exception {
+        when(transactions.create(message)).thenThrow(new IllegalArgumentException("bad payload"));
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void lostReconcileClaimIsSkipped() throws Exception {
+        when(transactions.create(message)).thenThrow(new DuplicateKeyException("duplicate"));
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+        verify(metrics).mq("consume_skipped");
+    }
+
+    @Test
+    void lostFailureClaimIsSkipped() throws Exception {
+        when(transactions.create(message)).thenThrow(new InsufficientStockException("empty"));
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void ackIoFailureCannotWriteBusinessFailureOrAttemptSecondSettlement() throws Exception {
+        when(transactions.create(message)).thenReturn(true);
+        doThrow(new IOException("ack failed")).when(channel).basicAck(42L, false);
+        assertThrows(IOException.class, () -> consumer.consume(message, raw(), channel));
+        verify(channel).abort();
+        verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
+        verify(transactions, never()).markDead(any(), any());
+        verifyNoInteractions(compensation, redis);
+    }
+
+    @Test
+    void ackRuntimeFailureAlsoClosesTransportWithoutBusinessCompensation() throws Exception {
+        when(transactions.create(message)).thenReturn(true);
+        doThrow(new IllegalStateException("closed")).when(channel).basicAck(42L, false);
+        assertThrows(IllegalStateException.class, () -> consumer.consume(message, raw(), channel));
+        verify(channel).abort();
         verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
     }
 
     @Test
-    void lostRetryCasDoesNotDeadLetterOrOverwriteNewerState() throws Exception {
-        claim();
-        doThrow(new TransientDataAccessResourceException("temporary database failure"))
-                .when(orderService).createOrderFromConsumingMessage(any());
-        consumer.consume(message(), rawMessage(), channel);
-        verify(seckillMessageMapper, never()).markDeadFromConsuming(any(), anyInt(), anyInt(), any());
-        verify(compensationRecordMapper, never()).insert(any());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(seckillMetrics).mq("consume_state_changed");
-        verify(channel).basicAck(DELIVERY_TAG, false);
+    void nackFailureClosesPhysicalCachedChannelAndPreservesOriginalException() throws Exception {
+        ChannelProxy proxy = mock(ChannelProxy.class);
+        when(proxy.getTargetChannel()).thenReturn(channel);
+        when(transactions.create(message)).thenThrow(new CannotCreateTransactionException("starved"));
+        IOException expected = new IOException("nack failed");
+        doThrow(expected).when(proxy).basicNack(42L, false, true);
+        doThrow(new IOException("abort failed")).when(channel).abort();
+        assertSame(expected, assertThrows(IOException.class, () -> consumer.consume(message, raw(), proxy)));
+        assertEquals(1, expected.getSuppressed().length);
+        verify(channel).abort();
+        verify(proxy, never()).basicAck(anyLong(), anyBoolean());
+        verify(proxy, times(1)).basicNack(anyLong(), anyBoolean(), anyBoolean());
     }
 
     @Test
-    void insufficientStockPersistsFailureAndTerminalMessageBeforeAcking() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        doThrow(new InsufficientStockException("stock exhausted"))
-                .when(orderService).createOrderFromConsumingMessage(message);
-        consumer.consume(message, rawMessage(), channel);
-        InOrder order = inOrder(orderService, channel);
-        order.verify(orderService).createOrderFromConsumingMessage(message);
-        order.verify(orderService).recordFailedOrder(message);
-        order.verify(channel).basicAck(DELIVERY_TAG, false);
-        verify(seckillMessageMapper, never()).markFailed(any(), anyInt(), any());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(seckillMetrics).mq("stock_guard_failed");
+    void observabilityFailureCannotUndoCommit() throws Exception {
+        when(transactions.create(message)).thenReturn(true);
+        doThrow(new IllegalStateException("metric failed")).when(metrics).mq("consume_success");
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+        verify(transactions, never()).markDead(any(), any());
     }
 
     @Test
-    void failedOrderPersistenceErrorMustNotBeAcknowledged() throws Exception {
-        claim();
-        SeckillMessage message = message();
-        doThrow(new InsufficientStockException("stock exhausted"))
-                .when(orderService).createOrderFromConsumingMessage(message);
-        doThrow(new TransientDataAccessResourceException("database unavailable"))
-                .when(orderService).recordFailedOrder(message);
-        assertThrows(TransientDataAccessResourceException.class, () -> consumer.consume(message, rawMessage(), channel));
+    void bestEffortLoggingFailureDoesNotPreventSettlement() throws Exception {
+        when(transactions.create(message)).thenThrow(new DuplicateKeyException("duplicate"));
+        when(transactions.reconcile(message)).thenReturn(true);
+        doThrow(new CannotGetJdbcConnectionException("log starved"))
+                .when(logs).insertLog(any(), anyLong(), anyLong(), anyLong(), any());
+        consumer.consume(message, raw(), channel);
+        verify(channel).basicAck(42L, false);
+    }
+
+    @Test
+    void interruptedBackoffStillRequeuesAndRestoresInterrupt() throws Exception {
+        when(transactions.create(message)).thenThrow(new CannotCreateTransactionException("starved"));
+        Thread.currentThread().interrupt();
+        try {
+            consumer.consume(message, raw(), channel);
+            assertTrue(Thread.currentThread().isInterrupted());
+            requeued();
+        } finally { Thread.interrupted(); }
+    }
+
+    private void requeued() throws IOException {
+        verify(channel).basicNack(42L, false, true);
         verify(channel, never()).basicAck(anyLong(), anyBoolean());
-        verify(compensationRecordMapper, never()).insert(any());
+        verify(metrics).mq("consume_retry_requeued");
     }
 
-    @Test
-    void ackIoFailureAfterCommitDoesNotTriggerBusinessFailureOrSecondSettlement() throws Exception {
-        claim();
-        doThrow(new IOException("connection closed after commit")).when(channel).basicAck(DELIVERY_TAG, false);
-        assertThrows(IOException.class, () -> consumer.consume(message(), rawMessage(), channel));
-        verify(seckillMessageMapper, never()).markDeadFromConsuming(any(), anyInt(), anyInt(), any());
-        verify(seckillMessageMapper, never()).markFailed(any(), anyInt(), any());
-        verify(orderService, never()).recordFailedOrder(any());
-        verify(compensationRecordMapper, never()).insert(any());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
-    }
-
-    @Test
-    void ackRuntimeFailureIsAlsoOutsideBusinessFailureHandler() throws Exception {
-        claim();
-        doThrow(new IllegalStateException("channel closed")).when(channel).basicAck(DELIVERY_TAG, false);
-        assertThrows(IllegalStateException.class, () -> consumer.consume(message(), rawMessage(), channel));
-        verify(seckillMessageMapper, never()).markDeadFromConsuming(any(), anyInt(), anyInt(), any());
-        verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
-    }
-
-    @Test
-    void fatalErrorOnlyWritesFailureProjectionWhenStateTransitionWins() throws Exception {
-        claim();
-        doThrow(new IllegalArgumentException("bad payload")).when(orderService).createOrderFromConsumingMessage(any());
-        consumer.consume(message(), rawMessage(), channel);
-        verify(compensationRecordMapper, never()).insert(any());
-        verify(stringRedisTemplate, never()).opsForValue();
-        verify(channel).basicAck(DELIVERY_TAG, false);
-        verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
-    }
-
-    @Test
-    void metricsFailureCannotTurnCommittedSuccessIntoDeadLetter() throws Exception {
-        claim();
-        doThrow(new IllegalStateException("metrics unavailable")).when(seckillMetrics).mq("consume_success");
-        consumer.consume(message(), rawMessage(), channel);
-        verify(seckillMessageMapper, never()).markDeadFromConsuming(any(), anyInt(), anyInt(), any());
-        verify(channel).basicAck(DELIVERY_TAG, false);
-    }
-
-    private void claim() {
-        when(seckillMessageMapper.markConsuming(REQUEST_ID, MessageStatus.CONSUMING.getCode(),
-                MessageStatus.SENT.getCode(), MessageStatus.SENDING.getCode(), MessageStatus.REPLAYED.getCode())).thenReturn(1);
-    }
-
-    private SeckillMessage message() {
-        return new SeckillMessage(REQUEST_ID, 1L, 10007L, 1001L, 1_717_000_000_000L);
-    }
-
-    private Message rawMessage() {
+    private Message raw() {
         MessageProperties properties = new MessageProperties();
-        properties.setDeliveryTag(DELIVERY_TAG);
+        properties.setDeliveryTag(42L);
         return new Message(new byte[0], properties);
     }
 }
