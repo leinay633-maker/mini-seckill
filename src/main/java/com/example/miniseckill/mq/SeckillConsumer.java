@@ -1,16 +1,16 @@
 package com.example.miniseckill.mq;
 
 import com.example.miniseckill.common.InsufficientStockException;
-import com.example.miniseckill.common.MessageStatus;
 import com.example.miniseckill.common.OrderStatus;
+import com.example.miniseckill.config.ConsumerExecutionProperties;
+import com.example.miniseckill.config.ConsumerPoolContext;
 import com.example.miniseckill.config.SeckillProperties;
 import com.example.miniseckill.config.RabbitMQConfig;
 import com.example.miniseckill.dto.SeckillMessage;
 import com.example.miniseckill.entity.CompensationRecord;
 import com.example.miniseckill.mapper.CompensationRecordMapper;
 import com.example.miniseckill.mapper.SeckillLogMapper;
-import com.example.miniseckill.mapper.SeckillMessageMapper;
-import com.example.miniseckill.service.OrderService;
+import com.example.miniseckill.service.ConsumerOrderTransactions;
 import com.example.miniseckill.service.SeckillMetrics;
 import com.example.miniseckill.util.RedisKeyUtil;
 import com.rabbitmq.client.Channel;
@@ -20,126 +20,115 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.connection.ChannelProxy;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 
-/**
- * Consumes seckill messages with manual ACK and fact-based duplicate handling.
- */
+/** Manual settlement is separate from all database work, including error handlers. */
 @Component
 public class SeckillConsumer {
-
     private static final Logger log = LoggerFactory.getLogger(SeckillConsumer.class);
-
-    private final OrderService orderService;
+    private final ConsumerOrderTransactions transactions;
     private final SeckillLogMapper seckillLogMapper;
-    private final SeckillMessageMapper seckillMessageMapper;
     private final CompensationRecordMapper compensationRecordMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final SeckillProperties seckillProperties;
+    private final ConsumerExecutionProperties execution;
     private final SeckillMetrics seckillMetrics;
 
-    public SeckillConsumer(OrderService orderService,
-                           SeckillLogMapper seckillLogMapper,
-                           SeckillMessageMapper seckillMessageMapper,
+    public SeckillConsumer(ConsumerOrderTransactions transactions, SeckillLogMapper seckillLogMapper,
                            CompensationRecordMapper compensationRecordMapper,
-                           StringRedisTemplate stringRedisTemplate,
-                           SeckillProperties seckillProperties,
-                           SeckillMetrics seckillMetrics) {
-        this.orderService = orderService;
+                           StringRedisTemplate stringRedisTemplate, SeckillProperties seckillProperties,
+                           ConsumerExecutionProperties execution, SeckillMetrics seckillMetrics) {
+        this.transactions = transactions;
         this.seckillLogMapper = seckillLogMapper;
-        this.seckillMessageMapper = seckillMessageMapper;
         this.compensationRecordMapper = compensationRecordMapper;
         this.stringRedisTemplate = stringRedisTemplate;
         this.seckillProperties = seckillProperties;
+        this.execution = execution;
         this.seckillMetrics = seckillMetrics;
     }
 
     @RabbitListener(queues = RabbitMQConfig.SECKILL_ORDER_QUEUE, containerFactory = "manualAckRabbitListenerContainerFactory")
-    public void consume(SeckillMessage seckillMessage, Message rawMessage, Channel channel) throws IOException {
+    public void consume(SeckillMessage message, Message rawMessage, Channel channel) throws IOException {
         long deliveryTag = rawMessage.getMessageProperties().getDeliveryTag();
-        if (!tryMarkConsuming(seckillMessage)) {
-            safeLog(seckillMessage, "CONSUME_SKIPPED_FINAL_OR_TIMEOUT");
-            safeMetric("consume_skipped");
-            channel.basicAck(deliveryTag, false);
-            return;
+        Outcome outcome;
+        // Set routing BEFORE entering the transaction proxy; always clear it on
+        // return/error so a pooled listener thread cannot leak its role.
+        try (ConsumerPoolContext.Scope ignored = ConsumerPoolContext.enter()) {
+            try {
+                outcome = process(message);
+            } catch (Exception unresolved) {
+                // Includes claim errors and failures INSIDE reconcile/failStock/
+                // markDead handlers. Do not attempt another SQL write while starved.
+                log.warn("consume deferred; broker will retry, requestId={}", message.getRequestId(), unresolved);
+                outcome = new Outcome("consume_retry_requeued", Settlement.REQUEUE);
+            }
         }
-        boolean deadLetter = false;
-        String outcome = "consume_success";
+        safeMetric(outcome.metric());
+        if (outcome.settlement() == Settlement.REQUEUE) {
+            // The transaction proxy has rolled back/released its connection.
+            // Pace infrastructure retries without spending the durable retry budget.
+            try {
+                Thread.sleep(execution.getRetryBackoff().toMillis());
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        settle(channel, deliveryTag, outcome.settlement());
+    }
+
+    private Outcome process(SeckillMessage message) {
         try {
-            // The proxy returns only after the MySQL transaction has committed.
-            orderService.createOrderFromConsumingMessage(seckillMessage);
+            return transactions.create(message)
+                    ? new Outcome("consume_success", Settlement.ACK) : skipped();
         } catch (DuplicateKeyException ex) {
-            // A duplicate order_id is not necessarily this user's order, and a
-            // business-key duplicate can point to FAILED. Resolve durable facts.
-            orderService.reconcileExistingOrderFromConsumingMessage(seckillMessage);
-            safeLog(seckillMessage, "DUPLICATE_CONSUME_RECONCILED");
-            outcome = "duplicate_acked";
+            boolean reconciled = transactions.reconcile(message);
+            if (reconciled) { safeLog(message, "DUPLICATE_CONSUME_RECONCILED"); }
+            return reconciled ? new Outcome("duplicate_acked", Settlement.ACK) : skipped();
         } catch (InsufficientStockException ex) {
-            // This service call commits FAILED order + terminal message together.
-            // If it fails, propagate without ACK; never swallow the persistence error.
-            orderService.recordFailedOrder(seckillMessage);
-            safeLog(seckillMessage, "DB_STOCK_NOT_ENOUGH_ACKED");
-            insertCompensation(seckillMessage, "MYSQL_STOCK_GUARD", "FAILED", ex.getMessage());
-            outcome = "stock_guard_failed";
-        } catch (TransientDataAccessException ex) {
-            int rolledBack = seckillMessageMapper.markFailedFromConsuming(
-                    seckillMessage.getRequestId(),
-                    MessageStatus.FAILED.getCode(),
-                    MessageStatus.CONSUMING.getCode(),
-                    shortError(ex),
-                    java.time.LocalDateTime.now().plus(seckillProperties.getMessageRetry().getInitialBackoff())
-            );
-            if (rolledBack == 1) {
-                safeLog(seckillMessage, "TRANSIENT_CONSUME_RETRY");
-                outcome = "transient_requeued";
-            } else {
-                // Recovery or another completion won. A lost CAS is not authority
-                // to mark DEAD or overwrite a newer order status.
-                outcome = "consume_state_changed";
+            boolean recorded = transactions.failStock(message);
+            if (recorded) {
+                safeLog(message, "DB_STOCK_NOT_ENOUGH_ACKED");
+                insertCompensation(message, "MYSQL_STOCK_GUARD", "FAILED", ex.getMessage());
             }
+            return recorded ? new Outcome("stock_guard_failed", Settlement.ACK) : skipped();
         } catch (Exception ex) {
-            log.error("consume seckill message failed, requestId={}", seckillMessage.getRequestId(), ex);
-            int updated = seckillMessageMapper.markDeadFromConsuming(
-                    seckillMessage.getRequestId(),
-                    MessageStatus.DEAD.getCode(),
-                    MessageStatus.CONSUMING.getCode(),
-                    shortError(ex)
-            );
-            if (updated == 1) {
-                insertCompensation(seckillMessage, "MQ_CONSUME_DEAD", "WAIT_REPLAY", shortError(ex));
-                setOrderStatusSafely(seckillMessage, OrderStatus.FAILED);
-                outcome = "dead_lettered";
-                deadLetter = true;
-            } else {
-                outcome = "consume_state_changed";
-            }
-        }
-        safeMetric(outcome);
-        // Transport settlement is intentionally OUTSIDE the business exception
-        // handler. An ACK failure cannot undo a committed order, write FAILED,
-        // trigger compensation, or cause a second settlement on the same delivery.
-        if (deadLetter) {
-            channel.basicNack(deliveryTag, false, false);
-        } else {
-            channel.basicAck(deliveryTag, false);
+            if (ConsumerFailureClassifier.retryable(ex)) { throw ex; }
+            // The original attempt rolled back, including its claim. A distinct
+            // transaction must claim again before it may commit a DEAD outcome.
+            boolean dead = transactions.markDead(message, shortError(ex));
+            if (!dead) { return skipped(); }
+            log.error("consume failed permanently, requestId={}", message.getRequestId(), ex);
+            insertCompensation(message, "MQ_CONSUME_DEAD", "WAIT_REPLAY", shortError(ex));
+            setOrderStatusSafely(message, OrderStatus.FAILED);
+            return new Outcome("dead_lettered", Settlement.DEAD);
         }
     }
 
-    private boolean tryMarkConsuming(SeckillMessage message) {
-        int updated = seckillMessageMapper.markConsuming(
-                message.getRequestId(),
-                MessageStatus.CONSUMING.getCode(),
-                MessageStatus.SENT.getCode(),
-                MessageStatus.SENDING.getCode(),
-                MessageStatus.REPLAYED.getCode()
-        );
-        if (updated == 1) {
-            return true;
+    private Outcome skipped() {
+        return new Outcome("consume_skipped", Settlement.ACK);
+    }
+
+    private void settle(Channel channel, long tag, Settlement settlement) throws IOException {
+        try {
+            switch (settlement) {
+                case ACK -> channel.basicAck(tag, false);
+                case REQUEUE -> channel.basicNack(tag, false, true);
+                case DEAD -> channel.basicNack(tag, false, false);
+            }
+        } catch (IOException | RuntimeException failure) {
+            // An ACK/NACK failure must never enter the business handler or cause
+            // a second settlement. Close the *physical* channel so outstanding
+            // deliveries can be recovered; a cached proxy.close() is insufficient.
+            try {
+                Channel physical = channel instanceof ChannelProxy proxy ? proxy.getTargetChannel() : channel;
+                physical.abort();
+            } catch (Exception closeFailure) {
+                failure.addSuppressed(closeFailure);
+            }
+            throw failure;
         }
-        log.info("skip consumed seckill message because status is no longer consumable, requestId={}", message.getRequestId());
-        return false;
     }
 
     private void safeLog(SeckillMessage message, String result) {
@@ -151,20 +140,15 @@ public class SeckillConsumer {
     }
 
     private void safeMetric(String outcome) {
-        try {
-            seckillMetrics.mq(outcome);
-        } catch (Exception ex) {
-            log.warn("consume metric failed, outcome={}", outcome, ex);
-        }
+        try { seckillMetrics.mq(outcome); }
+        catch (Exception ex) { log.warn("consume metric failed, outcome={}", outcome, ex); }
     }
 
     private void setOrderStatusSafely(SeckillMessage message, OrderStatus status) {
         try {
             stringRedisTemplate.opsForValue().set(
                     RedisKeyUtil.orderStatusKey(message.getActivityId(), message.getUserId(), message.getSkuId()),
-                    String.valueOf(status.getCode()),
-                    seckillProperties.getOrderStatusTtl()
-            );
+                    String.valueOf(status.getCode()), seckillProperties.getOrderStatusTtl());
         } catch (Exception ex) {
             log.warn("terminal message status cache write failed, requestId={}", message.getRequestId(), ex);
         }
@@ -178,7 +162,7 @@ public class SeckillConsumer {
             record.setSkuId(message.getSkuId());
             record.setType(type);
             record.setStatus(status);
-            record.setDetail(detail == null ? "" : shortText(detail, 1024));
+            record.setDetail(detail == null ? "" : detail.substring(0, Math.min(1024, detail.length())));
             compensationRecordMapper.insert(record);
         } catch (Exception ex) {
             log.warn("insert compensation record failed, requestId={}, type={}", message.getRequestId(), type, ex);
@@ -186,14 +170,10 @@ public class SeckillConsumer {
     }
 
     private String shortError(Exception ex) {
-        String message = ex.getMessage();
-        if (message == null) {
-            return ex.getClass().getSimpleName();
-        }
-        return message.length() > 500 ? message.substring(0, 500) : message;
+        String text = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
+        return text.substring(0, Math.min(500, text.length()));
     }
 
-    private String shortText(String text, int maxLength) {
-        return text.length() > maxLength ? text.substring(0, maxLength) : text;
-    }
+    private enum Settlement { ACK, REQUEUE, DEAD }
+    private record Outcome(String metric, Settlement settlement) { }
 }
