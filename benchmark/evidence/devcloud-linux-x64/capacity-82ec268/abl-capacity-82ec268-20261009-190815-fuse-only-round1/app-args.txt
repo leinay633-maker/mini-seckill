@@ -1,0 +1,1 @@
+--seckill.capacity.activity-cache-ttl=0ms --seckill.capacity.initial-sending-enabled=true

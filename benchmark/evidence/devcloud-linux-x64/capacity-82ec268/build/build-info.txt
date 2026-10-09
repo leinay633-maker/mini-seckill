@@ -1,0 +1,4 @@
+82ec268f91d1e95e950fb33e5d896f28b9f95699
+openjdk version "17.0.20.1" 2026-08-18
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
+cmd: mvn -B clean verify

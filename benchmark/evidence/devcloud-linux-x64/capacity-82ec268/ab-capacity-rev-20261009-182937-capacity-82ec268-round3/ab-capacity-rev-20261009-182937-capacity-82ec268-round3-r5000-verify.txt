@@ -1,0 +1,158 @@
+===== MySQL verify.sql =====
+section	activity_id	sku_id	total_stock	available_stock	sold_count
+stock_summary	1	1001	600000	425038	174962
+section	activity_id	sku_id	segment_count	segment_total_stock	segment_available_stock	segment_sold_count	min_segment_available
+stock_segments	1	1001	128	600000	329168	270832	2555
+section	total_orders	success_orders	distinct_order_users	first_order_at	last_order_at	mysql_order_span_ms
+orders	270832	270832	270832	2026-10-09 19:04:15	2026-10-09 19:05:59	104000.0000
+section	duplicate_group_count
+duplicate_order_groups	0
+section	order_count	distinct_order_id_count	duplicate_order_id_count
+order_id_uniqueness	270832	270832	0
+section	worker_id	order_count
+order_worker_distribution	7	270832
+section	status	retry_count	message_count
+messages_by_status	2	0	270832
+section	local_messages	consumed_messages	success_orders	consumed_equals_orders
+message_order_consistency	270832	270832	270832	1
+section	type	status	compensation_count
+compensations	MYSQL_ORDER_STOCK_MISMATCH	WAIT_MANUAL_CHECK	2
+compensations	REDIS_STOCK_REPAIR	DONE	2
+
+===== Redis stock keys (total + buckets) =====
+seckill:stock:1:1001 = 329864
+seckill:stock:1:1001:bucket:0 = 2578
+seckill:stock:1:1001:bucket:1 = 2578
+seckill:stock:1:1001:bucket:10 = 2577
+seckill:stock:1:1001:bucket:100 = 2577
+seckill:stock:1:1001:bucket:101 = 2577
+seckill:stock:1:1001:bucket:102 = 2577
+seckill:stock:1:1001:bucket:103 = 2577
+seckill:stock:1:1001:bucket:104 = 2577
+seckill:stock:1:1001:bucket:105 = 2577
+seckill:stock:1:1001:bucket:106 = 2577
+seckill:stock:1:1001:bucket:107 = 2577
+seckill:stock:1:1001:bucket:108 = 2577
+seckill:stock:1:1001:bucket:109 = 2577
+seckill:stock:1:1001:bucket:11 = 2577
+seckill:stock:1:1001:bucket:110 = 2577
+seckill:stock:1:1001:bucket:111 = 2577
+seckill:stock:1:1001:bucket:112 = 2577
+seckill:stock:1:1001:bucket:113 = 2577
+seckill:stock:1:1001:bucket:114 = 2577
+seckill:stock:1:1001:bucket:115 = 2577
+seckill:stock:1:1001:bucket:116 = 2577
+seckill:stock:1:1001:bucket:117 = 2577
+seckill:stock:1:1001:bucket:118 = 2577
+seckill:stock:1:1001:bucket:119 = 2577
+seckill:stock:1:1001:bucket:12 = 2577
+seckill:stock:1:1001:bucket:120 = 2577
+seckill:stock:1:1001:bucket:121 = 2577
+seckill:stock:1:1001:bucket:122 = 2577
+seckill:stock:1:1001:bucket:123 = 2577
+seckill:stock:1:1001:bucket:124 = 2577
+seckill:stock:1:1001:bucket:125 = 2577
+seckill:stock:1:1001:bucket:126 = 2577
+seckill:stock:1:1001:bucket:127 = 2577
+seckill:stock:1:1001:bucket:13 = 2577
+seckill:stock:1:1001:bucket:14 = 2577
+seckill:stock:1:1001:bucket:15 = 2577
+seckill:stock:1:1001:bucket:16 = 2577
+seckill:stock:1:1001:bucket:17 = 2577
+seckill:stock:1:1001:bucket:18 = 2577
+seckill:stock:1:1001:bucket:19 = 2577
+seckill:stock:1:1001:bucket:2 = 2578
+seckill:stock:1:1001:bucket:20 = 2577
+seckill:stock:1:1001:bucket:21 = 2577
+seckill:stock:1:1001:bucket:22 = 2577
+seckill:stock:1:1001:bucket:23 = 2577
+seckill:stock:1:1001:bucket:24 = 2577
+seckill:stock:1:1001:bucket:25 = 2577
+seckill:stock:1:1001:bucket:26 = 2577
+seckill:stock:1:1001:bucket:27 = 2577
+seckill:stock:1:1001:bucket:28 = 2577
+seckill:stock:1:1001:bucket:29 = 2577
+seckill:stock:1:1001:bucket:3 = 2578
+seckill:stock:1:1001:bucket:30 = 2577
+seckill:stock:1:1001:bucket:31 = 2577
+seckill:stock:1:1001:bucket:32 = 2577
+seckill:stock:1:1001:bucket:33 = 2577
+seckill:stock:1:1001:bucket:34 = 2577
+seckill:stock:1:1001:bucket:35 = 2577
+seckill:stock:1:1001:bucket:36 = 2577
+seckill:stock:1:1001:bucket:37 = 2577
+seckill:stock:1:1001:bucket:38 = 2577
+seckill:stock:1:1001:bucket:39 = 2577
+seckill:stock:1:1001:bucket:4 = 2578
+seckill:stock:1:1001:bucket:40 = 2577
+seckill:stock:1:1001:bucket:41 = 2577
+seckill:stock:1:1001:bucket:42 = 2577
+seckill:stock:1:1001:bucket:43 = 2577
+seckill:stock:1:1001:bucket:44 = 2577
+seckill:stock:1:1001:bucket:45 = 2577
+seckill:stock:1:1001:bucket:46 = 2577
+seckill:stock:1:1001:bucket:47 = 2577
+seckill:stock:1:1001:bucket:48 = 2577
+seckill:stock:1:1001:bucket:49 = 2577
+seckill:stock:1:1001:bucket:5 = 2578
+seckill:stock:1:1001:bucket:50 = 2577
+seckill:stock:1:1001:bucket:51 = 2577
+seckill:stock:1:1001:bucket:52 = 2577
+seckill:stock:1:1001:bucket:53 = 2577
+seckill:stock:1:1001:bucket:54 = 2577
+seckill:stock:1:1001:bucket:55 = 2577
+seckill:stock:1:1001:bucket:56 = 2577
+seckill:stock:1:1001:bucket:57 = 2577
+seckill:stock:1:1001:bucket:58 = 2577
+seckill:stock:1:1001:bucket:59 = 2577
+seckill:stock:1:1001:bucket:6 = 2578
+seckill:stock:1:1001:bucket:60 = 2577
+seckill:stock:1:1001:bucket:61 = 2577
+seckill:stock:1:1001:bucket:62 = 2577
+seckill:stock:1:1001:bucket:63 = 2577
+seckill:stock:1:1001:bucket:64 = 2577
+seckill:stock:1:1001:bucket:65 = 2577
+seckill:stock:1:1001:bucket:66 = 2577
+seckill:stock:1:1001:bucket:67 = 2577
+seckill:stock:1:1001:bucket:68 = 2577
+seckill:stock:1:1001:bucket:69 = 2577
+seckill:stock:1:1001:bucket:7 = 2578
+seckill:stock:1:1001:bucket:70 = 2577
+seckill:stock:1:1001:bucket:71 = 2577
+seckill:stock:1:1001:bucket:72 = 2577
+seckill:stock:1:1001:bucket:73 = 2577
+seckill:stock:1:1001:bucket:74 = 2577
+seckill:stock:1:1001:bucket:75 = 2577
+seckill:stock:1:1001:bucket:76 = 2577
+seckill:stock:1:1001:bucket:77 = 2577
+seckill:stock:1:1001:bucket:78 = 2577
+seckill:stock:1:1001:bucket:79 = 2577
+seckill:stock:1:1001:bucket:8 = 2577
+seckill:stock:1:1001:bucket:80 = 2577
+seckill:stock:1:1001:bucket:81 = 2577
+seckill:stock:1:1001:bucket:82 = 2577
+seckill:stock:1:1001:bucket:83 = 2577
+seckill:stock:1:1001:bucket:84 = 2577
+seckill:stock:1:1001:bucket:85 = 2577
+seckill:stock:1:1001:bucket:86 = 2577
+seckill:stock:1:1001:bucket:87 = 2577
+seckill:stock:1:1001:bucket:88 = 2577
+seckill:stock:1:1001:bucket:89 = 2577
+seckill:stock:1:1001:bucket:9 = 2577
+seckill:stock:1:1001:bucket:90 = 2577
+seckill:stock:1:1001:bucket:91 = 2577
+seckill:stock:1:1001:bucket:92 = 2577
+seckill:stock:1:1001:bucket:93 = 2577
+seckill:stock:1:1001:bucket:94 = 2577
+seckill:stock:1:1001:bucket:95 = 2577
+seckill:stock:1:1001:bucket:96 = 2577
+seckill:stock:1:1001:bucket:97 = 2577
+seckill:stock:1:1001:bucket:98 = 2577
+seckill:stock:1:1001:bucket:99 = 2577
+
+===== RabbitMQ queues =====
+Timeout: 60.0 seconds ...
+Listing queues for vhost / ...
+name	messages	messages_ready	messages_unacknowledged
+mini.seckill.dead.queue	0	0	0
+mini.seckill.order.queue	0	0	0

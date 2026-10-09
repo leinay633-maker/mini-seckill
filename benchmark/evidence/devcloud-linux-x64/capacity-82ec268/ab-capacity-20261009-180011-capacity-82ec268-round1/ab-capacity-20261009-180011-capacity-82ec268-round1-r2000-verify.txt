@@ -1,0 +1,158 @@
+===== MySQL verify.sql =====
+section	activity_id	sku_id	total_stock	available_stock	sold_count
+stock_summary	1	1001	240000	125581	114419
+section	activity_id	sku_id	segment_count	segment_total_stock	segment_available_stock	segment_sold_count	min_segment_available
+stock_segments	1	1001	128	240000	121801	118199	951
+section	total_orders	success_orders	distinct_order_users	first_order_at	last_order_at	mysql_order_span_ms
+orders	118199	118199	118199	2026-10-09 18:01:40	2026-10-09 18:03:24	104000.0000
+section	duplicate_group_count
+duplicate_order_groups	0
+section	order_count	distinct_order_id_count	duplicate_order_id_count
+order_id_uniqueness	118199	118199	0
+section	worker_id	order_count
+order_worker_distribution	7	118199
+section	status	retry_count	message_count
+messages_by_status	2	0	118199
+section	local_messages	consumed_messages	success_orders	consumed_equals_orders
+message_order_consistency	118199	118199	118199	1
+section	type	status	compensation_count
+compensations	MYSQL_ORDER_STOCK_MISMATCH	WAIT_MANUAL_CHECK	2
+compensations	REDIS_STOCK_REPAIR	DONE	2
+
+===== Redis stock keys (total + buckets) =====
+seckill:stock:1:1001 = 121950
+seckill:stock:1:1001:bucket:0 = 953
+seckill:stock:1:1001:bucket:1 = 953
+seckill:stock:1:1001:bucket:10 = 953
+seckill:stock:1:1001:bucket:100 = 952
+seckill:stock:1:1001:bucket:101 = 952
+seckill:stock:1:1001:bucket:102 = 952
+seckill:stock:1:1001:bucket:103 = 952
+seckill:stock:1:1001:bucket:104 = 952
+seckill:stock:1:1001:bucket:105 = 952
+seckill:stock:1:1001:bucket:106 = 952
+seckill:stock:1:1001:bucket:107 = 952
+seckill:stock:1:1001:bucket:108 = 952
+seckill:stock:1:1001:bucket:109 = 952
+seckill:stock:1:1001:bucket:11 = 953
+seckill:stock:1:1001:bucket:110 = 952
+seckill:stock:1:1001:bucket:111 = 952
+seckill:stock:1:1001:bucket:112 = 952
+seckill:stock:1:1001:bucket:113 = 952
+seckill:stock:1:1001:bucket:114 = 952
+seckill:stock:1:1001:bucket:115 = 952
+seckill:stock:1:1001:bucket:116 = 952
+seckill:stock:1:1001:bucket:117 = 952
+seckill:stock:1:1001:bucket:118 = 952
+seckill:stock:1:1001:bucket:119 = 952
+seckill:stock:1:1001:bucket:12 = 953
+seckill:stock:1:1001:bucket:120 = 952
+seckill:stock:1:1001:bucket:121 = 952
+seckill:stock:1:1001:bucket:122 = 952
+seckill:stock:1:1001:bucket:123 = 952
+seckill:stock:1:1001:bucket:124 = 952
+seckill:stock:1:1001:bucket:125 = 952
+seckill:stock:1:1001:bucket:126 = 952
+seckill:stock:1:1001:bucket:127 = 952
+seckill:stock:1:1001:bucket:13 = 953
+seckill:stock:1:1001:bucket:14 = 953
+seckill:stock:1:1001:bucket:15 = 953
+seckill:stock:1:1001:bucket:16 = 953
+seckill:stock:1:1001:bucket:17 = 953
+seckill:stock:1:1001:bucket:18 = 953
+seckill:stock:1:1001:bucket:19 = 953
+seckill:stock:1:1001:bucket:2 = 953
+seckill:stock:1:1001:bucket:20 = 953
+seckill:stock:1:1001:bucket:21 = 953
+seckill:stock:1:1001:bucket:22 = 953
+seckill:stock:1:1001:bucket:23 = 953
+seckill:stock:1:1001:bucket:24 = 953
+seckill:stock:1:1001:bucket:25 = 953
+seckill:stock:1:1001:bucket:26 = 953
+seckill:stock:1:1001:bucket:27 = 953
+seckill:stock:1:1001:bucket:28 = 953
+seckill:stock:1:1001:bucket:29 = 953
+seckill:stock:1:1001:bucket:3 = 953
+seckill:stock:1:1001:bucket:30 = 953
+seckill:stock:1:1001:bucket:31 = 953
+seckill:stock:1:1001:bucket:32 = 953
+seckill:stock:1:1001:bucket:33 = 953
+seckill:stock:1:1001:bucket:34 = 953
+seckill:stock:1:1001:bucket:35 = 953
+seckill:stock:1:1001:bucket:36 = 953
+seckill:stock:1:1001:bucket:37 = 953
+seckill:stock:1:1001:bucket:38 = 953
+seckill:stock:1:1001:bucket:39 = 953
+seckill:stock:1:1001:bucket:4 = 953
+seckill:stock:1:1001:bucket:40 = 953
+seckill:stock:1:1001:bucket:41 = 953
+seckill:stock:1:1001:bucket:42 = 953
+seckill:stock:1:1001:bucket:43 = 953
+seckill:stock:1:1001:bucket:44 = 953
+seckill:stock:1:1001:bucket:45 = 953
+seckill:stock:1:1001:bucket:46 = 953
+seckill:stock:1:1001:bucket:47 = 953
+seckill:stock:1:1001:bucket:48 = 953
+seckill:stock:1:1001:bucket:49 = 953
+seckill:stock:1:1001:bucket:5 = 953
+seckill:stock:1:1001:bucket:50 = 953
+seckill:stock:1:1001:bucket:51 = 953
+seckill:stock:1:1001:bucket:52 = 953
+seckill:stock:1:1001:bucket:53 = 953
+seckill:stock:1:1001:bucket:54 = 953
+seckill:stock:1:1001:bucket:55 = 953
+seckill:stock:1:1001:bucket:56 = 953
+seckill:stock:1:1001:bucket:57 = 953
+seckill:stock:1:1001:bucket:58 = 953
+seckill:stock:1:1001:bucket:59 = 953
+seckill:stock:1:1001:bucket:6 = 953
+seckill:stock:1:1001:bucket:60 = 953
+seckill:stock:1:1001:bucket:61 = 953
+seckill:stock:1:1001:bucket:62 = 953
+seckill:stock:1:1001:bucket:63 = 953
+seckill:stock:1:1001:bucket:64 = 953
+seckill:stock:1:1001:bucket:65 = 953
+seckill:stock:1:1001:bucket:66 = 953
+seckill:stock:1:1001:bucket:67 = 953
+seckill:stock:1:1001:bucket:68 = 953
+seckill:stock:1:1001:bucket:69 = 953
+seckill:stock:1:1001:bucket:7 = 953
+seckill:stock:1:1001:bucket:70 = 953
+seckill:stock:1:1001:bucket:71 = 953
+seckill:stock:1:1001:bucket:72 = 953
+seckill:stock:1:1001:bucket:73 = 953
+seckill:stock:1:1001:bucket:74 = 953
+seckill:stock:1:1001:bucket:75 = 953
+seckill:stock:1:1001:bucket:76 = 953
+seckill:stock:1:1001:bucket:77 = 953
+seckill:stock:1:1001:bucket:78 = 953
+seckill:stock:1:1001:bucket:79 = 953
+seckill:stock:1:1001:bucket:8 = 953
+seckill:stock:1:1001:bucket:80 = 953
+seckill:stock:1:1001:bucket:81 = 953
+seckill:stock:1:1001:bucket:82 = 953
+seckill:stock:1:1001:bucket:83 = 953
+seckill:stock:1:1001:bucket:84 = 953
+seckill:stock:1:1001:bucket:85 = 953
+seckill:stock:1:1001:bucket:86 = 953
+seckill:stock:1:1001:bucket:87 = 953
+seckill:stock:1:1001:bucket:88 = 953
+seckill:stock:1:1001:bucket:89 = 953
+seckill:stock:1:1001:bucket:9 = 953
+seckill:stock:1:1001:bucket:90 = 953
+seckill:stock:1:1001:bucket:91 = 953
+seckill:stock:1:1001:bucket:92 = 953
+seckill:stock:1:1001:bucket:93 = 953
+seckill:stock:1:1001:bucket:94 = 952
+seckill:stock:1:1001:bucket:95 = 952
+seckill:stock:1:1001:bucket:96 = 952
+seckill:stock:1:1001:bucket:97 = 952
+seckill:stock:1:1001:bucket:98 = 952
+seckill:stock:1:1001:bucket:99 = 952
+
+===== RabbitMQ queues =====
+Timeout: 60.0 seconds ...
+Listing queues for vhost / ...
+name	messages	messages_ready	messages_unacknowledged
+mini.seckill.dead.queue	0	0	0
+mini.seckill.order.queue	0	0	0
