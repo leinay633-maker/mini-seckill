@@ -16,3 +16,8 @@
 - 改动：核对 PR #1（pro/interview-grade，09906d2）的代码 diff、PR 描述和 docs/CONSISTENCY-REVIEW.md、CONSISTENCY-EXPERIMENTS.md，全部采纳，fast-forward 合并到 main；本机新装便携 JDK 17.0.20.1 与 Maven 3.9.9（C:\tools，未改系统 PATH）。
 - 验证：本机 Windows/JDK 17 `mvn -B clean verify`：112 单元测试通过 / 0 失败 / 0 错误 / 0 跳过，BUILD SUCCESS；`python -m unittest discover -s scripts -p test_consistency_evidence.py`：8 通过。集成测试（-Pintegration-test，Testcontainers）本机无 Docker 未跑，以 CI run 37899792451 为准（112 单元 + 23 集成通过）。新版本 k6 压测与真实故障演练未执行。
 - 未完成 / 下一步：PR 描述中的“待本机实测”实验（同机性能对照、提交后 ACK 丢失、提交后 Redis 投影失败、multi/backlog/soak 复测）需 Docker 与 k6，执行前先问用户。另记一处待核风险（按 Spring AMQP MANUAL 模式语义推断、未实测）：recordFailedOrder / reconcile / markDeadFromConsuming 抛错时消息既不 ACK 也不 NACK，会一直占用 prefetch（默认 50）直到通道重建，数据库长时间故障时可能让消费者停摆，靠 stale CONSUMING 恢复和重投兜底。
+
+### 2026-10-09 17:02 · 本地 Claude Code · main
+- 改动：在 32 核 Linux 开发容器上（无 Docker，MySQL 8.0.46 / Redis 7.2.7 / RabbitMQ 3.13.7 均为原生进程）做单实例容量摸底和新旧版交错对照；原始证据放入 benchmark/evidence/devcloud-linux-x64/（README 含环境、方法、全部结果和拐点线程栈汇总），搭建与压测脚本放入 benchmark/native-linux/。历史 REPORT 未改。
+- 验证：k6 unique 恒定到达率每档 60 秒，共 14 档次（新版 deb719a、旧版 68858ab 各 3 轮）；全部对账一致（订单数 = 入队数，重复订单组 0，订单号重复 0）。2000/s 无错误无丢弃；3000/s 三次中两次出现丢弃（一次伴随 10% token 接口超时）。3000/s 时 jstack 显示 200 个 Tomcat 线程中约 187 个在等 Hikari 连接（池 40），MySQL Threads_running 41，CPU 合计约 18 核未打满。新旧版未测出性能差异（版本内波动大于版本差）。mvn 与集成测试本轮未重跑。
+- 未完成 / 下一步：针对连接池瓶颈的优化待做（交给 GPT-6 Pro），优化后在同一容器按同样阶梯与交错方式复测；提交后 ACK 丢失、Redis 投影失败的精确切点演练未做；4000/s 以上与多实例未测。
