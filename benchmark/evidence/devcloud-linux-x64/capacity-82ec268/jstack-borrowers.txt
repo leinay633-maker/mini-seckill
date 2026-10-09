@@ -1,0 +1,6 @@
+results/diag-new-r3000/jstack-15.txt {'mq-consumer': 16, 'tomcat': 187, 'rabbit-confirm': 31, 'seckill-log': 1}
+results/diag-new-r3000/jstack-25.txt {'mq-consumer': 18, 'tomcat': 172, 'seckill-log': 2, 'rabbit-confirm': 46}
+results/diag-capacity-82ec268-r3000/jstack-15.txt {'tomcat': 2, 'rabbit-confirm': 1}
+results/diag-capacity-82ec268-r3000/jstack-25.txt {}
+results/diag-capacity-82ec268-r4000/jstack-15.txt {}
+results/diag-capacity-82ec268-r4000/jstack-25.txt {'tomcat': 65, 'mq-consumer': 4, 'rabbit-confirm': 13, 'seckill-log': 1}

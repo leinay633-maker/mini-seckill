@@ -1,0 +1,6 @@
+results/diag-new-r3000/jstack-15.txt 200 {'executing_io(sql/redis)': 7, 'hikari:activity': 74, 'hikari:message_insert': 32, 'hikari:producer_send': 24, 'hikari:token_order_lookup': 57, 'other': 6}
+results/diag-new-r3000/jstack-25.txt 200 {'executing_io(sql/redis)': 23, 'hikari:activity': 87, 'hikari:message_insert': 24, 'hikari:producer_send': 27, 'hikari:token_order_lookup': 34, 'other': 5}
+results/diag-capacity-82ec268-r3000/jstack-15.txt 200 {'executing_io(sql/redis)': 11, 'hikari:message_insert': 1, 'hikari:token_order_lookup': 1, 'idle_in_pool': 185, 'other': 2}
+results/diag-capacity-82ec268-r3000/jstack-25.txt 200 {'executing_io(sql/redis)': 9, 'idle_in_pool': 187, 'other': 4}
+results/diag-capacity-82ec268-r4000/jstack-15.txt 200 {'executing_io(sql/redis)': 10, 'idle_in_pool': 187, 'other': 3}
+results/diag-capacity-82ec268-r4000/jstack-25.txt 200 {'executing_io(sql/redis)': 14, 'hikari:message_insert': 36, 'hikari:token_order_lookup': 29, 'idle_in_pool': 113, 'other': 8}

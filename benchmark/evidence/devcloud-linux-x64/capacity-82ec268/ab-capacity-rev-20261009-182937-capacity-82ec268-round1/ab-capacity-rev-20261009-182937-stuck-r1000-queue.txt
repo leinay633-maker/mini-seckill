@@ -1,0 +1,26 @@
+ready 0 unacked 6 consumers 8
+JDBC open failures: 2
+      1 18:32 c.e.miniseckill.job.StockReconcileJob mysql stock/order mismatch
+      1 18:32 c.e.miniseckill.job.StockReconcileJob repair redis stock from mysql
+    246 18:33 c.e.m.common.GlobalExceptionHandler unexpected error
+      1 18:33 c.e.miniseckill.job.StockReconcileJob mysql stock/order mismatch
+      1 18:33 c.e.miniseckill.job.StockReconcileJob repair redis stock from mysql
+      2 18:33 c.e.miniseckill.mq.SeckillConsumer consume seckill message failed
+      2 18:33 c.e.m.service.SeckillLogWriteExecutor seckill log write failed
+      4 18:33 .m.m.a.ExceptionHandlerExceptionResolver Failure in @ExceptionHandler com.example.miniseckill.common.GlobalExceptionHandler#handleE
+     53 18:33 o.s.a.r.c.PublisherCallbackChannelImpl Exception delivering confirm
+     11 18:33 s.a.r.l.ConditionalRejectingErrorHandler Execution of Rabbit message listener failed.
+      4 18:33 .w.s.m.s.DefaultHandlerExceptionResolver Resolved [org.springframework.web.context.request.async.AsyncRequestNotUsableException: Se
+      1 18:34 c.e.miniseckill.job.StockReconcileJob repair redis stock from mysql
+--- first listener failure
+41:2026-10-09T18:33:09.510+08:00  WARN 133613 --- [mini-seckill] [ntContainer#0-6] s.a.r.l.ConditionalRejectingErrorHandler : Execution of Rabbit message listener failed.
+42-
+43:org.springframework.amqp.rabbit.support.ListenerExecutionFailedException: Listener method 'public void com.example.miniseckill.mq.SeckillConsumer.consume(com.example.miniseckill.dto.SeckillMessage,org.springframework.amqp.core.Message,com.rabbitmq.client.Ch
+44-	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.invokeHandler(MessagingMessageListenerAdapter.java:287) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+45-	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.invokeHandlerAndProcessResult(MessagingMessageListenerAdapter.java:225) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+46-	at org.springframework.amqp.rabbit.listener.adapter.MessagingMessageListenerAdapter.onMessage(MessagingMessageListenerAdapter.java:149) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+47-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doInvokeListener(AbstractMessageListenerContainer.java:1682) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+48-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.actualInvokeListener(AbstractMessageListenerContainer.java:1604) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+49-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.invokeListener(AbstractMessageListenerContainer.java:1592) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+50-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doExecuteListener(AbstractMessageListenerContainer.java:1583) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
+51-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.executeListenerAndHandleException(AbstractMessageListenerContainer.java:1528) ~[spring-rabbit-3.1.7.jar!/:3.1.7]
