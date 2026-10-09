@@ -8,6 +8,8 @@
 
 MiniSeckill 是一个聚焦秒杀下单核心链路的 Java 后端面试项目。它不追求完整商城功能，而是用可运行代码、自动化测试和真实压测证据回答几个关键问题：高并发下如何防超卖、防重复、削峰、保证消息可恢复，以及如何让优化结论可复现。
 
+2026-10 一致性加固：先读 [问题与取舍](docs/CONSISTENCY-REVIEW.md)、[回归与本机实验方案](docs/CONSISTENCY-EXPERIMENTS.md)、[CI 验证快照](docs/CI-VALIDATION-20261009.md)。本轮聚焦提交边界、事实幂等和迟到重试，历史性能数字不变；新版本性能及真实故障演练结果仍为“待本机实测”。
+
 ## 核心能力
 
 - Redis ZSET 滑动窗口限流，保留固定窗口作为回退选项。
@@ -211,8 +213,10 @@ HTTP 状态码与 body `code` 同时表达语义：参数错误、鉴权失败�
 
 - 本地消息状态包含 PENDING、SENDING、SENT、CONSUMING、CONSUMED、FAILED、TIMEOUT、DEAD 等状态。
 - confirm ack 只允许 SENDING → SENT，消费者先抢占 CONSUMING 再执行事务。
-- 瞬时数据访问异常回到可重试状态；确定性库存失败记录 FAILED 订单，保证结果长期可查。
-- 定时任务恢复长时间停留在 CONSUMING 的租约，并处理重投、超时、对账和死信回放。
+- 成功订单、MySQL 库存扣减和 CONSUMED 消息同事务提交；Redis 状态在 afterCommit 尽力更新，缓存异常不能反转已提交业务事实。
+- 瞬时数据访问异常回到可重试状态；确定性库存失败将 FAILED 订单与本地 DEAD 消息同事务记录，持久化失败不直接 ACK。这里的 DEAD 不等于 RabbitMQ 死信队列计数。
+- 重复投递与过期消费恢复按业务键核对实际订单的 SUCCESS/FAILED，不把唯一键异常或“存在订单”直接等同于成功；ACK/NACK 与业务异常处理分离。
+- 自动发送/重试写入受状态条件保护，CAS 未命中不生成错误补偿。显式管理回放仍保留；现有 CONSUMING 租约恢复尚无代际 fencing，不能宣称端到端 exactly-once。
 
 ## 测试与 CI
 
@@ -228,6 +232,14 @@ mvn -B clean verify
 mvn -B clean -Pintegration-test verify
 ./scripts/assert-integration-tests-ran.sh
 ```
+
+一键运行并保存本次回归的原始证据（需要 Python 3.10+、JDK 17、Maven 和 Docker）：
+
+```bash
+python scripts/run-consistency-evidence.py
+```
+
+输出包含实际 Git SHA、环境、Maven 日志、JUnit XML、统计和文件摘要；缺报告、零测试、失败或跳过不能算通过。新 `OrderCommitBoundaryIT` 使用真实 MySQL 与 Spring 事务代理，Redis/指标是故障注入替身；它不等于真实 Redis/RabbitMQ 故障演练。详细口径见 [实验方案](docs/CONSISTENCY-EXPERIMENTS.md)。
 
 证据与工程文件检查：
 
@@ -261,6 +273,8 @@ CI 还会逐层解析基础依赖、多实例、Nginx、监控和资源限制 ov
 ## 项目边界
 
 这是面向学习和面试展示的单机/多实例样板，不是生产级电商系统。项目没有实现支付、商品中心、生产风控、跨地域容灾和容量自动扩缩；压测也不用于外推生产集群容量。文档会明确区分“已经由代码或证据验证”与“生产环境仍需补齐”的部分。
+
+Redis 预扣到消息落库的跨系统窗口、消费代际 fencing、多实例恢复屏障仍有待完善；非默认 `mqFallbackSync=true` 兼容入口未在本轮完成全链路异常认证，保持默认关闭。上述边界、反例、未做方案与后续优先级见 [一致性评审](docs/CONSISTENCY-REVIEW.md)。
 
 ## License
 
