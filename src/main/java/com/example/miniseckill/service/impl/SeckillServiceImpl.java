@@ -271,13 +271,20 @@ public class SeckillServiceImpl implements SeckillService {
 
         SeckillMessage message = new SeckillMessage(requestId, activityId, userId, skuId, System.currentTimeMillis());
         try {
-            seckillMessageMapper.insertPending(
-                    requestId,
-                    activityId,
-                    userId,
-                    skuId,
-                    MessageStatus.PENDING.getCode()
-            );
+            // insertPending is the legacy mapper name; the status argument now also supports
+            // a durable initial SENDING intent. No MQ call happens until this INSERT returns.
+            long insertStarted = System.nanoTime();
+            int inserted;
+            try {
+                inserted = seckillMessageMapper.insertPending(
+                        requestId, activityId, userId, skuId, seckillProducer.initialMessageStatus());
+            } finally {
+                seckillMetrics.capacityStage(SeckillMetrics.CapacityStage.MESSAGE_INSERT,
+                        System.nanoTime() - insertStarted);
+            }
+            if (inserted != 1) {
+                throw new IllegalStateException("local message INSERT did not create exactly one row");
+            }
         } catch (RuntimeException ex) {
             compensateRedisAfterAdmissionFailure(userSkuKey, admission.deductedKey(), orderStatusKey);
             safeLog(requestId, activityId, userId, skuId, "LOCAL_MESSAGE_INSERT_FAILED");
@@ -287,7 +294,13 @@ public class SeckillServiceImpl implements SeckillService {
 
         safeSetOrderStatus(orderStatusKey, OrderStatus.QUEUING);
         try {
-            seckillProducer.send(message);
+            long publishStarted = System.nanoTime();
+            try {
+                seckillProducer.sendInitial(message);
+            } finally {
+                seckillMetrics.capacityStage(SeckillMetrics.CapacityStage.INITIAL_PUBLISH,
+                        System.nanoTime() - publishStarted);
+            }
             safeLog(requestId, activityId, userId, skuId, "PUBLISHED_TO_MQ_WAIT_CONFIRM");
             seckillMetrics.admission("queued");
             return Result.success("排队中", null);
@@ -399,8 +412,9 @@ public class SeckillServiceImpl implements SeckillService {
 
     private boolean hasAcceptedOrFinishedOrder(Long activityId, Long userId, Long skuId) {
         // Redis-first: the token endpoint is hot, so short-circuit on Redis state before touching MySQL.
-        // Most duplicate requests are caught here (queuing/success status or the idempotency key),
-        // and only a genuinely fresh user falls through to the authoritative order-table lookup.
+        // A Redis miss is NOT evidence of a fresh user: SUCCESS/FAILED orders can outlive both
+        // Redis keys. Keep the MySQL fallback; otherwise token issuance can permit another Redis
+        // reservation which duplicate-order reconciliation does not automatically return.
         String statusValue = stringRedisTemplate.opsForValue().get(RedisKeyUtil.orderStatusKey(activityId, userId, skuId));
         Integer status = parseInteger(statusValue);
         if (status != null && (status == OrderStatus.QUEUING.getCode() || status == OrderStatus.SUCCESS.getCode())) {
@@ -410,7 +424,13 @@ public class SeckillServiceImpl implements SeckillService {
         if (Boolean.TRUE.equals(hasQueueKey)) {
             return true;
         }
-        return seckillOrderMapper.selectByUserSku(activityId, userId, skuId) != null;
+        long started = System.nanoTime();
+        try {
+            return seckillOrderMapper.selectByUserSku(activityId, userId, skuId) != null;
+        } finally {
+            seckillMetrics.capacityStage(SeckillMetrics.CapacityStage.TOKEN_ORDER_LOOKUP,
+                    System.nanoTime() - started);
+        }
     }
 
     private void validateActivitySku(Long activityId, Long skuId) {

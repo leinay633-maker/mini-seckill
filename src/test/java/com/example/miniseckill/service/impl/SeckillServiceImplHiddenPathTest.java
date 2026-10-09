@@ -180,7 +180,7 @@ class SeckillServiceImplHiddenPathTest {
 
         assertEquals(403, ex.getCode());
         verify(redisRecoveryStateService, never()).isRecovering();
-        verify(seckillProducer, never()).send(any());
+        verify(seckillProducer, never()).sendInitial(any());
     }
 
     @Test
@@ -200,7 +200,7 @@ class SeckillServiceImplHiddenPathTest {
 
         assertEquals(403, ex.getCode());
         verify(stringRedisTemplate, never()).delete(RedisKeyUtil.tokenKey(ACTIVITY_ID, USER_ID, SKU_ID));
-        verify(seckillProducer, never()).send(any());
+        verify(seckillProducer, never()).sendInitial(any());
     }
 
     @Test
@@ -222,19 +222,20 @@ class SeckillServiceImplHiddenPathTest {
         )).thenReturn(true);
         // Default sharded path is now the single-Lua bucket scan (A3): one call, returns the hit bucket index.
         when(stringRedisTemplate.execute(eq(seckillStockShardedScript), anyList(), any())).thenReturn(0L);
+        when(seckillProducer.initialMessageStatus()).thenReturn(9);
         when(seckillMessageMapper.insertPending(
                 anyString(),
                 eq(ACTIVITY_ID),
                 eq(USER_ID),
                 eq(SKU_ID),
-                eq(0)
+                eq(9)
         )).thenReturn(1);
 
         Result<Void> result = service.placeOrder(orderRequest(), "127.0.0.1");
 
         assertEquals(0, result.getCode());
         verify(valueOperations, never()).decrement(RedisKeyUtil.stockKey(ACTIVITY_ID, SKU_ID));
-        verify(seckillProducer).send(any());
+        verify(seckillProducer).sendInitial(any());
     }
 
     private SeckillOrderRequest orderRequest() {
