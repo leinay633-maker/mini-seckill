@@ -25,7 +25,7 @@ import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes seckill messages with manual ACK and idempotent duplicate handling.
+ * Consumes seckill messages with manual ACK and fact-based duplicate handling.
  */
 @Component
 public class SeckillConsumer {
@@ -61,63 +61,69 @@ public class SeckillConsumer {
         long deliveryTag = rawMessage.getMessageProperties().getDeliveryTag();
         if (!tryMarkConsuming(seckillMessage)) {
             safeLog(seckillMessage, "CONSUME_SKIPPED_FINAL_OR_TIMEOUT");
-            seckillMetrics.mq("consume_skipped");
+            safeMetric("consume_skipped");
             channel.basicAck(deliveryTag, false);
             return;
         }
+        boolean deadLetter = false;
+        String outcome = "consume_success";
         try {
+            // The proxy returns only after the MySQL transaction has committed.
             orderService.createOrderFromConsumingMessage(seckillMessage);
-            seckillMetrics.mq("consume_success");
-            channel.basicAck(deliveryTag, false);
         } catch (DuplicateKeyException ex) {
-            safeLog(seckillMessage, "DUPLICATE_CONSUME_ACKED");
-            if (markConsumedFromConsuming(seckillMessage)) {
-                setOrderStatus(seckillMessage, OrderStatus.SUCCESS);
-            }
-            seckillMetrics.mq("duplicate_acked");
-            channel.basicAck(deliveryTag, false);
+            // A duplicate order_id is not necessarily this user's order, and a
+            // business-key duplicate can point to FAILED. Resolve durable facts.
+            orderService.reconcileExistingOrderFromConsumingMessage(seckillMessage);
+            safeLog(seckillMessage, "DUPLICATE_CONSUME_RECONCILED");
+            outcome = "duplicate_acked";
         } catch (InsufficientStockException ex) {
-            safeLog(seckillMessage, "DB_STOCK_NOT_ENOUGH_ACKED");
-            seckillMessageMapper.markFailed(seckillMessage.getRequestId(), MessageStatus.FAILED.getCode(), ex.getMessage());
+            // This service call commits FAILED order + terminal message together.
+            // If it fails, propagate without ACK; never swallow the persistence error.
             orderService.recordFailedOrder(seckillMessage);
-            setOrderStatus(seckillMessage, OrderStatus.FAILED);
+            safeLog(seckillMessage, "DB_STOCK_NOT_ENOUGH_ACKED");
             insertCompensation(seckillMessage, "MYSQL_STOCK_GUARD", "FAILED", ex.getMessage());
-            seckillMetrics.mq("stock_guard_failed");
-            channel.basicAck(deliveryTag, false);
-        } catch (Exception ex) {
-            if (ex instanceof TransientDataAccessException) {
-                // Transient DB failure (deadlock / lock timeout / connection blip): don't dead-letter on the
-                // first hit. Roll the message back from CONSUMING to FAILED and hand it to the retry job,
-                // which owns backoff + max-retry (message-retry.max-retry) + eventual DEAD via retry_count.
-                // Republishing to the queue here would hot-loop, because the CONSUMING row can no longer be
-                // re-marked CONSUMING. The transient retry budget is intentionally shared with the send-side
-                // retry_count column — one bounded retry loop, not two.
-                int rolledBack = seckillMessageMapper.markFailedFromConsuming(
-                        seckillMessage.getRequestId(),
-                        MessageStatus.FAILED.getCode(),
-                        MessageStatus.CONSUMING.getCode(),
-                        shortError(ex),
-                        java.time.LocalDateTime.now().plus(seckillProperties.getMessageRetry().getInitialBackoff())
-                );
-                if (rolledBack == 1) {
-                    safeLog(seckillMessage, "TRANSIENT_CONSUME_RETRY");
-                    seckillMetrics.mq("transient_requeued");
-                    channel.basicAck(deliveryTag, false);
-                    return;
-                }
-                // Row was no longer CONSUMING (recovered/finalized by another path); fall through to dead-letter.
+            outcome = "stock_guard_failed";
+        } catch (TransientDataAccessException ex) {
+            int rolledBack = seckillMessageMapper.markFailedFromConsuming(
+                    seckillMessage.getRequestId(),
+                    MessageStatus.FAILED.getCode(),
+                    MessageStatus.CONSUMING.getCode(),
+                    shortError(ex),
+                    java.time.LocalDateTime.now().plus(seckillProperties.getMessageRetry().getInitialBackoff())
+            );
+            if (rolledBack == 1) {
+                safeLog(seckillMessage, "TRANSIENT_CONSUME_RETRY");
+                outcome = "transient_requeued";
+            } else {
+                // Recovery or another completion won. A lost CAS is not authority
+                // to mark DEAD or overwrite a newer order status.
+                outcome = "consume_state_changed";
             }
+        } catch (Exception ex) {
             log.error("consume seckill message failed, requestId={}", seckillMessage.getRequestId(), ex);
-            seckillMessageMapper.markDead(
+            int updated = seckillMessageMapper.markDeadFromConsuming(
                     seckillMessage.getRequestId(),
                     MessageStatus.DEAD.getCode(),
-                    MessageStatus.CONSUMED.getCode(),
+                    MessageStatus.CONSUMING.getCode(),
                     shortError(ex)
             );
-            insertCompensation(seckillMessage, "MQ_CONSUME_DEAD", "WAIT_REPLAY", shortError(ex));
-            setOrderStatus(seckillMessage, OrderStatus.FAILED);
-            seckillMetrics.mq("dead_lettered");
+            if (updated == 1) {
+                insertCompensation(seckillMessage, "MQ_CONSUME_DEAD", "WAIT_REPLAY", shortError(ex));
+                setOrderStatusSafely(seckillMessage, OrderStatus.FAILED);
+                outcome = "dead_lettered";
+                deadLetter = true;
+            } else {
+                outcome = "consume_state_changed";
+            }
+        }
+        safeMetric(outcome);
+        // Transport settlement is intentionally OUTSIDE the business exception
+        // handler. An ACK failure cannot undo a committed order, write FAILED,
+        // trigger compensation, or cause a second settlement on the same delivery.
+        if (deadLetter) {
             channel.basicNack(deliveryTag, false, false);
+        } else {
+            channel.basicAck(deliveryTag, false);
         }
     }
 
@@ -136,19 +142,6 @@ public class SeckillConsumer {
         return false;
     }
 
-    private boolean markConsumedFromConsuming(SeckillMessage message) {
-        int updated = seckillMessageMapper.markConsumedFromConsuming(
-                message.getRequestId(),
-                MessageStatus.CONSUMED.getCode(),
-                MessageStatus.CONSUMING.getCode()
-        );
-        if (updated == 1) {
-            return true;
-        }
-        log.info("skip CONSUMED side effects because message status changed, requestId={}", message.getRequestId());
-        return false;
-    }
-
     private void safeLog(SeckillMessage message, String result) {
         try {
             seckillLogMapper.insertLog(message.getRequestId(), message.getActivityId(), message.getUserId(), message.getSkuId(), result);
@@ -157,12 +150,24 @@ public class SeckillConsumer {
         }
     }
 
-    private void setOrderStatus(SeckillMessage message, OrderStatus status) {
-        stringRedisTemplate.opsForValue().set(
-                RedisKeyUtil.orderStatusKey(message.getActivityId(), message.getUserId(), message.getSkuId()),
-                String.valueOf(status.getCode()),
-                seckillProperties.getOrderStatusTtl()
-        );
+    private void safeMetric(String outcome) {
+        try {
+            seckillMetrics.mq(outcome);
+        } catch (Exception ex) {
+            log.warn("consume metric failed, outcome={}", outcome, ex);
+        }
+    }
+
+    private void setOrderStatusSafely(SeckillMessage message, OrderStatus status) {
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    RedisKeyUtil.orderStatusKey(message.getActivityId(), message.getUserId(), message.getSkuId()),
+                    String.valueOf(status.getCode()),
+                    seckillProperties.getOrderStatusTtl()
+            );
+        } catch (Exception ex) {
+            log.warn("terminal message status cache write failed, requestId={}", message.getRequestId(), ex);
+        }
     }
 
     private void insertCompensation(SeckillMessage message, String type, String status, String detail) {

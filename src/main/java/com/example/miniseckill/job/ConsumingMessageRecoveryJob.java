@@ -61,7 +61,12 @@ public class ConsumingMessageRecoveryJob {
                 recovery.getBatchSize()
         );
         for (SeckillMessageRecord record : records) {
-            recover(record);
+            try {
+                recover(record);
+            } catch (Exception ex) {
+                // One broken row or unavailable dependency must not starve the batch.
+                log.warn("recover stale CONSUMING failed, requestId={}", record.getRequestId(), ex);
+            }
         }
     }
 
@@ -71,11 +76,17 @@ public class ConsumingMessageRecoveryJob {
                 record.getUserId(),
                 record.getSkuId()
         );
-        if (order != null) {
+        if (order == null) {
+            markRetryable(record);
+        } else if (Integer.valueOf(OrderStatus.SUCCESS.getCode()).equals(order.getStatus())) {
             markConsumed(record);
-            return;
+        } else if (Integer.valueOf(OrderStatus.FAILED.getCode()).equals(order.getStatus())) {
+            markBusinessFailed(record);
+        } else {
+            // Existence alone does not prove success. Preserve the row for inspection.
+            log.error("unsupported durable order status during recovery, requestId={}, status={}",
+                    record.getRequestId(), order.getStatus());
         }
-        markRetryable(record);
     }
 
     private void markConsumed(SeckillMessageRecord record) {
@@ -88,13 +99,33 @@ public class ConsumingMessageRecoveryJob {
             log.info("skip stale CONSUMING consume recovery because status changed, requestId={}", record.getRequestId());
             return;
         }
-        stringRedisTemplate.opsForValue().set(
-                RedisKeyUtil.orderStatusKey(record.getActivityId(), record.getUserId(), record.getSkuId()),
-                String.valueOf(OrderStatus.SUCCESS.getCode()),
-                seckillProperties.getOrderStatusTtl()
-        );
+        setStatusSafely(record, OrderStatus.SUCCESS);
         safeLog(record, "CONSUMING_RECOVERED_CONSUMED");
         seckillMetrics.mq("consuming_recovered_consumed");
+    }
+
+    private void markBusinessFailed(SeckillMessageRecord record) {
+        int updated = seckillMessageMapper.markDeadFromConsuming(
+                record.getRequestId(), MessageStatus.DEAD.getCode(), MessageStatus.CONSUMING.getCode(),
+                "terminal business failure: persisted FAILED order");
+        if (updated != 1) {
+            return;
+        }
+        setStatusSafely(record, OrderStatus.FAILED);
+        safeLog(record, "CONSUMING_RECOVERED_BUSINESS_FAILED");
+        seckillMetrics.mq("consuming_recovered_business_failed");
+    }
+
+    private void setStatusSafely(SeckillMessageRecord record, OrderStatus status) {
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    RedisKeyUtil.orderStatusKey(record.getActivityId(), record.getUserId(), record.getSkuId()),
+                    String.valueOf(status.getCode()),
+                    seckillProperties.getOrderStatusTtl()
+            );
+        } catch (Exception ex) {
+            log.warn("recovered status cache write failed, requestId={}", record.getRequestId(), ex);
+        }
     }
 
     private void markRetryable(SeckillMessageRecord record) {

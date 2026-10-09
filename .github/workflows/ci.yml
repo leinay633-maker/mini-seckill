@@ -22,6 +22,9 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Test evidence checker negative cases
+        run: python3 -m unittest discover -s scripts -p 'test_consistency_evidence.py' -v
+
       - name: Run Maven verification
         run: mvn -B clean verify
 
@@ -45,6 +48,14 @@ jobs:
           path: target/site/jacoco/
           if-no-files-found: warn
 
+      - name: Upload unit test reports even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: target/surefire-reports/
+          if-no-files-found: warn
+
   integration-test:
     runs-on: ubuntu-latest
     steps:
@@ -58,8 +69,20 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Run Testcontainers integration tests
-        run: mvn -B clean -Pintegration-test verify
+      - name: Run Testcontainers verification and archive consistency evidence
+        run: python3 scripts/run-consistency-evidence.py --output benchmark/results/consistency-ci
 
       - name: Assert integration tests were not skipped
         run: ./scripts/assert-integration-tests-ran.sh
+
+      - name: Show build failure context
+        if: failure()
+        run: tail -n 160 benchmark/results/consistency-ci/maven.log || true
+
+      - name: Upload consistency evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: consistency-evidence
+          path: benchmark/results/consistency-ci/
+          if-no-files-found: error

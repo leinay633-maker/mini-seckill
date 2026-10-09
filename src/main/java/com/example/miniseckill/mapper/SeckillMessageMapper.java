@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Update;
 
 /**
  * Mapper for local message table used by reliable MQ send and retry.
+ * Numeric allowlists below are the persisted MessageStatus contract, covered by
+ * MySQL integration tests. Stale retry snapshots must not overwrite terminal rows.
  */
 @Mapper
 public interface SeckillMessageMapper {
@@ -25,6 +27,7 @@ public interface SeckillMessageMapper {
                       @Param("skuId") Long skuId,
                       @Param("status") int status);
 
+    // Legacy synchronous completion: never take over an active consumer or a terminal row.
     @Update("""
             UPDATE seckill_message
             SET status = #{status},
@@ -32,6 +35,7 @@ public interface SeckillMessageMapper {
                 next_retry_at = NULL,
                 updated_at = NOW()
             WHERE request_id = #{requestId}
+              AND status IN (0, 1, 3, 4, 5, 8, 9)
             """)
     int updateStatus(@Param("requestId") String requestId, @Param("status") int status);
 
@@ -40,6 +44,7 @@ public interface SeckillMessageMapper {
             SET status = #{sendingStatus},
                 updated_at = NOW()
             WHERE request_id = #{requestId}
+              AND status IN (0, 3, 4, 5, 8, 9)
               AND status NOT IN (#{consumedStatus}, #{timeoutStatus}, #{deadStatus}, #{consumingStatus})
             """)
     int markSending(@Param("requestId") String requestId,
@@ -114,6 +119,7 @@ public interface SeckillMessageMapper {
                 next_retry_at = NOW(),
                 updated_at = NOW()
             WHERE request_id = #{requestId}
+              AND status IN (0, 3, 4, 5, 9)
             """)
     int markFailed(@Param("requestId") String requestId,
                    @Param("status") int status,
@@ -142,12 +148,14 @@ public interface SeckillMessageMapper {
                 next_retry_at = #{nextRetryAt},
                 updated_at = NOW()
             WHERE request_id = #{requestId}
+              AND status IN (0, 3, 4, 5, 9)
             """)
     int markFailedForRetry(@Param("requestId") String requestId,
                            @Param("status") int status,
                            @Param("lastError") String lastError,
                            @Param("nextRetryAt") LocalDateTime nextRetryAt);
 
+    // Retry exhaustion owns only send-side states, not a consumer that won after the scan.
     @Update("""
             UPDATE seckill_message
             SET status = #{deadStatus},
@@ -156,11 +164,27 @@ public interface SeckillMessageMapper {
                 updated_at = NOW()
             WHERE request_id = #{requestId}
               AND status <> #{consumedStatus}
+              AND status IN (0, 3, 4, 5, 9)
             """)
     int markDead(@Param("requestId") String requestId,
                  @Param("deadStatus") int deadStatus,
                  @Param("consumedStatus") int consumedStatus,
                  @Param("lastError") String lastError);
+
+    @Update("""
+            UPDATE seckill_message
+            SET status = #{deadStatus},
+                last_error = #{lastError},
+                next_retry_at = NULL,
+                dead_at = NOW(),
+                updated_at = NOW()
+            WHERE request_id = #{requestId}
+              AND status = #{consumingStatus}
+            """)
+    int markDeadFromConsuming(@Param("requestId") String requestId,
+                              @Param("deadStatus") int deadStatus,
+                              @Param("consumingStatus") int consumingStatus,
+                              @Param("lastError") String lastError);
 
     @Select("""
             SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count, last_error, next_retry_at, dead_at, created_at, updated_at
