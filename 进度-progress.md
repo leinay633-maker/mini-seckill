@@ -26,3 +26,8 @@
 - 改动：基于 64955b8 为活动入口加入默认 250ms 的有界元数据缓存（本机生命周期失效、冷加载合并、按 SQL 发起时刻计龄、事务内不共享快照），融合首次本地消息 INSERT SENDING 与发送，保留 token 的 MySQL 事实兜底及 Hikari 40 连接预算；添加独立消融开关、分阶段诊断、缓存/入口/真实 MySQL 回归，ab-rounds 支持指定两版本及防覆盖运行目录。docs/CAPACITY-KNEE.md 和 CAPACITY-RETEST.md 记录原值→新值→理由、关闭窗口、保留风险和同机复测步骤；历史证据、REPORT、订单事务/消费者/mapper SQL、main 与 obsidian-vault 未改。
 - 验证：当前编辑环境 `bash -n benchmark/native-linux/ab-rounds.sh` 通过；`mvn -B clean verify` 无法启动，具体错误 `mvn: command not found`，Java 单元与集成尚未验证，交由本 PR CI 检查后追加结果。已核对 SeckillServiceImpl 完整基准 blob 和改动后的远端 blob 与本地字节 SHA 一致。5→热缓存下2次仅为入口同步 SQL 代码计数，无新版本压测数据。
 - 未完成 / 下一步：核对 PR CI 编译、单元与非跳过 MySQL 集成门禁；本机拉分支跑 mvn，云端与 deb719a 同阶梯交错复测并更新“待实测”；性能拐点、真实 MQ/Redis 故障、持续落库能力仍待实测。复测对账后再合并与更新面试稿，不在本分支写性能提升数字。
+
+### 2026-10-09 17:47 · GPT-6 Astra Pro · pro/capacity-knee
+- 改动：PR #2 的功能提交 38347fc 已通过 CI；新增 docs/CAPACITY-CI-VALIDATION.md 归档运行、检出/tree 身份、测试分项与原始 artifact 校验值，本次仅追加文档，不改功能代码或历史条目。
+- 验证：GitHub Actions run 37912946477 两个 job 均 success（Linux/JDK 17.0.20.1）；`mvn -B clean verify`：146 单元通过 / 0 失败 / 0 错误 / 0 跳过；`mvn -B clean -Pintegration-test verify`：同一批 146 单元与 32 集成通过 / 0 失败 / 0 错误 / 0 跳过，其中 InitialAdmissionIT 9、OrderCommitBoundaryIT 20。非跳过 IT 门禁、45% JaCoCo、Python/Compose/原始证据检查通过。已解析 Surefire/Failsafe XML 与 summary/Maven 日志，两份下载 ZIP 的 SHA-256 与 GitHub digest 一致，consistency-evidence 内 287 项文件哈希全部匹配。CI 临时合并 bcd7598 的 tree 与 38347fc 完全相同，不代表已合并 main；最终文档提交的 CI 以 PR 最新检查为准。
+- 未完成 / 下一步：本机跑 mvn，云端按 docs/CAPACITY-RETEST.md 与 deb719a 交错复测。改后容量、延迟、CPU、持续落库、积压和追平均待实测；未做真实 MQ/Redis 故障或实杀进程。核对远端最终 SHA 与 PR 检查后交接，不合并、不改 obsidian-vault。
