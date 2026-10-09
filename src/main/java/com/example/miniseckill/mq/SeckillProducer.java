@@ -1,6 +1,7 @@
 package com.example.miniseckill.mq;
 
 import com.example.miniseckill.common.MessageStatus;
+import com.example.miniseckill.config.AdmissionCapacityProperties;
 import com.example.miniseckill.config.RabbitMQConfig;
 import com.example.miniseckill.dto.SeckillMessage;
 import com.example.miniseckill.mapper.SeckillMessageMapper;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,16 +24,45 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
 
     private final RabbitTemplate rabbitTemplate;
     private final SeckillMessageMapper seckillMessageMapper;
+    private final int initialMessageStatus;
 
-    public SeckillProducer(RabbitTemplate rabbitTemplate, SeckillMessageMapper seckillMessageMapper) {
+    @Autowired
+    public SeckillProducer(RabbitTemplate rabbitTemplate, SeckillMessageMapper seckillMessageMapper,
+                            AdmissionCapacityProperties properties) {
         this.rabbitTemplate = rabbitTemplate;
         this.seckillMessageMapper = seckillMessageMapper;
+        // Freeze both halves of the protocol together; runtime property mutation must not
+        // make an INSERT use PENDING while its initial send assumes SENDING.
+        this.initialMessageStatus = properties.isInitialSendingEnabled()
+                ? MessageStatus.SENDING.getCode() : MessageStatus.PENDING.getCode();
+    }
+
+    public SeckillProducer(RabbitTemplate rabbitTemplate, SeckillMessageMapper seckillMessageMapper) {
+        this(rabbitTemplate, seckillMessageMapper, new AdmissionCapacityProperties());
     }
 
     @PostConstruct
     public void initCallbacks() {
         rabbitTemplate.setConfirmCallback(this);
         rabbitTemplate.setReturnsCallback(this);
+    }
+
+    /** State for the durable initial INSERT, which must finish before sendInitial is called. */
+    public int initialMessageStatus() {
+        return initialMessageStatus;
+    }
+
+    /**
+     * Only the just-persisted admission path uses this method. SENDING is a durable send intent,
+     * not proof of publication. A crash here leaves a row eligible for the existing retry scan.
+     * Retry/replay callers MUST continue using send(), including its state-guarded UPDATE.
+     */
+    public void sendInitial(SeckillMessage message) {
+        if (initialMessageStatus == MessageStatus.SENDING.getCode()) {
+            publish(message);
+        } else {
+            send(message);
+        }
     }
 
     public void send(SeckillMessage message) {
@@ -43,6 +74,10 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
                 MessageStatus.DEAD.getCode(),
                 MessageStatus.CONSUMING.getCode()
         );
+        publish(message);
+    }
+
+    private void publish(SeckillMessage message) {
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.SECKILL_ORDER_EXCHANGE,
                 RabbitMQConfig.SECKILL_ORDER_ROUTING_KEY,

@@ -21,3 +21,8 @@
 - 改动：在 32 核 Linux 开发容器上（无 Docker，MySQL 8.0.46 / Redis 7.2.7 / RabbitMQ 3.13.7 均为原生进程）做单实例容量摸底和新旧版交错对照；原始证据放入 benchmark/evidence/devcloud-linux-x64/（README 含环境、方法、全部结果和拐点线程栈汇总），搭建与压测脚本放入 benchmark/native-linux/。历史 REPORT 未改。
 - 验证：k6 unique 恒定到达率每档 60 秒，共 14 档次（新版 deb719a、旧版 68858ab 各 3 轮）；全部对账一致（订单数 = 入队数，重复订单组 0，订单号重复 0）。2000/s 无错误无丢弃；3000/s 三次中两次出现丢弃（一次伴随 10% token 接口超时）。3000/s 时 jstack 显示 200 个 Tomcat 线程中约 187 个在等 Hikari 连接（池 40），MySQL Threads_running 41，CPU 合计约 18 核未打满。新旧版未测出性能差异（版本内波动大于版本差）。mvn 与集成测试本轮未重跑。
 - 未完成 / 下一步：针对连接池瓶颈的优化待做（交给 GPT-6 Pro），优化后在同一容器按同样阶梯与交错方式复测；提交后 ACK 丢失、Redis 投影失败的精确切点演练未做；4000/s 以上与多实例未测。
+
+### 2026-10-09 17:38 · GPT-6 Astra Pro · pro/capacity-knee
+- 改动：基于 64955b8 为活动入口加入默认 250ms 的有界元数据缓存（本机生命周期失效、冷加载合并、按 SQL 发起时刻计龄、事务内不共享快照），融合首次本地消息 INSERT SENDING 与发送，保留 token 的 MySQL 事实兜底及 Hikari 40 连接预算；添加独立消融开关、分阶段诊断、缓存/入口/真实 MySQL 回归，ab-rounds 支持指定两版本及防覆盖运行目录。docs/CAPACITY-KNEE.md 和 CAPACITY-RETEST.md 记录原值→新值→理由、关闭窗口、保留风险和同机复测步骤；历史证据、REPORT、订单事务/消费者/mapper SQL、main 与 obsidian-vault 未改。
+- 验证：当前编辑环境 `bash -n benchmark/native-linux/ab-rounds.sh` 通过；`mvn -B clean verify` 无法启动，具体错误 `mvn: command not found`，Java 单元与集成尚未验证，交由本 PR CI 检查后追加结果。已核对 SeckillServiceImpl 完整基准 blob 和改动后的远端 blob 与本地字节 SHA 一致。5→热缓存下2次仅为入口同步 SQL 代码计数，无新版本压测数据。
+- 未完成 / 下一步：核对 PR CI 编译、单元与非跳过 MySQL 集成门禁；本机拉分支跑 mvn，云端与 deb719a 同阶梯交错复测并更新“待实测”；性能拐点、真实 MQ/Redis 故障、持续落库能力仍待实测。复测对账后再合并与更新面试稿，不在本分支写性能提升数字。
