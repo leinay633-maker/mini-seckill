@@ -106,3 +106,8 @@
 - 改动：无代码改动，记录一次偶发 CI 失败。e75ff02（只改文档）的 run 38065842025 第 1 次 integration-test 失败：OrderCommitBoundaryIT.concurrentDuplicateDeliveriesCreateOnlyOneBusinessOrder 中 12 条同用户、不同请求号的消息并发 INSERT seckill_order，一个事务被 InnoDB 判为死锁牺牲者（1213，DeadlockLoserDataAccessException），从测试的 race 辅助方法直接抛出。该测试、OrderServiceImpl 与 SeckillOrderMapper 均不在 PR #5 改动内，同一代码在 bbb167e 上两次 CI 通过；牺牲者事务整体回滚，不产生多余订单；生产消费者的 ConsumerFailureClassifier 把 TransientDataAccessException（含死锁）归为可重试，测试直接调服务方法没有这层重试。
 - 验证：`gh run rerun 38065842025 --failed` 后第 2 次两个 job 均成功。
 - 未完成 / 下一步：这条并发测试会偶发死锁失败；可让 race 对死锁牺牲者按消费者语义有限重试，或改走真实消费者入口，未改。
+
+### 2026-10-11 00:24 · 本地 Claude Code · main
+- 改动：OrderCommitBoundaryIT 的 race 辅助方法把派发抽成 deliver，遇到 TransientDataAccessException（死锁牺牲者、锁等待超时）最多重试 5 次，对应生产消费者把这类异常归为可重试、broker 重投；断言不变，生产代码未改（feature/it-deadlock-retry 上的 b63b119，fast-forward 合并到 main）。obsidian-vault 面试案例稿单独提交并推送（3cd6807a，只含该稿，其余工作区改动未动）。云容器 /data/ms/mini-seckill 从 pro/multi-instance-coordination（1fc9e77）切回 main 并拉到 b63b119，工作树干净。
+- 验证：本机 JDK 17 `mvn -B -q test-compile` 通过；CI run 38067275383（b63b119，feature 分支 push）两个 job 成功，Failsafe 57 项（OrderCommitBoundaryIT 20）0 失败 / 0 错误 / 0 跳过。死锁是偶发的，一次绿色 CI 不能证明重试路径被走到过。
+- 未完成 / 下一步：面试案例稿定稿写进 Agent后端面试笔记蒸馏 的上传正文（用户自己写）；多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑和性能影响仍未测。
