@@ -43,13 +43,15 @@ def queue():
 def state():
     rec = {'started_at': time.time()}
     try:
-        sql = ('SELECT COUNT(*),COALESCE(SUM(status NOT IN (2,6,7)),0),'
-               'COALESCE(SUM(status=2),0),COALESCE(SUM(status=6),0),COALESCE(SUM(status=7),0) '
+        # 11 = admission-cancellation tombstone of the coordination protocol: terminal, never an order.
+        sql = ('SELECT COUNT(*),COALESCE(SUM(status NOT IN (2,6,7,11)),0),'
+               'COALESCE(SUM(status=2),0),COALESCE(SUM(status=6),0),COALESCE(SUM(status=7),0),'
+               'COALESCE(SUM(status=11),0) '
                'FROM seckill_message; '
                'SELECT COUNT(*),COALESCE(SUM(status=2),0) FROM seckill_order;')
         lines = mysql(sql).splitlines()
         values = [int(v) for v in lines[0].split() + lines[1].split()]
-        keys = ('messages', 'nonterminal', 'consumed', 'timeout', 'dead', 'orders', 'success')
+        keys = ('messages', 'nonterminal', 'consumed', 'timeout', 'dead', 'cancelled', 'orders', 'success')
         if len(values) != len(keys):
             raise ValueError('incomplete SQL observation')
         rec['db'] = dict(zip(keys, values))

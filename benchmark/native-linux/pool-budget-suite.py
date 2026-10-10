@@ -30,15 +30,23 @@ COMMON = ['--spring.datasource.hikari.maximum-pool-size=40',
           '--seckill.mq-consumer.prefetch-count=100']
 
 
-def build_plan(rounds=3, rates=None):
+def build_plan(rounds=3, rates=None, matrix='full'):
     rates = list(RATES if rates is None else rates)
     if rounds < 1 or rounds > 20 or not rates or any(r <= 0 for r in rates) or rates != sorted(set(rates)):
         raise ValueError('rounds must be 1..20; rates must be unique, positive and ascending')
+    if matrix not in ('full', 'ab-shared'):
+        raise ValueError('unknown matrix: %s' % matrix)
     cases = []
     def add(phase, variant, number, ladder):
         label = '%02d-%s-%s-round%d' % (len(cases) + 1, phase, variant, number)
         cases.append({'label': label, 'phase': phase, 'variant': variant,
                       'round': number, 'rates': list(ladder)})
+    if matrix == 'ab-shared':
+        # Release A/B: BUDGET_BASE_SHA binary vs this candidate, both on the shared 40 pool.
+        for number in range(1, rounds + 1):
+            for variant in (['baseline', 'shared'] if number % 2 else ['shared', 'baseline']):
+                add('ab', variant, number, rates)
+        return cases
     # AB, BA, AB ...: primary historical baseline vs selected experimental split.
     for number in range(1, rounds + 1):
         order = ['baseline', 'split28'] if number % 2 else ['split28', 'baseline']
@@ -142,7 +150,9 @@ def worker(args):
     # Fail rather than pretending that a manually launched worker is protected.
     import fcntl  # worker is native Linux; pure plan/report helpers stay importable elsewhere
     fcntl.flock(9, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    manifest = {'schema': 1, 'baseline_sha': BASE, 'started_at': time.time(), 'cases': [],
+    base = os.environ.get('BUDGET_BASE_SHA', BASE)
+    matrix = os.environ.get('BUDGET_MATRIX', 'full')
+    manifest = {'schema': 1, 'baseline_sha': base, 'matrix': matrix, 'started_at': time.time(), 'cases': [],
                 'method': {'duration_seconds': 60, 'disk_await_ms': 2, 'disk_noisy_seconds': 5,
                            'minimum_disk_coverage': .9, 'drain_quiet_seconds': 5,
                            'capacity_claim': '60s sampling only; not a soak test'}}
@@ -155,12 +165,14 @@ def worker(args):
     try:
         rounds = int(os.environ.get('BUDGET_ROUNDS', '3'))
         rates = [int(v) for v in os.environ.get('BUDGET_RATES', ' '.join(map(str, RATES))).split()]
-        manifest['cases'] = build_plan(rounds, rates)
+        if not re.fullmatch(r'[0-9a-f]{40}', base):
+            raise ValueError('BUDGET_BASE_SHA must be a full 40-character commit SHA')
+        manifest['cases'] = build_plan(rounds, rates, matrix)
         sha = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], universal_newlines=True).strip()
         dirty = subprocess.check_output(['git', '-C', str(repo), 'status', '--porcelain'], universal_newlines=True)
         if dirty.strip():
             raise RuntimeError('working tree is dirty; refusing an untraceable candidate build')
-        subprocess.check_call(['git', '-C', str(repo), 'merge-base', '--is-ancestor', BASE, sha])
+        subprocess.check_call(['git', '-C', str(repo), 'merge-base', '--is-ancestor', base, sha])
         manifest['candidate_sha'] = sha
         disk = os.environ.get('DISK_DEVICE', 'vdc')
         devices = [line.split()[2] for line in Path('/proc/diskstats').read_text().splitlines()]
@@ -179,7 +191,7 @@ def worker(args):
                 out / 'host.txt', env)
         sources = out / 'sources'; sources.mkdir()
         snapshot(repo, sha, sources / 'candidate', env, out / 'snapshot-candidate.log')
-        snapshot(repo, BASE, sources / 'baseline', env, out / 'snapshot-baseline.log')
+        snapshot(repo, base, sources / 'baseline', env, out / 'snapshot-baseline.log')
         shutil.copytree(str(sources / 'candidate' / 'benchmark' / 'native-linux'), str(scripts))
         # One identical instrumentation/benchmark snapshot is used with both binaries.
         env.update({'MS_ROOT': str(root), 'MS_BIN': str(scripts), 'MS_REPO': str(sources / 'candidate'),
@@ -311,7 +323,7 @@ def main():
     parser.add_argument('--launcher-log')
     args = parser.parse_args()
     if args.plan:
-        print(json.dumps(build_plan(), indent=2)); return 0
+        print(json.dumps(build_plan(matrix=os.environ.get('BUDGET_MATRIX', 'full')), indent=2)); return 0
     if not all((args.repo, args.root, args.out, args.launcher_log)):
         parser.error('worker paths required; use the shell launcher')
     signal.signal(signal.SIGINT, interrupted)

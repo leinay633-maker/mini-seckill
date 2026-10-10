@@ -60,8 +60,9 @@ def correctness(final, drain, queued, initial_stock):
     if any(k not in final for k in ('db', 'mq', 'checks')):
         return None
     d, m, c = final['db'], final['mq'], final['checks']
+    accepted = d['messages'] - d.get('cancelled', 0)  # pre-coordination evidence has no tombstones
     return (drain.get('drained') is True and d['nonterminal'] == 0 and d['timeout'] == 0
-            and d['dead'] == 0 and d['messages'] == d['consumed'] == d['success'] == d['orders']
+            and d['dead'] == 0 and accepted == d['consumed'] == d['success'] == d['orders']
             and d['success'] >= queued and c['duplicate_groups'] == c['duplicate_order_ids'] == 0
             and m['messages_ready'] == m['messages_unacknowledged'] == 0
             and c['segment_available'] >= 0 and initial_stock - c['segment_available'] == d['success'])

@@ -59,7 +59,7 @@ bash benchmark/native-linux/pool-budget-suite.sh plan
 
 默认按旧同机证据选数据盘 `vdc`，并在启动前确认 `/proc/diskstats` 有该设备、记录 `mount.txt`/`lsblk.txt`。它不是可迁移的自动设备识别结论；同一容器设备变动时先核对真实数据盘，再在同一命令前加 `DISK_DEVICE=<已核对设备>`。不存在的设备直接失败，不会把无磁盘数据报成低卡顿。
 
-高级参数：`MS_ROOT`（默认 `/data/ms`）、`BUDGET_RUN_ID`（唯一新目录名）、`BUDGET_ROUNDS`（默认 3）、`BUDGET_RATES`（空格分隔、严格递增）、`DRAIN_MAX`（默认 600 秒）。改参数会写入 manifest，不能与默认口径混写结论；`DRAIN_MAX` 不改变应用的 10 分钟业务超时。
+高级参数：`MS_ROOT`（默认 `/data/ms`）、`BUDGET_RUN_ID`（唯一新目录名）、`BUDGET_ROUNDS`（默认 3）、`BUDGET_RATES`（空格分隔、严格递增）、`DRAIN_MAX`（默认 600 秒）、`BUDGET_BASE_SHA`（基线完整 SHA，默认 PR #3 用的 29b794e）、`BUDGET_MATRIX`（默认 `full`；`ab-shared` 只跑基线与候选都用共享 40 池的 AB/BA 交错，用于版本间性能对比）。改参数会写入 manifest，不能与默认口径混写结论；`DRAIN_MAX` 不改变应用的 10 分钟业务超时。
 
 流程与保护：
 

@@ -63,6 +63,15 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(8, sum(c['phase'] == 'diagnostic' for c in cases))
         self.assertEqual([1000, 2000, 2200, 2400, 2600, 2800, 3000, 4000, 5000], cases[0]['rates'])
 
+    def test_release_ab_matrix_alternates_previous_main_and_shared_candidate(self):
+        cases = suite.build_plan(3, [1000, 2000], 'ab-shared')
+        self.assertEqual(['baseline', 'shared', 'shared', 'baseline', 'baseline', 'shared'],
+                         [c['variant'] for c in cases])
+        self.assertTrue(all(c['phase'] == 'ab' and c['rates'] == [1000, 2000] for c in cases))
+        self.assertEqual(suite.app_args('baseline'), suite.app_args('shared'))
+        with self.assertRaises(ValueError):
+            suite.build_plan(1, [1000], 'unknown')
+
     def test_plan_rejects_ambiguous_or_nonpositive_ladders(self):
         for rounds, rates in [(0, [1]), (21, [1]), (1, []), (1, [2, 1]), (1, [1, 1]), (1, [0])]:
             with self.subTest(rounds=rounds, rates=rates), self.assertRaises(ValueError):
@@ -154,6 +163,12 @@ class EvidenceTests(unittest.TestCase):
         self.assertTrue(report.correctness(final(11), {'drained': True}, 10, 200))
         self.assertFalse(report.correctness(final(9), {'drained': True}, 10, 200))
 
+    def test_cancellation_tombstones_are_terminal_and_not_orders(self):
+        f = final(10); f['db']['messages'] = 12; f['db']['cancelled'] = 2
+        self.assertTrue(report.correctness(f, {'drained': True}, 10, 200))
+        f['db']['cancelled'] = 1
+        self.assertFalse(report.correctness(f, {'drained': True}, 10, 200))
+
     def test_final_failure_and_stock_mismatch_do_not_count_as_success(self):
         f = final(); f['db']['dead'] = 1
         self.assertFalse(report.correctness(f, {'drained': True}, 10, 200))
@@ -208,6 +223,14 @@ class DrainTests(unittest.TestCase):
         self.assertFalse(observe.empty({'db': state()['db'], 'mq_error': 'unavailable'}))
         self.assertFalse(observe.empty(state(unacked=1)))
         self.assertFalse(observe.empty(state(nonterminal=1)))
+
+    def test_state_counts_cancellation_tombstones_as_terminal(self):
+        with mock.patch.object(observe, 'mysql', return_value='12\t0\t10\t0\t0\t2\n10\t10\n'), \
+                mock.patch.object(observe, 'queue', return_value={'messages_ready': 0, 'messages_unacknowledged': 0}):
+            rec = observe.state()
+        self.assertEqual({'messages': 12, 'nonterminal': 0, 'consumed': 10, 'timeout': 0, 'dead': 0,
+                          'cancelled': 2, 'orders': 10, 'success': 10}, rec['db'])
+        self.assertTrue(observe.empty(rec))
 
     def test_recovery_requires_quiet_window_after_failure(self):
         calls = [0]
