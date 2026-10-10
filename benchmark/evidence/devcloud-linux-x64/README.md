@@ -227,3 +227,49 @@
 ## 未做
 
 split20 更多轮次及其附近分配（如 16/24、24/16）、消费者连接饥饿的现场故障注入（限流 MySQL 或压小消费者池）、发送侧重试批量与首次重试退避对尾部的影响、多实例、长时间 soak、ACK 丢失与 Redis 投影切点演练。
+
+# 多实例库存协调三 JVM 正确性复测（PR #5，coordination-1fc9e77a，2026-10-10 20:59–21:06）
+
+原始数据在 `coordination-1fc9e77a/`（通过的一轮）和 `coordination-f86c1d55/`（第一轮，4 项因编排缺陷失败，原样保留）。协议、前提与九个场景的断言见 `docs/MULTI-INSTANCE-COORDINATION.md`、`docs/MULTI-INSTANCE-RETEST.md`。本节只验证正确性，没有吞吐、延迟或恢复时长结论，不和上文容量数字比较。
+
+## 版本、环境与方法
+
+| 项 | 实际值 |
+|---|---|
+| 候选 | `1fc9e77a58354921cf59708beeaec2954d6daade`（PR #5 分支，含本机追加的 IT 断言修正 f86c1d5 与编排修正 1fc9e77，业务代码与 Pro 交付的 2288ced 相同）；容器内对 `git archive` 快照执行 `mvn -B clean verify`：242 单元通过、BUILD SUCCESS，jar SHA-256 `3da1a000…2b3ad5` |
+| CI | run 38053832422（同一 SHA）：Surefire 242、Failsafe 57（含 StockCoordinationIT 14），0 失败 / 0 错误 / 0 跳过 |
+| 环境 | 与上文同一容器；三个原生 JVM 监听 127.0.0.1:18081/18082/18083，workerId 1/2/3，Hikari 上限 14+13+13=40；同一 MySQL 8.0.46、Redis 7.2.7（noeviction）、RabbitMQ 3.13.7；k6 v2.3.0 直接轮流请求三个端口，关闭 token、防刷与鉴权 |
+| 命令 | `bash benchmark/native-linux/coordination-suite.sh start`，一次后台跑完九组，中途未人工干预 |
+| 夹具参数 | 在途回收期限 5 s（生产 60 s）、扫描 500 ms；修复租约 20 s，场景 02 的 A 为 60 s、场景 03 的 A 为 2 s；活跃负载 200 次/s × 75 s、库存 30000；稀缺库存 41 件对 410 个用户。均为实验输入，不是测得的最优值 |
+
+## 结果：9/9 通过
+
+每组都在全部 JVM 停止后做最终校验，九组全部满足：总库存 = 可用 + 已售，已售 = SUCCESS 订单 = 非 CANCELLED 消息数；业务键与订单号重复 0；其他订单、TIMEOUT/DEAD、非终态消息、无成功单的 CONSUMED 均为 0；在途登记与期限表为 0；MQ ready / unacked / 死信为 0；Redis 总量 = 64 个 bucket 之和 = MySQL 剩余。
+
+| 场景 | 注入 | 关键证据 |
+|---|---|---|
+| 01 三节点负载中修复 | 负载第 20 s 只把 Redis 总量改成 0 | 21:00:33.253 注入（原值 25896），11 ms 后节点 C 写回 APPLIED（expected 25896），落在请求开始窗口内；其间 2 个请求得到售罄。15001 次请求 = 14999 排队 + 2 售罄，最终 SUCCESS 14999、剩余 15001 |
+| 02 租约有效但快照已旧 | A 快照后 STOP，B 实时下单并成功，A 在租约内 CONT | A 的写回返回 503 VERSION_CHANGED，剩余保持 9 |
+| 03 旧租约恢复 | A（租约 2 s）快照后 STOP，过期后 B 拿新租约停在快照点，A CONT | A 返回 503 LEASE_LOST，锁仍属 B；B 写回成功，剩余 9。702 的消息被投给暂停的 A，约 13.7 s 后 broker 才关掉 A 的连接并重投，A 恢复时日志里消费者重建了连接 |
+| 04 暂停的预扣被接管 | A 预扣后 STOP；回收者写墓碑退款；同用户在 B 重新下单；A CONT | 未清算期间 B 的修复返回 INFLIGHT；节点 C 写入 CANCELLED 墓碑并退款一次；A 恢复后 INSERT 撞 `uk_request_id`，原客户端得到 500，墓碑仍为 11；最终 1 单、剩余 9 |
+| 05 预扣后强杀 | A 预扣后 KILL，随后重启 A | B 回收为墓碑并退款；原客户端连接被断开；最终 1 单、剩余 9 |
+| 06 提交后强杀 | A 的消息已提交、登记未清时 KILL | 回收者读到已提交消息（cancelled=false），不退款；首发租约过期后补发，消息最终 CONSUMED；最终 1 单、剩余 9 |
+| 07 发送代际 ABA | 关闭首发融合；A 认领发送后 STOP；B/C 到期接管并完成；A CONT | 接管 token 与旧 token 不同；A 的迟到确认 `changed=0`；原客户端得到“排队中”；只有 1 单 |
+| 08 负载中消费者丢失 | B/C 承接 200 次/s；A 在 +15.5 s STOP、+25.9 s KILL、+35.4 s 重启 | 15001 次请求全部排队，最终 SUCCESS 15001、剩余 14999 |
+| 09 稀缺库存 | 三节点 410 个用户抢 41 件 | 41 排队 + 369 售罄；SUCCESS 恰好 41、库存 0、其他订单 0 |
+
+01 里三个节点按 1 s 周期共做了 253 次受保护对账：APPLIED 1、INFLIGHT 108、VERSION_CHANGED 98、UNCHANGED 39、BUSY 7。也就是说 200 次/s 时大部分轮次因为有在途预扣或版本变化而跳过，注入的偏差在入口停止扣减的空档里被修正。这个比例只描述本夹具，不能外推到更高到达率；持续高并发下可能长时间找不到写回窗口，这是协议选择的安全优先。
+
+## 第一轮（coordination-f86c1d55，f86c1d5，20:44–20:50）：5/9，失败均为编排缺陷
+
+- 01 / 08 / 09：`validate_load` 按 handleSummary 的 `values` 层级读取，而 `k6 run --summary-export` 把 count、value、min/max 直接写在指标下。三组都在 k6 正常结束（exit 0、系统错误率 0）后抛 `KeyError: 'values'`，排空和停机后的最终校验没有执行，不计为通过。崩溃时 JVM 仍在运行，那一刻的观测已经满足最终断言（01：SUCCESS = 消息 = 14977、Redis = 剩余 = 15023，另有 1 条 unacked；08：SUCCESS 15001、剩余 14999；09：SUCCESS 41、库存 0）。
+- 02：A 暂停后等新订单成功只给 10 s。该消息投给了暂停的 A 的消费者，10 s 时仍是 SUCCESS 0、unacked 1，用例超时；清理阶段 A 恢复，写回返回 VERSION_CHANGED，剩余为 9。
+- 修正（1fc9e77，只改编排与离线测试）：校验同时接受两种 k6 布局，并用这一轮实际导出的字段写了回归测试；场景 02 的 A 租约改为 60 s、成单等待 45 s，场景 03 的成单等待也放宽到 45 s。
+
+## 入库处理
+
+省去 `candidate.jar`、`source/`（由完整 SHA 唯一确定）、`build-site/`（JaCoCo HTML，可复现）和 `worker.pid`；`.log`、`.jsonl`、jstack、prometheus 文本和 Surefire XML 用 gzip 压缩；`host.txt` 里的容器主机名替换为 `<container-host>`，所以 `SHA256SUMS` 里这一项和省去的文件与入库内容不符。原始压缩包 SHA-256：重跑 `b1ca0f2a7d6ff811a9a9a66a2866e81d1b4ea6cd0e95297a6bfbf95bc0e31957`，第一轮 `c9d1fd14cf6d05bceb6f727ab52c47ba8f2ff60ae3317b16e99873889f7a3f3c`；本机校验与 sidecar 一致，解包后包内 SHA256SUMS 全部文件核对通过，原包保留在容器 `/data/ms/results/`。
+
+## 未做
+
+三个 JVM 在同一台机器上，暂停和崩溃靠进程信号模拟，不是多主机部署、网络分区或 Redis/MySQL 主从切换；Redis 协调元数据丢失、key 驱逐、新旧版本混跑没有测；夹具的在途回收期限 5 s 与生产 60 s 不同；没有新的吞吐、延迟或恢复时长数字。

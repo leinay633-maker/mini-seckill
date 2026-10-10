@@ -1,0 +1,9 @@
+{
+  "status": "failed",
+  "matrix_completed": true,
+  "passed": 5,
+  "planned": 9,
+  "fatal_error": null,
+  "finished_at": 1791636629.0322852,
+  "note": "Not-run, unknown, failed observations and generator failures cannot count as correctness passes."
+}

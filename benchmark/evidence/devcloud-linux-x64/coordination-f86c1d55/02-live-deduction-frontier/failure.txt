@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 622, in execute_case
+    self.order(1, 701); wait_for(lambda: self.success(701), 10, 'concurrent durable order')
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 86, in wait_for
+    raise RuntimeError('timed out: ' + description)
+RuntimeError: timed out: concurrent durable order

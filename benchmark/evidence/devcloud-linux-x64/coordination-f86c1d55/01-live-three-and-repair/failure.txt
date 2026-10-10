@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 610, in execute_case
+    self.run_load([0, 1, 2], actions=[(20, drift)])
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 586, in run_load
+    observation = validate_load(result, code, iterations)
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 724, in validate_load
+    queued, completed, requests = count('coordination_queued'), count('iterations'), count('coordination_requests')
+  File "/data/ms/results/coordination-20261010-204430-f86c1d55-475168/worker.py", line 720, in count
+    value = metrics[name]['values']['count']
+KeyError: 'values'

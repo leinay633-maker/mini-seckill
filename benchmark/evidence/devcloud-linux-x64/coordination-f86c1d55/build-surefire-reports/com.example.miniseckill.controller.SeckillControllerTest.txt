@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.example.miniseckill.controller.SeckillControllerTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.809 s -- in com.example.miniseckill.controller.SeckillControllerTest

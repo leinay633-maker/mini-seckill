@@ -1,0 +1,7 @@
+{
+  "name": "02-live-deduction-frontier",
+  "status": "failed",
+  "started_at": 1791636372.0471523,
+  "error": "timed out: concurrent durable order",
+  "finished_at": 1791636392.4081666
+}

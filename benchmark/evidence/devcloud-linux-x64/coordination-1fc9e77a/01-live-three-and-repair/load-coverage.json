@@ -1,0 +1,11 @@
+{
+  "first_request_started_at": 1791637212.735,
+  "last_request_started_at": 1791637287.734,
+  "queued": 14999,
+  "sold_out": 2,
+  "completed": 15001,
+  "planned_demand": 15000,
+  "dropped_iterations": null,
+  "drop_metric_observed": false,
+  "coverage_basis": "completed iterations == requests == queued + sold_out; completed >= planned demand"
+}

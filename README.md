@@ -10,11 +10,11 @@ MiniSeckill 是一个聚焦秒杀下单核心链路的 Java 后端面试项目�
 
 2026-10 一致性加固：先读 [问题与取舍](docs/CONSISTENCY-REVIEW.md)、[回归与本机实验方案](docs/CONSISTENCY-EXPERIMENTS.md)、[CI 验证快照](docs/CI-VALIDATION-20261009.md)。本轮聚焦提交边界、事实幂等和迟到重试，历史性能数字不变；新版本性能及真实故障演练结果仍为“待本机实测”。
 
-## 当前多实例协议（本轮代码，云端复测待执行）
+## 当前多实例协议（2026-10-10 同机三 JVM 复测 9/9 通过）
 
 [设计与正确性边界](docs/MULTI-INSTANCE-COORDINATION.md) · [原生三 JVM 一键复测](docs/MULTI-INSTANCE-RETEST.md) · [实际验证记录](docs/MULTI-INSTANCE-VALIDATION.md)
 
-库存对账改为 owner 租约 + 库存版本 + 在途登记的同脚本写回校验；预扣结果不明通过 MySQL requestId 唯一键取消墓碑清算。发送认领与回调携带代际 token，定时超时/重试重新检查数据库时间。本轮不声称已经完成云容器三 JVM 故障复测或测得性能提升。
+库存对账改为 owner 租约 + 库存版本 + 在途登记的同脚本写回校验；预扣结果不明通过 MySQL requestId 唯一键取消墓碑清算。发送认领与回调携带代际 token，定时超时/重试重新检查数据库时间。云容器上三个原生 JVM 的九个故障与负载场景（负载中修复、旧快照与旧租约写回、预扣后暂停/强杀、提交后强杀、发送代际 ABA、消费者丢失、稀缺库存）已复测通过，见 [证据说明末节](benchmark/evidence/devcloud-linux-x64/README.md)；这只证明正确性，没有测得性能提升，也不覆盖多主机、网络分区与故障转移。
 
 **协议升级必须冷切换所有节点。** Redis 单主、元数据不丢失且不被驱逐是前提；Redis Cluster 与同步 MQ fallback 现在拒绝启动。`init` 只创建新 SKU，不能覆盖活跃/历史库存；终态消息原地 replay 返回409；warmup 不补 token quota，元数据丢失时不会盲目重建。下文历史功能清单、旧实验手册涉及这些操作时，以本节和新设计文档为准，不能照旧在运行中的活动上重置。
 

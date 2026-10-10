@@ -1,0 +1,10 @@
+{
+  "started_at": 1791637321.494411,
+  "finished_at": 1791637335.510179,
+  "http_status": 503,
+  "raw": "{\"code\":503,\"message\":\"库存预热未写入: LEASE_LOST\"}",
+  "body": {
+    "code": 503,
+    "message": "库存预热未写入: LEASE_LOST"
+  }
+}

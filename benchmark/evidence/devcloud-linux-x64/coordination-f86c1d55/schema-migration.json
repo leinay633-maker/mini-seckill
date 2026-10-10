@@ -1,0 +1,7 @@
+{
+  "actions": [
+    "ALTER TABLE seckill_message ADD COLUMN send_token VARCHAR(64) NULL",
+    "ALTER TABLE seckill_message ADD COLUMN send_lease_until DATETIME(6) NULL"
+  ],
+  "at": 1791636286.059491
+}
