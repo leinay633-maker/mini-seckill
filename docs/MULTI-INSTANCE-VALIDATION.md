@@ -61,3 +61,17 @@ JDK17远端CI、Testcontainers真实MySQL/Redis、RabbitMQ真实故障联动、n
 | coord-check-evidence.log | `e774a77c39085fb2e4c2909890ec3d9b00b598ff3eb49878fe4f70c30a59fb0f` |
 
 这些是编辑环境的运行记录，不写入历史 evidence 目录，不把未来云机结果填进历史 REPORT。源文件和摘要在本次提交中可核对；网络写入状态须另外核实。
+
+## 导入后的实际执行（2026-10-10，本机 Claude Code）
+
+上文“尚未执行”描述的是交付时的状态，以下各项随后实际运行。
+
+| 提交 | 验证 | 结果 |
+|---|---|---|
+| `2288ced`（交付包 bundle 快进导入并推送） | CI run 38052130288 | test 成功；integration-test 失败 2 项，均在本 PR 未改的 `OrderCommitBoundaryIT`（:237、:267）：断言仍假定刚以 SENDING 插入的行立即可被重试扫描到，而新 `insertPending` 会写入首发线程 20 s 发送租约。`StockCoordinationIT` 14 项在这次已通过 |
+| `f86c1d5`（只改上述两条测试：先断言租约有效时扫描为空，再让租约过期继续原场景） | CI run 38052834059 | 两个 job 成功：Surefire 35 份 242 单元、Failsafe 57 项，0 失败 / 0 错误 / 0 跳过；Python 8 / 30 / 34 项 OK（交付环境的两个 cap-step 超时在 CI 未出现） |
+| `f86c1d5` | 云容器 `coordination-suite.sh start` | 5/9：01/08/09 在 k6 正常结束后因 `KeyError: 'values'`（脚本按 handleSummary 布局读 `--summary-export`）没有执行最终校验；02 等新订单 10 s 超时（消息被投给暂停的 A，broker 尚未重投） |
+| `1fc9e77`（只改编排与离线测试：两种 k6 布局都接受；02 的 A 租约 60 s、02/03 成单等待 45 s） | CI run 38053832422 | 两个 job 成功：242 单元、57 集成，0 失败 / 0 错误 / 0 跳过；Python 8 / 30 / 36 项 OK |
+| `1fc9e77` | 云容器 `coordination-suite.sh start`（20:59–21:06） | **9/9 通过**，`matrix_completed=true`，归档与 sidecar 齐全；容器内 `mvn -B clean verify` 242 单元通过，jar SHA-256 `3da1a000f43411176f3691d3853cecb4bb05a25d79faa26b191abe66752b3ad5` |
+
+两轮证据（含失败的一轮）、逐场景结果和入库处理见 `benchmark/evidence/devcloud-linux-x64/README.md` 末节。仍未覆盖：多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑，以及任何性能数字。

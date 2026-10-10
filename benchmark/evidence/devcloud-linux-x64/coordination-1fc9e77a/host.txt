@@ -1,0 +1,50 @@
+Linux <container-host> 5.4.241-1-tlinux4-0023.4 #1 SMP Fri Sep 26 15:08:55 CST 2025 x86_64 x86_64 x86_64 GNU/Linux
+openjdk version "17.0.20.1" 2026-08-18
+OpenJDK Runtime Environment Temurin-17.0.20.1+1 (build 17.0.20.1+1)
+OpenJDK 64-Bit Server VM Temurin-17.0.20.1+1 (build 17.0.20.1+1, mixed mode, sharing)
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
+Maven home: /data/ms/opt/maven
+Java version: 17.0.20.1, vendor: Eclipse Adoptium, runtime: /data/ms/opt/jdk17
+Default locale: en_US, platform encoding: UTF-8
+OS name: "linux", version: "5.4.241-1-tlinux4-0023.4", arch: "amd64", family: "unix"
+k6 v2.3.0 (commit/e088784614, go1.26.8, linux/amd64)
+# Server
+redis_version:7.2.7
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:208d50d42334c91d
+redis_mode:standalone
+os:Linux 5.4.241-1-tlinux4-0023.4 x86_64
+arch_bits:64
+monotonic_clock:POSIX clock_gettime
+multiplexing_api:epoll
+atomicvar_api:c11-builtin
+gcc_version:8.5.0
+process_id:13841
+process_supervised:no
+run_id:6c25022fe0b9c7f0e44461869b637c2194d9b758
+tcp_port:6379
+server_time_usec:1791637192404170
+uptime_in_seconds:103610
+uptime_in_days:1
+hz:10
+configured_hz:10
+lru_clock:13252296
+executable:/root/redis-server
+config_file:
+io_threads_active:0
+listener0:name=tcp,bind=127.0.0.1,port=6379
+              total        used        free      shared  buff/cache   available
+Mem:         252922      116818       84695        2901       51409      131261
+Swap:        252922       85766      167156
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          50G  1.7G   49G   4% /
+tmpfs            64M     0   64M   0% /dev
+tmpfs           124G     0  124G   0% /sys/fs/cgroup
+/dev/vdc        500G   72G  429G  15% /data
+/dev/vdb        2.0T  1.3T  744G  63% /codev
+shm              64M     0   64M   0% /dev/shm
+tmpfs           124G     0  124G   0% /proc/acpi
+tmpfs           124G     0  124G   0% /proc/scsi
+tmpfs           124G     0  124G   0% /sys/firmware
+spaceclient     1.0P     0  1.0P   0% /agentdrive/Anydev
