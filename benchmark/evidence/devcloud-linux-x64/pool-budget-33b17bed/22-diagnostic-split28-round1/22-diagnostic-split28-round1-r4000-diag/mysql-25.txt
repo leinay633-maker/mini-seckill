@@ -1,0 +1,222 @@
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Id	User	Host	db	Command	Time	State	Info
+5	event_scheduler	localhost	NULL	Daemon	85708	Waiting on empty queue	NULL
+23028	miniseckill	localhost:48362	mini_seckill	Sleep	0		NULL
+23029	miniseckill	localhost:48372	mini_seckill	Sleep	0		NULL
+23030	miniseckill	localhost:48384	mini_seckill	Sleep	0		NULL
+23031	miniseckill	localhost:57828	mini_seckill	Sleep	0		NULL
+23032	miniseckill	localhost:57832	mini_seckill	Sleep	0		NULL
+23033	miniseckill	localhost:57834	mini_seckill	Sleep	0		NULL
+23034	miniseckill	localhost:57846	mini_seckill	Sleep	0		NULL
+23035	miniseckill	localhost:57858	mini_seckill	Sleep	0		NULL
+23038	miniseckill	localhost:37122	mini_seckill	Sleep	0		NULL
+23039	miniseckill	localhost:37124	mini_seckill	Sleep	0		NULL
+23040	miniseckill	localhost:37132	mini_seckill	Sleep	0		NULL
+23041	miniseckill	localhost:37144	mini_seckill	Sleep	0		NULL
+23042	miniseckill	localhost:37158	mini_seckill	Sleep	0		NULL
+23043	miniseckill	localhost:37168	mini_seckill	Sleep	0		NULL
+23044	miniseckill	localhost:37178	mini_seckill	Sleep	0		NULL
+23045	miniseckill	localhost:37192	mini_seckill	Sleep	0		NULL
+23046	miniseckill	localhost:37204	mini_seckill	Sleep	0		NULL
+23047	miniseckill	localhost:37210	mini_seckill	Sleep	0		NULL
+23048	miniseckill	localhost:37216	mini_seckill	Sleep	0		NULL
+23049	miniseckill	localhost:37222	mini_seckill	Sleep	0	starting	NULL
+23050	miniseckill	localhost:37236	mini_seckill	Sleep	0		NULL
+23051	miniseckill	localhost:37240	mini_seckill	Sleep	0		NULL
+23070	miniseckill	localhost:60980	mini_seckill	Sleep	0		NULL
+23071	miniseckill	localhost:60994	mini_seckill	Sleep	7		NULL
+23072	miniseckill	localhost:32770	mini_seckill	Sleep	7		NULL
+23073	miniseckill	localhost:32784	mini_seckill	Sleep	7		NULL
+23074	miniseckill	localhost:32788	mini_seckill	Sleep	7		NULL
+23075	miniseckill	localhost:32802	mini_seckill	Sleep	7		NULL
+23083	root	localhost	NULL	Query	0	init	SHOW FULL PROCESSLIST
+*************************** 1. row ***************************
+  Type: InnoDB
+  Name: 
+Status: 
+=====================================
+2026-10-10 16:01:29 139743525230336 INNODB MONITOR OUTPUT
+=====================================
+Per second averages calculated from the last 9 seconds
+-----------------
+BACKGROUND THREAD
+-----------------
+srv_master_thread loops: 15141 srv_active, 0 srv_shutdown, 70507 srv_idle
+srv_master_thread log flush and writes: 0
+----------
+SEMAPHORES
+----------
+OS WAIT ARRAY INFO: reservation count 2659718
+OS WAIT ARRAY INFO: signal count 22455043
+RW-shared spins 0, rounds 0, OS waits 0
+RW-excl spins 0, rounds 0, OS waits 0
+RW-sx spins 0, rounds 0, OS waits 0
+Spin rounds per wait: 0.00 RW-shared, 0.00 RW-excl, 0.00 RW-sx
+------------
+TRANSACTIONS
+------------
+Trx id counter 187342454
+Purge done for trx's n:o < 187342439 undo n:o < 0 state: running but idle
+History list length 452
+LIST OF TRANSACTIONS FOR EACH SESSION:
+---TRANSACTION 421222410802544, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410801736, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410799312, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410798504, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410797696, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410796888, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410796080, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410795272, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410794464, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410792848, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410792040, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410790424, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410788808, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410788000, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410787192, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410786384, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410785576, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410784768, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410783960, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410783152, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410782344, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 187342450, ACTIVE 0 sec
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23030, OS thread handle 139743537911552, query id 600003218 localhost 127.0.0.1 miniseckill executing
+SELECT @@session.transaction_read_only
+---TRANSACTION 187342447, ACTIVE 0 sec
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23031, OS thread handle 139746711893760, query id 600003223 localhost 127.0.0.1 miniseckill starting
+SELECT @@session.transaction_read_only
+---TRANSACTION 187342438, ACTIVE 0 sec inserting
+mysql tables in use 1, locked 1
+7 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 3
+MySQL thread id 23049, OS thread handle 139743530514176, query id 600003219 localhost 127.0.0.1 miniseckill update
+INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)
+VALUES ('a2ab5c80-1a6e-40fa-a31a-c6620f4e8832', 1, 204060950, 1001, 'ORDER_SUCCESS', NOW())
+Trx read view will not see trx with id >= 187342442, sees < 187342407
+---TRANSACTION 187342436, ACTIVE 0 sec
+7 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 3
+MySQL thread id 23047, OS thread handle 139746830382848, query id 600003222 localhost 127.0.0.1 miniseckill freeing items
+SELECT @@session.transaction_read_only
+Trx read view will not see trx with id >= 187342442, sees < 187342407
+---TRANSACTION 187342435, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23043, OS thread handle 139746716116736, query id 600003221 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187342439, sees < 187342406
+--------
+FILE I/O
+--------
+I/O thread 0 state: waiting for completed aio requests (insert buffer thread)
+I/O thread 1 state: waiting for completed aio requests (read thread)
+I/O thread 2 state: waiting for completed aio requests (read thread)
+I/O thread 3 state: waiting for completed aio requests (read thread)
+I/O thread 4 state: waiting for completed aio requests (read thread)
+I/O thread 5 state: waiting for completed aio requests (write thread)
+I/O thread 6 state: waiting for completed aio requests (write thread)
+I/O thread 7 state: waiting for completed aio requests (write thread)
+I/O thread 8 state: waiting for completed aio requests (write thread)
+Pending normal aio reads: [0, 0, 0, 0] , aio writes: [0, 0, 0, 0] ,
+ ibuf aio reads:
+Pending flushes (fsync) log: 1; buffer pool: 0
+483926 OS file reads, 909275351 OS file writes, 41858820 OS fsyncs
+4.71 reads/s, 16384 avg bytes/read, 63023.88 writes/s, 2827.40 fsyncs/s
+-------------------------------------
+INSERT BUFFER AND ADAPTIVE HASH INDEX
+-------------------------------------
+Ibuf: size 1, free list len 84, seg size 86, 2403 merges
+merged operations:
+ insert 39603, delete mark 0, delete 0
+discarded operations:
+ insert 0, delete mark 0, delete 0
+Hash table size 34679, node heap has 77 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 2 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 41 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+11207.64 hash searches/s, 109779.25 non-hash searches/s
+---
+LOG
+---
+Log capacity                 104857600
+Log capacity used            104857600
+Log sequence number          104714308516
+Log buffer assigned up to    104714308516
+Log buffer completed up to   104714308516
+Log written up to            104714308516
+Log flushed up to            104714307990
+Added dirty pages up to      104714308516
+Pages flushed up to          104680510495
+Last checkpoint at           104655090090
+Log minimum file id is       31958
+Log maximum file id is       31976
+899313590 log i/o's done, 62299.50 log i/o's/second
+----------------------
+BUFFER POOL AND MEMORY
+----------------------
+Total large memory allocated 0
+Dictionary memory allocated 678189
+Buffer pool size   8192
+Free buffers       1009
+Database pages     7058
+Old database pages 2585
+Modified db pages  1737
+Pending reads      0
+Pending writes: LRU 0, flush list 0, single page 0
+Pages made young 3762115, not young 212464558
+5.52 youngs/s, 304.62 non-youngs/s
+Pages read 483901, created 1590772, written 7802251
+4.71 reads/s, 108.02 creates/s, 420.87 writes/s
+Buffer pool hit rate 1000 / 1000, young-making rate 0 / 1000 not 1 / 1000
+Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s
+LRU len: 7058, unzip_LRU len: 0
+I/O sum[10819]:cur[450], unzip sum[0]:cur[0]
+--------------
+ROW OPERATIONS
+--------------
+0 queries inside InnoDB, 0 queries in queue
+3 read views open inside InnoDB
+Process ID=13781, Main thread ID=139746877626112 , state=sleeping
+Number of rows inserted 102906024, updated 106923287, deleted 0, read 6227513281
+7631.04 inserts/s, 8901.68 updates/s, 0.00 deletes/s, 358448.28 reads/s
+Number of system rows inserted 7101, updated 54177, deleted 3346, read 135511
+0.00 inserts/s, 0.00 updates/s, 0.00 deletes/s, 0.00 reads/s
+----------------------------
+END OF INNODB MONITOR OUTPUT
+============================
+
+Variable_name	Value
+Threads_running	19
+Variable_name	Value
+Innodb_row_lock_current_waits	1
+Innodb_row_lock_time	19640313
+Innodb_row_lock_time_avg	2
+Innodb_row_lock_time_max	4652
+Innodb_row_lock_waits	9780759
+Variable_name	Value
+Innodb_log_waits	0

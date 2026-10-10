@@ -1,0 +1,447 @@
+{
+  "schema": 1,
+  "baseline_sha": "29b794e9ac9ba3e8c73643c7de6b7b802a81df0c",
+  "started_at": 1791608298.4246838,
+  "cases": [
+    {
+      "label": "01-ab-baseline-round1",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791608310.655967,
+      "jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+      "exit": 0,
+      "finished_at": 1791609123.661962
+    },
+    {
+      "label": "02-ab-split28-round1",
+      "phase": "ab",
+      "variant": "split28",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791609125.7388992,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791609786.78615
+    },
+    {
+      "label": "03-ab-split28-round2",
+      "phase": "ab",
+      "variant": "split28",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791609787.8615081,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791610360.8353665
+    },
+    {
+      "label": "04-ab-baseline-round2",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791610361.8552485,
+      "jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+      "exit": 0,
+      "finished_at": 1791611344.3587496
+    },
+    {
+      "label": "05-ab-baseline-round3",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791611345.4648755,
+      "jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+      "exit": 0,
+      "finished_at": 1791612188.8541377
+    },
+    {
+      "label": "06-ab-split28-round3",
+      "phase": "ab",
+      "variant": "split28",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791612190.8852062,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791612304.7127032
+    },
+    {
+      "label": "07-ablation-shared-round1",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791612305.7377546,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791613085.2127726
+    },
+    {
+      "label": "08-ablation-split28-round1",
+      "phase": "ablation",
+      "variant": "split28",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791613086.2346494,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791613741.9836602
+    },
+    {
+      "label": "09-ablation-split20-round1",
+      "phase": "ablation",
+      "variant": "split20",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791613743.0823965,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791614489.136286
+    },
+    {
+      "label": "10-ablation-split28-round2",
+      "phase": "ablation",
+      "variant": "split28",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791614490.2189033,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791615157.9906292
+    },
+    {
+      "label": "11-ablation-split20-round2",
+      "phase": "ablation",
+      "variant": "split20",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791615159.01564,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791615572.3907952
+    },
+    {
+      "label": "12-ablation-shared-round2",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791615573.410991,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791616360.5360289
+    },
+    {
+      "label": "13-ablation-split20-round3",
+      "phase": "ablation",
+      "variant": "split20",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791616361.5605903,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791617034.6511686
+    },
+    {
+      "label": "14-ablation-shared-round3",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791617036.6748042,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791617835.401462
+    },
+    {
+      "label": "15-ablation-split28-round3",
+      "phase": "ablation",
+      "variant": "split28",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        2200,
+        2400,
+        2600,
+        2800,
+        3000,
+        4000,
+        5000
+      ],
+      "started_at": 1791617837.4796414,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791618501.1299553
+    },
+    {
+      "label": "16-diagnostic-baseline-round1",
+      "phase": "diagnostic",
+      "variant": "baseline",
+      "round": 1,
+      "rates": [
+        3000
+      ],
+      "started_at": 1791618502.2057648,
+      "jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+      "exit": 0,
+      "finished_at": 1791618633.5287406
+    },
+    {
+      "label": "17-diagnostic-shared-round1",
+      "phase": "diagnostic",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        3000
+      ],
+      "started_at": 1791618635.6007555,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791618743.8376172
+    },
+    {
+      "label": "18-diagnostic-split28-round1",
+      "phase": "diagnostic",
+      "variant": "split28",
+      "round": 1,
+      "rates": [
+        3000
+      ],
+      "started_at": 1791618744.8569665,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791618845.4625666
+    },
+    {
+      "label": "19-diagnostic-split20-round1",
+      "phase": "diagnostic",
+      "variant": "split20",
+      "round": 1,
+      "rates": [
+        3000
+      ],
+      "started_at": 1791618847.4896245,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791618953.7699795
+    },
+    {
+      "label": "20-diagnostic-baseline-round1",
+      "phase": "diagnostic",
+      "variant": "baseline",
+      "round": 1,
+      "rates": [
+        4000
+      ],
+      "started_at": 1791618954.789485,
+      "jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+      "exit": 0,
+      "finished_at": 1791619109.387593
+    },
+    {
+      "label": "21-diagnostic-shared-round1",
+      "phase": "diagnostic",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        4000
+      ],
+      "started_at": 1791619110.4069803,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791619239.5009801
+    },
+    {
+      "label": "22-diagnostic-split28-round1",
+      "phase": "diagnostic",
+      "variant": "split28",
+      "round": 1,
+      "rates": [
+        4000
+      ],
+      "started_at": 1791619241.5724814,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791619341.680041
+    },
+    {
+      "label": "23-diagnostic-split20-round1",
+      "phase": "diagnostic",
+      "variant": "split20",
+      "round": 1,
+      "rates": [
+        4000
+      ],
+      "started_at": 1791619344.185938,
+      "jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+      "exit": 0,
+      "finished_at": 1791619459.6293087
+    }
+  ],
+  "method": {
+    "duration_seconds": 60,
+    "disk_await_ms": 2,
+    "disk_noisy_seconds": 5,
+    "minimum_disk_coverage": 0.9,
+    "drain_quiet_seconds": 5,
+    "capacity_claim": "60s sampling only; not a soak test"
+  },
+  "candidate_sha": "33b17beddb33d6b159ca346db84db863e5fd7fef",
+  "disk_device": "vdc",
+  "disk_device_source": "vdc from prior same-host evidence; verify mount.txt",
+  "drain_max_seconds": 600,
+  "baseline_jar_sha256": "210e82279a64ddb0cbfe267fd77825cf2721c816d4f4d538c3e86272f6c7e2f6",
+  "candidate_jar_sha256": "a5b21a58168f65d5f1f5fb7413231c3ff60d583a64b135635db42f1316132961",
+  "finished_at": 1791619460.6641011,
+  "status": "completed",
+  "error": null,
+  "observed_steps": 124,
+  "planned_steps": 143,
+  "correctness_false": 0,
+  "correctness_unknown": 0
+}
