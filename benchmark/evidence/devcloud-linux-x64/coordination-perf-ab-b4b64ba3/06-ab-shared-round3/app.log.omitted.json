@@ -1,0 +1,13 @@
+{
+  "original": "app.log.gz",
+  "original_sha256": "d14b33f494b87691bc05c3298c7fba6e341fd369e57176bab311f3a105d33089",
+  "original_lines": 797667,
+  "kept_lines": 62,
+  "omitted_pattern": "COORD_SEND_RESULT (one INFO line per publisher confirm)",
+  "omitted_by_status_changed": {
+    "status=1 changed=0": 183055,
+    "status=1 changed=1": 614550
+  },
+  "first_omitted": "2026-10-11T01:24:51.089+08:00",
+  "last_omitted": "2026-10-11T01:31:32.459+08:00"
+}

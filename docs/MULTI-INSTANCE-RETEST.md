@@ -1,6 +1,6 @@
 # 原生三 JVM 协调复测：一次启动，完整归档
 
-**状态：2026-10-10 已在目标云研发容器执行。候选 `1fc9e77` 九个场景 9/9 通过；首轮 `f86c1d5` 因编排缺陷 5/9（k6 摘要字段层级、场景 02 等待过短），修正后重跑。** 结果与两轮证据见 [devcloud 证据说明](../benchmark/evidence/devcloud-linux-x64/README.md) 末节。业务协议、冷升级限制见 [设计](MULTI-INSTANCE-COORDINATION.md)。本轮验证正确性，不做 PR #3 容量提升比较。
+**状态：2026-10-10 已在目标云研发容器执行。候选 `1fc9e77` 九个场景 9/9 通过；首轮 `f86c1d5` 因编排缺陷 5/9（k6 摘要字段层级、场景 02 等待过短），修正后重跑。** 结果与两轮证据见 [devcloud 证据说明](../benchmark/evidence/devcloud-linux-x64/README.md)“多实例库存协调三 JVM 正确性复测”一节。业务协议、冷升级限制见 [设计](MULTI-INSTANCE-COORDINATION.md)。本轮验证正确性，不做 PR #3 容量提升比较。
 
 ## 一条命令
 

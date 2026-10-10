@@ -1,0 +1,24 @@
+{
+  "started_at": 1791652414.2159765,
+  "db": {
+    "messages": 270001,
+    "nonterminal": 0,
+    "consumed": 270001,
+    "timeout": 0,
+    "dead": 0,
+    "cancelled": 0,
+    "orders": 270001,
+    "success": 270001
+  },
+  "mq": {
+    "messages_ready": 0,
+    "messages_unacknowledged": 0
+  },
+  "t": 1791652414.3353407,
+  "checks": {
+    "duplicate_groups": 0,
+    "duplicate_order_ids": 0,
+    "segment_available": 269999,
+    "stock_available": 448813
+  }
+}

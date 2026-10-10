@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Docker shim for this container (no Docker daemon is possible here).
+# Maps the benchmark scripts' `docker exec/stop/start mini-seckill-*` onto the native services.
+set -euo pipefail
+. /data/ms/env.sh
+svc_of() {
+  case "$1" in
+    mini-seckill-mysql) echo mysql ;;
+    mini-seckill-redis) echo redis ;;
+    mini-seckill-rabbitmq) echo rabbitmq ;;
+    *) echo "docker shim: unknown container '$1'" >&2; exit 1 ;;
+  esac
+}
+cmd=${1:-}; shift || true
+case "$cmd" in
+  exec)
+    while [[ "${1:-}" == -* ]]; do shift; done
+    svc_of "$1" >/dev/null; shift
+    exec "$@" ;;
+  stop|start|restart)
+    for a in "$@"; do
+      [[ "$a" == -* ]] && continue
+      /data/ms/bin/services.sh "$cmd" "$(svc_of "$a")"
+    done ;;
+  ps) /data/ms/bin/services.sh status ;;
+  *) echo "docker shim: '$cmd' is not supported (native services, no Docker)" >&2; exit 1 ;;
+esac
