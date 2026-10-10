@@ -74,15 +74,15 @@ public class AdminController {
 
     @Operation(
             summary = "按 requestId 回放单条本地消息",
-            description = "对指定 requestId 的本地消息执行一次回放，用于 MQ confirm 失败、return、dead 状态后的人工恢复演示。")
+            description = "仅对仍占库存预算的发送态按租约认领重试；DEAD、TIMEOUT、CANCELLED、CONSUMED 不能原地重开。")
     @PostMapping("/messages/replay")
     public Result<MessageReplayResponse> replayOne(@RequestParam String requestId) {
         return Result.success(messageAdminService.replayOne(requestId));
     }
 
     @Operation(
-            summary = "批量回放 DEAD 消息",
-            description = "按 limit 扫描 DEAD 消息并尝试回放，适合故障演练后的批量收敛，不等同于生产级人工审核后台。")
+            summary = "拒绝原地重开 DEAD 消息",
+            description = "保留路由用于明确返回 409。请先核对事实，重新准入必须使用新请求，不能绕过库存预算。")
     @PostMapping("/messages/replay-dead")
     public Result<MessageReplayResponse> replayDead(@RequestParam(defaultValue = "20") @Min(1) Integer limit) {
         return Result.success(messageAdminService.replayDead(limit));

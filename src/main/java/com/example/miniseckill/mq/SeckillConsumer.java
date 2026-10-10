@@ -100,7 +100,7 @@ public class SeckillConsumer {
             boolean dead = transactions.markDead(message, shortError(ex));
             if (!dead) { return skipped(); }
             log.error("consume failed permanently, requestId={}", message.getRequestId(), ex);
-            insertCompensation(message, "MQ_CONSUME_DEAD", "WAIT_REPLAY", shortError(ex));
+            insertCompensation(message, "MQ_CONSUME_DEAD", "WAIT_REVIEW", shortError(ex));
             setOrderStatusSafely(message, OrderStatus.FAILED);
             return new Outcome("dead_lettered", Settlement.DEAD);
         }

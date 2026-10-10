@@ -94,6 +94,8 @@ class SeckillServiceImplHiddenPathTest {
     @Mock
     private AsyncSeckillLogWriter asyncSeckillLogWriter;
 
+    @Mock private com.example.miniseckill.service.InventoryCoordinator inventory;
+    @Mock private com.example.miniseckill.service.StockInitialization initialization;
     private SeckillProperties properties;
     private SeckillServiceImpl service;
 
@@ -123,7 +125,7 @@ class SeckillServiceImplHiddenPathTest {
                 dynamicRateLimitService,
                 soldOutCacheService,
                 seckillMetrics,
-                asyncSeckillLogWriter
+                asyncSeckillLogWriter, inventory, initialization
         );
     }
 
@@ -204,7 +206,7 @@ class SeckillServiceImplHiddenPathTest {
     }
 
     @Test
-    void placeOrderUsesBucketStockAsFactWithoutDecrementingTotalStockKey() {
+    void placeOrderDelegatesAggregateAndBucketReservationToOneCoordinator() {
         when(redisRecoveryStateService.isRecovering()).thenReturn(false);
         when(soldOutCacheService.isSoldOut(ACTIVITY_ID, SKU_ID)).thenReturn(false);
         when(dynamicRateLimitService.effectivePlan(ACTIVITY_ID, SKU_ID))
@@ -220,8 +222,8 @@ class SeckillServiceImplHiddenPathTest {
                 anyString(),
                 eq(properties.getIdempotentTtl())
         )).thenReturn(true);
-        // Default sharded path is now the single-Lua bucket scan (A3): one call, returns the hit bucket index.
-        when(stringRedisTemplate.execute(eq(seckillStockShardedScript), anyList(), any())).thenReturn(0L);
+        // Coordinator owns both total and bucket writes; no service-side DECR or blind compensation.
+        when(inventory.reserve(eq(ACTIVITY_ID),eq(SKU_ID),eq(USER_ID),anyString())).thenReturn(1L);
         when(seckillProducer.initialMessageStatus()).thenReturn(9);
         when(seckillMessageMapper.insertPending(
                 anyString(),

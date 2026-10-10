@@ -10,12 +10,22 @@ MiniSeckill 是一个聚焦秒杀下单核心链路的 Java 后端面试项目�
 
 2026-10 一致性加固：先读 [问题与取舍](docs/CONSISTENCY-REVIEW.md)、[回归与本机实验方案](docs/CONSISTENCY-EXPERIMENTS.md)、[CI 验证快照](docs/CI-VALIDATION-20261009.md)。本轮聚焦提交边界、事实幂等和迟到重试，历史性能数字不变；新版本性能及真实故障演练结果仍为“待本机实测”。
 
+## 当前多实例协议（本轮代码，云端复测待执行）
+
+[设计与正确性边界](docs/MULTI-INSTANCE-COORDINATION.md) · [原生三 JVM 一键复测](docs/MULTI-INSTANCE-RETEST.md) · [实际验证记录](docs/MULTI-INSTANCE-VALIDATION.md)
+
+库存对账改为 owner 租约 + 库存版本 + 在途登记的同脚本写回校验；预扣结果不明通过 MySQL requestId 唯一键取消墓碑清算。发送认领与回调携带代际 token，定时超时/重试重新检查数据库时间。本轮不声称已经完成云容器三 JVM 故障复测或测得性能提升。
+
+**协议升级必须冷切换所有节点。** Redis 单主、元数据不丢失且不被驱逐是前提；Redis Cluster 与同步 MQ fallback 现在拒绝启动。`init` 只创建新 SKU，不能覆盖活跃/历史库存；终态消息原地 replay 返回409；warmup 不补 token quota，元数据丢失时不会盲目重建。下文历史功能清单、旧实验手册涉及这些操作时，以本节和新设计文档为准，不能照旧在运行中的活动上重置。
+
+审 diff/CI 后，在原独占 `/data/ms` 云端仓库根目录执行 `bash benchmark/native-linux/coordination-suite.sh start`，脚本自行后台运行、冷重置测试夹具并归档；具体破坏性范围和9项断言见复测手册。
+
 ## 核心能力
 
 - Redis ZSET 滑动窗口限流，保留固定窗口作为回退选项。
 - token、隐藏下单 path、可选 JWT 和验证码组成入口防刷骨架。
 - Redis 用户 SKU 幂等 + MySQL 联合唯一索引双重防重复。
-- Redis 分片库存由单次 Lua 原子遍历扣减；Redis Cluster profile 显式关闭单 Lua并回退兼容路径。
+- Redis 单主上的总库存/bucket 扣减、在途登记与版本变化由同一 Lua 完成；本协议不支持 Redis Cluster 跨槽回退。
 - RabbitMQ 异步削峰，本地消息表记录投递状态，confirm/return、重试、死信和 `CONSUMING` 租约恢复组成消息闭环。
 - MySQL 条件更新 `available_stock > 0` 和分段库存兜底，数据库层不依赖无效的 `version` 字段。
 - 41+10+12 位雪花订单 ID，多实例通过 `MINI_SECKILL_WORKER_ID` 分配 workerId。

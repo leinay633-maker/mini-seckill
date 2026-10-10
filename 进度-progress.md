@@ -71,3 +71,8 @@
 - 改动：为交给 GPT-6 Pro 做多实例协调，把 PR #3 复测 23 组 app.log.gz 里的 StockReconcileJob 告警原文抽成 benchmark/evidence/devcloud-linux-x64/pool-budget-33b17bed/reconcile-during-load.txt（连接器读不了 gz）。每组压测期间对账任务约每分钟改写一次 Redis 库存（主矩阵每组 6–13 次），并伴随 soldCount 与 successOrderCount 不一致告警；当时库存为需求 2 倍、MySQL 有库存兜底，最终对账全部通过。另在容器核实：非特权（iptables 权限不足、无 tc）、无 nginx/haproxy/socat，GitHub release 直链可下载。
 - 验证：抽取文件 334 行，逐组计数与各组 app.log.gz 的 grep 计数一致；不含容器主机名。未运行测试（只加证据文本）。
 - 未完成 / 下一步：等 Pro 的 PR（多实例下后台任务与 Redis 库存修复的正确性、一键多实例复测）；容器 /data/ms/mini-seckill 仍停在 pro/consumer-pool-budget，复测前切回 main 并拉取。
+
+### 2026-10-10 20:01 · GPT-6 Astra Pro · pro/multi-instance-coordination
+- 改动：从 PR #5 的 8ca5ec0 断点继续，实现预扣与在途登记/版本同 Lua、MySQL 唯一键取消墓碑清算、同语句库存事实及 owner+版本+空在途写回校验；发送按行认领 token/DB 租约及迟到回调防护，超时在 SQL 重新检查，禁止活跃库存重置/终态原地重放/同步 fallback/Cluster 旁路。增加真实 MySQL+Redis 交错 IT 源码、单元/编排回归和原生三 JVM 一键后台九场景脚本；补三份 MULTI-INSTANCE 文档、README 与 CI，历史 REPORT 和既有 evidence 未改，未修改 obsidian-vault。
+- 验证：编辑环境 Linux/OpenJDK21.0.12.1（release17），离线 `mvn -o -B -Dmaven.repo.local=/mnt/data/build-tools/repository clean verify`：242 单元通过/0失败/0错误/0跳过，45% JaCoCo 门禁通过；新 test_coordination_suite 34通过，旧 test_consistency_evidence 8通过；Python编译、bash -n、git diff --check、历史证据131文件/37JSON检查通过。旧 test_pool_budget_benchmark 运行30项，两个cap-step 10s超时error，在精确8ca5ec0基准worktree复现同样2error，未改旧门禁。新14项展开IT只编译未执行；JDK17 CI和云机三JVM未验证，不能引用旧断点CI冒充新结果。完整日志摘要见 docs/MULTI-INSTANCE-VALIDATION.md。
+- 未完成 / 下一步：仓库权限已核实push=true，远端PR5仍8ca5ec0；本环境git直连/dry-run错误为 Could not resolve host: github.com，不是账号只读。提交后重试真实分支推送；写不通则交付可直接应用并保留提交身份的bundle/补丁。导入后审diff、跑JDK17与非跳过IT CI，再在原独占云机运行 `bash benchmark/native-linux/coordination-suite.sh start`，一次性核对九场景完整证据后才合并、更新面试卡片。协议需全旧JVM冷切换；元数据丢失、Redis故障转移/驱逐、网络分区、混合版本及新性能数字均未认证。

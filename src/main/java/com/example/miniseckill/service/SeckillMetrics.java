@@ -74,4 +74,8 @@ public class SeckillMetrics {
             log.warn("activity cache metric failed, result={}", result, ex);
         }
     }
+    /** Bounded outcome labels only; never request IDs or SKU IDs. */
+    public void coordination(String result) {
+        meterRegistry.counter("seckill_coordination", "result", result).increment();
+    }
 }

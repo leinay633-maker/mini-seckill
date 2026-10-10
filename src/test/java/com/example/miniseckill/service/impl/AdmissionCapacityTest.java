@@ -67,7 +67,7 @@ class AdmissionCapacityTest {
         verify(orders, times(users)).selectByUserSku(eq(1L), anyLong(), eq(1001L));
         verify(messages, times(users)).insertPending(anyString(), eq(1L), anyLong(), eq(1001L),
                 eq(initialSending ? MessageStatus.SENDING.getCode() : MessageStatus.PENDING.getCode()));
-        verify(messages, times(initialSending ? 0 : users)).markSending(anyString(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt());
+        verify(messages, times(initialSending ? 0 : users)).claimSend(anyString(), anyString(), anyInt());
         assertEquals(users, registry.get("seckill_capacity_stage").tag("stage", "token_order_lookup").timer().count());
         assertEquals(users, registry.get("seckill_capacity_stage").tag("stage", "message_insert").timer().count());
         assertEquals(users, registry.get("seckill_capacity_stage").tag("stage", "initial_publish").timer().count());
@@ -113,13 +113,14 @@ class AdmissionCapacityTest {
     }
 
     @Test
-    void knownInsertRejectionDoesNotPublishAndKeepsExistingCompensationPath() {
+    void insertExceptionDoesNotPublishAndUsesCancellationFenceInsteadOfBlindCompensation() {
         when(messages.insertPending(anyString(), anyLong(), anyLong(), anyLong(), anyInt()))
                 .thenThrow(new DataIntegrityViolationException("injected rejection before INSERT"));
         assertThrows(DataIntegrityViolationException.class, () -> harness.service.placeOrder(harness.request(10L), "test"));
         verifyNoInteractions(harness.rabbit);
-        verify(harness.values).increment(RedisKeyUtil.stockKey(1L, 1001L));
-        verify(harness.redis).delete(RedisKeyUtil.userSkuKey(1L, 10L, 1001L));
+        verify(harness.inventory).resolveUncertain(eq(1L), eq(1001L), eq(10L), anyString());
+        verify(harness.values, never()).increment(anyString());
+        verify(harness.redis, never()).delete(anyString());
     }
 
     @Test

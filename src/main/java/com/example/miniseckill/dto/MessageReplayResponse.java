@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Response for manual replay of dead or failed local messages.
+ * Response for manual retries of nonterminal send-side local messages.
  */
 public class MessageReplayResponse {
 

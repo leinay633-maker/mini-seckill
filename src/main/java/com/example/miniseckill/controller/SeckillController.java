@@ -55,7 +55,7 @@ public class SeckillController {
 
     @Operation(
             summary = "初始化库存和资格池",
-            description = "初始化 MySQL 库存事实、Redis 总库存、Redis 分片库存和 token 资格池。用于本地演示、压测前置准备和活动库存重置。")
+            description = "初始化 MySQL 库存事实、Redis 总库存、Redis 分片库存和 token 资格池。仅允许新 SKU 的一次性创建；已存在 SKU 拒绝重置。")
     @PostMapping("/init")
     public Result<Void> init(@RequestParam(required = false) @Min(1) Long activityId,
                              @RequestParam @Min(1) Long skuId,
@@ -65,7 +65,7 @@ public class SeckillController {
 
     @Operation(
             summary = "预热秒杀库存",
-            description = "从 MySQL 当前库存重建 Redis 总库存、分片库存和 token 资格池，通常用于活动开始前预热或恢复后的手工演示。")
+            description = "使用租约、版本和在途登记校验后原子修复总库存及分片；不重置资格池，不恢复丢失的协调元数据。")
     @PostMapping("/warmup")
     public Result<Void> warmup(@RequestParam(required = false) @Min(1) Long activityId,
                                @RequestParam @Min(1) Long skuId) {

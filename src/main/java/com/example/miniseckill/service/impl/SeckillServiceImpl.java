@@ -17,6 +17,8 @@ import com.example.miniseckill.mapper.SeckillOrderMapper;
 import com.example.miniseckill.mapper.SkuStockMapper;
 import com.example.miniseckill.mapper.SkuStockSegmentMapper;
 import com.example.miniseckill.service.ActivityService;
+import com.example.miniseckill.service.InventoryCoordinator;
+import com.example.miniseckill.service.StockInitialization;
 import com.example.miniseckill.service.AsyncSeckillLogWriter;
 import com.example.miniseckill.mq.SeckillProducer;
 import com.example.miniseckill.service.DistributedLockService;
@@ -48,6 +50,8 @@ public class SeckillServiceImpl implements SeckillService {
 
     private static final Logger log = LoggerFactory.getLogger(SeckillServiceImpl.class);
 
+    private final InventoryCoordinator inventory;
+    private final StockInitialization stockInitialization;
     private final SkuStockMapper skuStockMapper;
     private final SkuStockSegmentMapper skuStockSegmentMapper;
     private final SeckillLogMapper seckillLogMapper;
@@ -90,7 +94,10 @@ public class SeckillServiceImpl implements SeckillService {
                               DynamicRateLimitService dynamicRateLimitService,
                               SoldOutCacheService soldOutCacheService,
                               SeckillMetrics seckillMetrics,
-                              AsyncSeckillLogWriter asyncSeckillLogWriter) {
+                              AsyncSeckillLogWriter asyncSeckillLogWriter,
+                              InventoryCoordinator inventory, StockInitialization stockInitialization) {
+        this.inventory = inventory;
+        this.stockInitialization = stockInitialization;
         this.skuStockMapper = skuStockMapper;
         this.skuStockSegmentMapper = skuStockSegmentMapper;
         this.seckillLogMapper = seckillLogMapper;
@@ -116,47 +123,28 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Override
     public Result<Void> initStock(Long activityId, Long skuId, Integer stock) {
+        InventoryCoordinator.requireAutocommitBoundary();
         validateActivitySku(activityId, skuId);
         if (stock == null || stock < 0) {
             throw new BusinessException(400, "stock 参数不合法");
         }
 
-        return distributedLockService.executeWithLock(
-                RedisKeyUtil.stockInitLockKey(activityId, skuId),
-                Duration.ofSeconds(1),
-                Duration.ofSeconds(10),
-                () -> {
-                    activityService.assertExists(activityId);
-                    skuStockMapper.upsertStock(activityId, skuId, stock);
-                    initMysqlStockSegments(activityId, skuId, stock);
-                    writeRedisStock(activityId, skuId, stock);
-                    writeTokenQuota(activityId, skuId, stock);
-                    safeLog(UUID.randomUUID().toString(), activityId, 0L, skuId, "INIT_STOCK_" + stock);
-                    return Result.success("初始化成功", null);
-                }
-        );
+        activityService.assertExists(activityId);
+        // The INSERT-only transaction, not an expiring Redis lease, protects MySQL initialization.
+        stockInitialization.create(activityId, skuId, stock);
+        inventory.initializeNew(activityId, skuId, stock);
+        writeTokenQuota(activityId, skuId, stock);
+        safeLog(UUID.randomUUID().toString(), activityId, 0L, skuId, "INIT_STOCK_" + stock);
+        return Result.success("初始化成功", null);
     }
 
     @Override
     public Result<Void> warmupStock(Long activityId, Long skuId) {
         validateActivitySku(activityId, skuId);
-        return distributedLockService.executeWithLock(
-                RedisKeyUtil.stockInitLockKey(activityId, skuId),
-                Duration.ofSeconds(1),
-                Duration.ofSeconds(10),
-                () -> {
-                    activityService.assertExists(activityId);
-                    SkuStock stock = skuStockMapper.selectBySkuId(activityId, skuId);
-                    if (stock == null) {
-                        throw new BusinessException(404, "MySQL 库存不存在，无法预热");
-                    }
-                    int availableStock = mysqlAvailableStock(stock);
-                    writeRedisStock(activityId, skuId, availableStock);
-                    writeTokenQuota(activityId, skuId, availableStock);
-                    safeLog(UUID.randomUUID().toString(), activityId, 0L, skuId, "WARMUP_STOCK_" + availableStock);
-                    return Result.success("预热成功", null);
-                }
-        );
+        activityService.assertExists(activityId);
+        InventoryCoordinator.RepairResult result = inventory.reconcile(activityId, skuId);
+        if (!result.complete()) throw new BusinessException(503, "库存预热未写入: " + result.outcome());
+        return Result.success("库存已核对", null);
     }
 
     @Override
@@ -217,6 +205,7 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Override
     public Result<Void> placeOrder(SeckillOrderRequest request, String clientIp) {
+        InventoryCoordinator.requireAutocommitBoundary();
         Long activityId = resolveActivityId(request.getActivityId());
         Long userId = request.getUserId();
         Long skuId = request.getSkuId();
@@ -249,19 +238,16 @@ public class SeckillServiceImpl implements SeckillService {
             return Result.fail(409, "重复下单或正在排队中");
         }
 
-        StockAdmission admission = deductRedisStock(activityId, skuId, userId);
-        Long stockResult = admission.result();
+        Long stockResult = inventory.reserve(activityId, skuId, userId, requestId);
 
-        if (stockResult == null || stockResult == -1L) {
-            stringRedisTemplate.delete(userSkuKey);
-            safeSetOrderStatus(orderStatusKey, OrderStatus.FAILED);
+        if (stockResult == null || stockResult < 0L) {
+            inventory.projectOwned(activityId, skuId, userId, requestId, OrderStatus.FAILED, true);
             safeLog(requestId, activityId, userId, skuId, "REDIS_STOCK_NOT_FOUND");
             seckillMetrics.redisStock("not_found");
             return Result.fail(404, "库存未初始化");
         }
         if (stockResult == 0L) {
-            stringRedisTemplate.delete(userSkuKey);
-            safeSetOrderStatus(orderStatusKey, OrderStatus.FAILED);
+            inventory.projectOwned(activityId, skuId, userId, requestId, OrderStatus.FAILED, true);
             soldOutCacheService.markSoldOut(activityId, skuId);
             safeLog(requestId, activityId, userId, skuId, "REDIS_STOCK_NOT_ENOUGH");
             seckillMetrics.redisStock("not_enough");
@@ -286,13 +272,20 @@ public class SeckillServiceImpl implements SeckillService {
                 throw new IllegalStateException("local message INSERT did not create exactly one row");
             }
         } catch (RuntimeException ex) {
-            compensateRedisAfterAdmissionFailure(userSkuKey, admission.deductedKey(), orderStatusKey);
+            // An INSERT exception can mean the COMMIT reply was lost. Do not blindly INCR.
+            try { inventory.resolveUncertain(activityId, skuId, userId, requestId); }
+            catch (RuntimeException unknown) {
+                ex.addSuppressed(unknown); // leave the reservation for another instance to resolve
+            }
             safeLog(requestId, activityId, userId, skuId, "LOCAL_MESSAGE_INSERT_FAILED");
             seckillMetrics.admission("local_message_failed");
             throw ex;
         }
 
-        safeSetOrderStatus(orderStatusKey, OrderStatus.QUEUING);
+        inventory.accepted(activityId, skuId, userId, requestId);
+        // A very fast consumer may already have committed SUCCESS; queryOrder reads MySQL first.
+        try { inventory.projectOwned(activityId, skuId, userId, requestId, OrderStatus.QUEUING, false); }
+        catch (RuntimeException e) { log.warn("COORD_QUEUING_PROJECTION_FAILED requestId={}", requestId,e); }
         try {
             long publishStarted = System.nanoTime();
             try {
@@ -306,23 +299,9 @@ public class SeckillServiceImpl implements SeckillService {
             return Result.success("排队中", null);
         } catch (AmqpException ex) {
             log.error("send seckill message failed, requestId={}", requestId, ex);
-            seckillMessageMapper.markFailed(requestId, MessageStatus.FAILED.getCode(), shortError(ex));
+            // Producer owns the attempt-token CAS; no status-only failure update here.
             safeLog(requestId, activityId, userId, skuId, "MQ_SEND_FAILED_WAIT_RETRY");
 
-            if (seckillProperties.isMqFallbackSync()) {
-                try {
-                    orderService.createOrderFromMessage(message);
-                    seckillMessageMapper.updateStatus(requestId, MessageStatus.CONSUMED.getCode());
-                    safeLog(requestId, activityId, userId, skuId, "SYNC_FALLBACK_SUCCESS");
-                    seckillMetrics.admission("sync_fallback_success");
-                    return Result.success("下单成功", null);
-                } catch (RuntimeException syncEx) {
-                    safeSetOrderStatus(orderStatusKey, OrderStatus.FAILED);
-                    safeLog(requestId, activityId, userId, skuId, "SYNC_FALLBACK_FAILED");
-                    seckillMetrics.admission("sync_fallback_failed");
-                    throw syncEx;
-                }
-            }
             seckillMetrics.admission("mq_send_failed_wait_retry");
             return Result.success("排队中", null);
         }
@@ -494,63 +473,6 @@ public class SeckillServiceImpl implements SeckillService {
         return antiBrush.isEnabled() && antiBrush.isHiddenPathEnabled();
     }
 
-    private StockAdmission deductRedisStock(Long activityId, Long skuId, Long userId) {
-        if (!seckillProperties.getStockShard().isEnabled()) {
-            String stockKey = RedisKeyUtil.stockKey(activityId, skuId);
-            Long result = stringRedisTemplate.execute(seckillStockScript, Collections.singletonList(stockKey));
-            return new StockAdmission(result, Long.valueOf(1L).equals(result) ? stockKey : null);
-        }
-
-        List<String> bucketKeys = stockBucketKeys(activityId, skuId);
-        int start = Math.floorMod(userId.hashCode(), bucketKeys.size());
-
-        if (seckillProperties.getStockShard().isSingleLuaEnabled()) {
-            // One round trip: the Lua scans buckets from `start` and decrements the first non-empty one.
-            // Replaces the up-to-N DECR round trips near sell-out. Single-Redis only (bucket keys share
-            // no hash tag, so this must be disabled under Cluster where they span slots).
-            Long hit = stringRedisTemplate.execute(seckillStockShardedScript, bucketKeys, String.valueOf(start));
-            if (hit != null && hit >= 0L) {
-                return new StockAdmission(1L, bucketKeys.get(hit.intValue()));
-            }
-            // -1 = buckets exist but all empty (sold out); -2 = no bucket (not initialized).
-            return new StockAdmission(Long.valueOf(-2L).equals(hit) ? -1L : 0L, null);
-        }
-
-        boolean hasAnyBucket = false;
-        for (int offset = 0; offset < bucketKeys.size(); offset++) {
-            String bucketKey = bucketKeys.get((start + offset) % bucketKeys.size());
-            Long result = stringRedisTemplate.execute(seckillStockScript, Collections.singletonList(bucketKey));
-            if (Long.valueOf(1L).equals(result)) {
-                return new StockAdmission(1L, bucketKey);
-            }
-            if (!Long.valueOf(-1L).equals(result)) {
-                hasAnyBucket = true;
-            }
-        }
-        return new StockAdmission(hasAnyBucket ? 0L : -1L, null);
-    }
-
-    private void writeRedisStock(Long activityId, Long skuId, int stock) {
-        stringRedisTemplate.opsForValue().set(RedisKeyUtil.stockKey(activityId, skuId), String.valueOf(stock));
-        if (stock > 0) {
-            soldOutCacheService.clear(activityId, skuId);
-        } else {
-            soldOutCacheService.markSoldOut(activityId, skuId);
-        }
-        if (!seckillProperties.getStockShard().isEnabled()) {
-            return;
-        }
-        List<String> bucketKeys = stockBucketKeys(activityId, skuId);
-        deleteKeysOneByOne(bucketKeys);
-        int count = bucketKeys.size();
-        int base = stock / count;
-        int remainder = stock % count;
-        for (int i = 0; i < count; i++) {
-            int bucketStock = base + (i < remainder ? 1 : 0);
-            stringRedisTemplate.opsForValue().set(bucketKeys.get(i), String.valueOf(bucketStock));
-        }
-    }
-
     private void writeTokenQuota(Long activityId, Long skuId, int stock) {
         SeckillProperties.AntiBrush antiBrush = seckillProperties.getAntiBrush();
         if (!antiBrush.isEnabled() || !antiBrush.isTokenQuotaEnabled()) {
@@ -572,7 +494,7 @@ public class SeckillServiceImpl implements SeckillService {
         }
         if (Long.valueOf(-1L).equals(result)) {
             safeLog(UUID.randomUUID().toString(), activityId, 0L, skuId, "TOKEN_QUOTA_NOT_FOUND");
-            throw new BusinessException(404, "秒杀资格池未初始化，请先初始化或预热库存");
+            throw new BusinessException(404, "秒杀资格池未初始化；协调预热不会重置资格池，请检查初始建库与资格配置");
         }
         safeLog(UUID.randomUUID().toString(), activityId, 0L, skuId, "TOKEN_QUOTA_EMPTY");
         throw new BusinessException(429, "秒杀资格已发完，请稍后再试");
@@ -615,29 +537,6 @@ public class SeckillServiceImpl implements SeckillService {
         }
     }
 
-    private void compensateRedisAfterAdmissionFailure(String userSkuKey, String stockKey, String orderStatusKey) {
-        stringRedisTemplate.delete(userSkuKey);
-        stringRedisTemplate.delete(orderStatusKey);
-        if (stockKey != null) {
-            stringRedisTemplate.opsForValue().increment(stockKey);
-        }
-    }
-
-    private void initMysqlStockSegments(Long activityId, Long skuId, int stock) {
-        if (!seckillProperties.getMysqlStockSegment().isEnabled()) {
-            return;
-        }
-        int segmentCount = Math.max(1, seckillProperties.getMysqlStockSegment().getSegmentCount());
-        skuStockSegmentMapper.deleteByActivitySku(activityId, skuId);
-        int base = stock / segmentCount;
-        int remainder = stock % segmentCount;
-        for (int i = 0; i < segmentCount; i++) {
-            int segmentStock = base + (i < remainder ? 1 : 0);
-            skuStockSegmentMapper.upsertSegment(activityId, skuId, i, segmentStock);
-        }
-        skuStockMapper.syncFromSegments(activityId, skuId);
-    }
-
     private int mysqlAvailableStock(SkuStock stock) {
         if (!seckillProperties.getMysqlStockSegment().isEnabled()
                 || skuStockSegmentMapper.countSegments(stock.getActivityId(), stock.getSkuId()) == 0) {
@@ -654,34 +553,11 @@ public class SeckillServiceImpl implements SeckillService {
         return skuStockSegmentMapper.sumSoldCount(stock.getActivityId(), stock.getSkuId());
     }
 
-    private void deleteKeysOneByOne(List<String> keys) {
-        for (String key : keys) {
-            stringRedisTemplate.delete(key);
-        }
-    }
-
-    private void safeSetOrderStatus(String key, OrderStatus status) {
-        try {
-            stringRedisTemplate.opsForValue().set(key, String.valueOf(status.getCode()), seckillProperties.getOrderStatusTtl());
-        } catch (RuntimeException ex) {
-            log.warn("set order status failed, key={}, status={}", key, status, ex);
-        }
-    }
-
     private void safeLog(String requestId, Long activityId, Long userId, Long skuId, String result) {
         // Off-path async write: the hot order/token endpoints emit several audit rows per request,
         // and synchronous inserts made MySQL part of every request's latency. Never throws.
         asyncSeckillLogWriter.write(requestId, activityId, userId, skuId, result);
     }
 
-    private String shortError(Exception ex) {
-        String message = ex.getMessage();
-        if (message == null) {
-            return ex.getClass().getSimpleName();
-        }
-        return message.length() > 500 ? message.substring(0, 500) : message;
-    }
 
-    private record StockAdmission(Long result, String deductedKey) {
-    }
 }

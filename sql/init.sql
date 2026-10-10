@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS seckill_message (
   user_id BIGINT NOT NULL,
   sku_id BIGINT NOT NULL,
   status TINYINT NOT NULL,
+  send_token VARCHAR(64) DEFAULT NULL,
+  send_lease_until DATETIME(6) DEFAULT NULL,
   retry_count INT NOT NULL DEFAULT 0,
   last_error VARCHAR(512) DEFAULT NULL,
   next_retry_at DATETIME DEFAULT NULL,

@@ -378,7 +378,7 @@ class ConsumerPoolBudgetIT {
             SeckillMessageMapper jobMessages = (SeckillMessageMapper) java.lang.reflect.Proxy.newProxyInstance(
                     SeckillMessageMapper.class.getClassLoader(), new Class<?>[] {SeckillMessageMapper.class},
                     (proxy, method, args) -> {
-                        if (!method.getName().equals("markTimeout")) { return method.invoke(jobReal, args); }
+                        if (!method.getName().equals("timeoutIfStale")) { return method.invoke(jobReal, args); }
                         casStarted.countDown();
                         Object rows = method.invoke(jobReal, args);
                         casReturnedAt.set(System.nanoTime());
@@ -386,7 +386,7 @@ class ConsumerPoolBudgetIT {
                         return rows;
                     });
             Future<?> timeout = executor.submit(() -> {
-                new OrderTimeoutJob(jobMessages, logs, mock(CompensationRecordMapper.class), redis, properties)
+                new OrderTimeoutJob(jobMessages, logs, mock(CompensationRecordMapper.class), redis, properties, mock(com.example.miniseckill.service.InventoryCoordinator.class))
                         .closeTimeoutOrders();
                 return null;
             });
