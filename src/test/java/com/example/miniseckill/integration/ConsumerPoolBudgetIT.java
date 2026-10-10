@@ -371,17 +371,34 @@ class ConsumerPoolBudgetIT {
             verify(duplicate).basicNack(42L, false, true);
 
             properties.getOrderTimeout().setQueuedTimeout(Duration.ofHours(-1));
-            SeckillMessageMapper jobMessages = session(jobPool).getMapper(SeckillMessageMapper.class);
+            SeckillMessageMapper jobReal = session(jobPool).getMapper(SeckillMessageMapper.class);
+            CountDownLatch casStarted = new CountDownLatch(1);
+            AtomicLong casReturnedAt = new AtomicLong();
+            AtomicLong casRows = new AtomicLong(-1);
+            SeckillMessageMapper jobMessages = (SeckillMessageMapper) java.lang.reflect.Proxy.newProxyInstance(
+                    SeckillMessageMapper.class.getClassLoader(), new Class<?>[] {SeckillMessageMapper.class},
+                    (proxy, method, args) -> {
+                        if (!method.getName().equals("markTimeout")) { return method.invoke(jobReal, args); }
+                        casStarted.countDown();
+                        Object rows = method.invoke(jobReal, args);
+                        casReturnedAt.set(System.nanoTime());
+                        casRows.set((Integer) rows);
+                        return rows;
+                    });
             Future<?> timeout = executor.submit(() -> {
                 new OrderTimeoutJob(jobMessages, logs, mock(CompensationRecordMapper.class), redis, properties)
                         .closeTimeoutOrders();
                 return null;
             });
-            awaitRowLockWait();
+            assertTrue(casStarted.await(10, TimeUnit.SECONDS), "timeout job must pick the SENT snapshot");
+            Thread.sleep(300);
+            long releasedAt = System.nanoTime();
             release.countDown();
             inFlight.get(15, TimeUnit.SECONDS);
             timeout.get(15, TimeUnit.SECONDS);
 
+            assertTrue(casReturnedAt.get() > releasedAt, "timeout CAS must wait on the in-flight claim's row lock");
+            assertEquals(0, casRows.get());
             verify(first).basicAck(42L, false);
             assertSuccess(message);
             assertEquals(0, observer.queryForObject("SELECT SUM(retry_count) FROM seckill_message", Integer.class));
@@ -396,17 +413,6 @@ class ConsumerPoolBudgetIT {
             release.countDown();
             executor.shutdownNow();
             jobPool.close();
-        }
-    }
-
-    private void awaitRowLockWait() throws InterruptedException {
-        // innodb_trx needs PROCESS; the Testcontainers root shares the test password.
-        JdbcTemplate root = new JdbcTemplate(new DriverManagerDataSource(MYSQL.getJdbcUrl(), "root", MYSQL.getPassword()));
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8);
-        while (root.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.innodb_trx WHERE trx_state='LOCK WAIT'", Integer.class) == 0) {
-            assertTrue(System.nanoTime() < deadline, "timeout job never waited on the in-flight claim");
-            Thread.sleep(10);
         }
     }
 
