@@ -7,7 +7,10 @@ import static org.mockito.Mockito.*;
 import com.example.miniseckill.common.InsufficientStockException;
 import com.example.miniseckill.common.MessageStatus;
 import com.example.miniseckill.config.*;
+import com.example.miniseckill.dto.OrderQueryResponse;
 import com.example.miniseckill.dto.SeckillMessage;
+import com.example.miniseckill.job.ConsumingMessageRecoveryJob;
+import com.example.miniseckill.job.OrderTimeoutJob;
 import com.example.miniseckill.mapper.*;
 import com.example.miniseckill.mq.SeckillConsumer;
 import com.example.miniseckill.service.*;
@@ -17,6 +20,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLTransientConnectionException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +72,7 @@ class ConsumerPoolBudgetIT {
     private HikariDataSource reserved;
     private DataSource dataSource;
     private JdbcTemplate observer;
+    private SeckillOrderMapper orderMapper;
     private SeckillMessageMapper messages;
     private SeckillLogMapper logs;
     private OrderService orders;
@@ -92,14 +97,8 @@ class ConsumerPoolBudgetIT {
                     new org.springframework.boot.autoconfigure.jdbc.DataSourceProperties(), new MockEnvironment())
                     .dataSource(admission, reserved);
         } else { dataSource = admission; }
-        Configuration configuration = new Configuration();
-        configuration.setMapUnderscoreToCamelCase(true);
-        for (Class<?> mapper : List.of(SeckillOrderMapper.class, SeckillMessageMapper.class, SeckillLogMapper.class,
-                SkuStockMapper.class, SkuStockSegmentMapper.class)) { configuration.addMapper(mapper); }
-        SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
-        factory.setDataSource(dataSource);
-        factory.setConfiguration(configuration);
-        SqlSessionTemplate session = new SqlSessionTemplate(factory.getObject());
+        SqlSessionTemplate session = session(dataSource);
+        orderMapper = session.getMapper(SeckillOrderMapper.class);
         messages = session.getMapper(SeckillMessageMapper.class);
         logs = session.getMapper(SeckillLogMapper.class);
         redis = mock(StringRedisTemplate.class);
@@ -109,7 +108,7 @@ class ConsumerPoolBudgetIT {
         properties.getMysqlStockSegment().setEnabled(false);
         AtomicLong ids = new AtomicLong(1_000_000L);
         manager = new DataSourceTransactionManager(dataSource);
-        OrderServiceImpl target = new OrderServiceImpl(session.getMapper(SeckillOrderMapper.class),
+        OrderServiceImpl target = new OrderServiceImpl(orderMapper,
                 session.getMapper(SkuStockMapper.class), logs, messages, session.getMapper(SkuStockSegmentMapper.class),
                 redis, properties, metrics, ids::getAndIncrement);
         ProxyFactory orderProxy = new ProxyFactory(target);
@@ -120,7 +119,22 @@ class ConsumerPoolBudgetIT {
         session.getMapper(SkuStockMapper.class).upsertStock(1L, 1001L, 10);
     }
 
+    private SqlSessionTemplate session(DataSource source) throws Exception {
+        Configuration configuration = new Configuration();
+        configuration.setMapUnderscoreToCamelCase(true);
+        for (Class<?> mapper : List.of(SeckillOrderMapper.class, SeckillMessageMapper.class, SeckillLogMapper.class,
+                SkuStockMapper.class, SkuStockSegmentMapper.class)) { configuration.addMapper(mapper); }
+        SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+        factory.setDataSource(source);
+        factory.setConfiguration(configuration);
+        return new SqlSessionTemplate(factory.getObject());
+    }
+
     private HikariDataSource pool(String name, int maximum) {
+        return pool(name, maximum, 1);
+    }
+
+    private HikariDataSource pool(String name, int maximum, int lockWaitSeconds) {
         HikariDataSource pool = new HikariDataSource();
         pool.setJdbcUrl(MYSQL.getJdbcUrl());
         pool.setUsername(MYSQL.getUsername());
@@ -129,7 +143,7 @@ class ConsumerPoolBudgetIT {
         pool.setMaximumPoolSize(maximum);
         pool.setMinimumIdle(0);
         pool.setConnectionTimeout(250);
-        pool.setConnectionInitSql("SET SESSION innodb_lock_wait_timeout=1");
+        pool.setConnectionInitSql("SET SESSION innodb_lock_wait_timeout=" + lockWaitSeconds);
         return pool;
     }
 
@@ -306,6 +320,99 @@ class ConsumerPoolBudgetIT {
         } finally {
             container.stop(); container.destroy(); connectionFactory.destroy();
         }
+    }
+
+    /** The old ABA needed a committed CONSUMING row that recovery could flip and a new
+     * consumer could re-claim. The claim now commits only together with the outcome. */
+    @Test void inFlightClaimIsInvisibleToRecoveryAndTimeoutCasWaitsThenChangesNothing() throws Exception {
+        setUp(false);
+        SeckillMessage message = seed("in-flight", 9L);
+        CountDownLatch claimed = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        OrderService paused = new OrderService() {
+            @Override public void createOrderFromMessage(SeckillMessage m) { orders.createOrderFromMessage(m); }
+            @Override public void createOrderFromConsumingMessage(SeckillMessage m) {
+                claimed.countDown();
+                try {
+                    if (!release.await(15, TimeUnit.SECONDS)) { throw new IllegalStateException("never released"); }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
+                }
+                orders.createOrderFromConsumingMessage(m);
+            }
+            @Override public void reconcileExistingOrderFromConsumingMessage(SeckillMessage m) {
+                orders.reconcileExistingOrderFromConsumingMessage(m);
+            }
+            @Override public void recordFailedOrder(SeckillMessage m) { orders.recordFailedOrder(m); }
+            @Override public OrderQueryResponse queryOrder(Long activityId, Long userId, Long skuId) {
+                return orders.queryOrder(activityId, userId, skuId);
+            }
+        };
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        // Production waits up to 50s for a row lock; give the timeout job room to wait for the commit.
+        HikariDataSource jobPool = pool("test-timeout-job", 1, 10);
+        try {
+            Channel first = mock(Channel.class);
+            Future<?> inFlight = executor.submit(() -> {
+                listener(messages, paused).consume(message, raw(), first); return null;
+            });
+            assertTrue(claimed.await(10, TimeUnit.SECONDS));
+
+            assertEquals(MessageStatus.SENT.getCode(), status(message));
+            assertTrue(messages.selectStaleConsuming(MessageStatus.CONSUMING.getCode(),
+                    LocalDateTime.now().plusHours(1), 10).isEmpty());
+            properties.getConsumingRecovery().setStaleTimeout(Duration.ofHours(-1));
+            new ConsumingMessageRecoveryJob(messages, orderMapper, logs, redis, properties, metrics)
+                    .recoverStaleConsumingMessages();
+
+            Channel duplicate = mock(Channel.class);
+            consumer.consume(message, raw(), duplicate);
+            verify(duplicate).basicNack(42L, false, true);
+
+            properties.getOrderTimeout().setQueuedTimeout(Duration.ofHours(-1));
+            SeckillMessageMapper jobMessages = session(jobPool).getMapper(SeckillMessageMapper.class);
+            Future<?> timeout = executor.submit(() -> {
+                new OrderTimeoutJob(jobMessages, logs, mock(CompensationRecordMapper.class), redis, properties)
+                        .closeTimeoutOrders();
+                return null;
+            });
+            awaitRowLockWait();
+            release.countDown();
+            inFlight.get(15, TimeUnit.SECONDS);
+            timeout.get(15, TimeUnit.SECONDS);
+
+            verify(first).basicAck(42L, false);
+            assertSuccess(message);
+            assertEquals(0, observer.queryForObject("SELECT SUM(retry_count) FROM seckill_message", Integer.class));
+            verify(redis, never()).delete(anyString());
+
+            Channel redelivered = mock(Channel.class);
+            consumer.consume(message, raw(), redelivered);
+            verify(redelivered).basicAck(42L, false);
+            assertSuccess(message);
+            assertEquals(9, observer.queryForObject("SELECT available_stock FROM sku_stock", Integer.class));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+            jobPool.close();
+        }
+    }
+
+    private void awaitRowLockWait() throws InterruptedException {
+        // innodb_trx needs PROCESS; the Testcontainers root shares the test password.
+        JdbcTemplate root = new JdbcTemplate(new DriverManagerDataSource(MYSQL.getJdbcUrl(), "root", MYSQL.getPassword()));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8);
+        while (root.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.innodb_trx WHERE trx_state='LOCK WAIT'", Integer.class) == 0) {
+            assertTrue(System.nanoTime() < deadline, "timeout job never waited on the in-flight claim");
+            Thread.sleep(10);
+        }
+    }
+
+    private int status(SeckillMessage message) {
+        return observer.queryForObject("SELECT status FROM seckill_message WHERE request_id=?",
+                Integer.class, message.getRequestId());
     }
 
     private SeckillMessage seed(String request, long user) {
