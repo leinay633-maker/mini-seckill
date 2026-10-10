@@ -41,3 +41,8 @@
 - 改动：PR #2（pro/capacity-knee）核对后全部采纳，fast-forward 合并到 main（含复测证据提交 b9c6c8c）；PR 描述的待实测部分已改为同机复测结果。obsidian-vault 面试案例稿同步新增第十二节（Q50–Q55：容量拐点、为何不调大连接池、活动缓存取舍、A/B 与消融、端到端持续完成能力、消费者不 ACK 缺陷）。
 - 验证：b9c6c8c 的 GitHub Actions run 37930206031 两个 job（test、integration-test）均成功；本机 `scripts/check-evidence.sh` 通过（37 个 summary、131 个必需文件），`python -m unittest discover -s scripts -p test_consistency_evidence.py` 通过。
 - 未完成 / 下一步：修复 SeckillConsumer 抢占步骤在 try 外导致的不 ACK/NACK 与开事务失败直接判 DEAD，并加连接池超时的回归；固定 40 连接总预算的入口/消费者隔离实验；2000–3000/s 持续完成上限细分。
+
+### 2026-10-10 12:31 · GPT-6 Astra Pro · pro/consumer-pool-budget
+- 改动：从 PR #3 的 e29e452 断点继续，核查已提交的消费者事务抢占/显式结算与固定总连接预算隔离；补齐 pool-budget-suite 一键后台同机对照、23 组/143 个计划档位（A/B 交错、同版共享/12+28/20+20 消融、独立 60 秒拐点诊断），沿用原生 cap-step 与 k6 阶梯；新增数据库与 MQ 排空门禁、停机后清旧夹具、分池指标、预定磁盘分组、全量含失败/未运行格的汇总及哈希证据包。完善 app 停机/PID 防重叠，修正 SQL 采样时间与 pool 标签覆盖；新增离线测试并加入 CI、docs/CONSUMER-POOL-BUDGET.md，历史报告和证据不改。
+- 验证：本编辑环境 `python3 -m unittest discover -s scripts -p 'test_pool_budget_benchmark.py' -v`：30 通过 / 0 失败 / 0 错误 / 0 跳过；相关 Python 编译、4 个 shell 脚本 `bash -n` 通过。已下载并核对断点 e29e452 的 CI run 37934795603 原始 XML：185 单元、42 集成全部通过 / 0 失败 / 0 错误 / 0 跳过（ConsumerPoolBudgetIT 10）；artifact 11618195753 SHA-256 与 GitHub digest 一致，详见文档。编辑环境无 Maven，未本地运行 Java；新增脚本的最终远端 CI 以 PR 最新检查为准，内网性能复测未运行。
+- 未完成 / 下一步：核对最终分支 SHA 与 PR CI，本机在原 Linux 容器执行 `bash benchmark/native-linux/pool-budget-suite.sh start`，跑完一次性汇总全部样本并脱敏证据，再决定合并、更新面试稿 Q54/Q55。12/28、20/20 仅估算实验参数，不承诺吞吐提升；新排空尾部包含 5 秒安静保护，不可直接与旧尾部秒数比较。业务 10 分钟超时、长期故障、Redis 预扣窗口及多实例 fencing 仍不在无条件保证范围内。

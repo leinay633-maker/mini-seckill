@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 # Mac/Linux 版环境重置:清库表、清 Redis seckill key、purge MQ 队列、init+warmup 库存。
 # 与 reset-env.ps1 等价。用法:./benchmark/reset-env.sh [stock] [activityId] [skuId] [baseUrl]
+# --cold-only: native suite stopped-JVM cleanup; skip HTTP initialization until restart.
 set -euo pipefail
+
+COLD_ONLY=false
+if [[ ${1:-} == --cold-only ]]; then
+  shift
+  [[ ! -e ${MS_ROOT:-/data/ms}/run/app.pid ]] || { echo "app PID file exists; refusing cold reset" >&2; exit 2; }
+  if curl -fs --max-time 2 http://localhost:18080/actuator/health >/dev/null 2>&1; then
+    echo "app still serves health; refusing cold reset" >&2; exit 2
+  fi
+  COLD_ONLY=true
+fi
 
 STOCK="${1:-1000}"
 ACTIVITY_ID="${2:-1}"
@@ -19,6 +30,8 @@ docker exec mini-seckill-redis sh -c "redis-cli --scan --pattern 'seckill:*' | x
 echo "== purge rabbitmq queues =="
 docker exec mini-seckill-rabbitmq rabbitmqctl purge_queue mini.seckill.order.queue 2>/dev/null
 docker exec mini-seckill-rabbitmq rabbitmqctl purge_queue mini.seckill.dead.queue 2>/dev/null
+
+if [[ $COLD_ONLY == true ]]; then echo "cold fixture cleared; initialize only after app restart"; exit 0; fi
 
 echo "== initialize stock through application =="
 curl -fsS -X POST "$BASE_URL/api/seckill/init?activityId=$ACTIVITY_ID&skuId=$SKU_ID&stock=$STOCK" && echo
