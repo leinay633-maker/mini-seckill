@@ -51,3 +51,8 @@
 - 改动：核对 PR #3（33b17be）代码 diff、docs/CONSUMER-POOL-BUDGET.md 与 PR 描述，全部采纳；在云研发容器（/data 仍挂 vdc，未覆盖 DISK_DEVICE）用 `bash benchmark/native-linux/pool-budget-suite.sh start` 一次后台跑完 23 组（12:58–16:04，中途未干预）。证据脱敏（容器主机名替换）、去掉 jars/sources、日志 gzip 后放入 benchmark/evidence/devcloud-linux-x64/pool-budget-33b17bed/（1935 个文件，16 MB）；evidence README 追加本轮章节，CONSUMER-POOL-BUDGET.md 填第 6 节待复测两行并加第 8 节。历史表、REPORT 未改。
 - 验证：CI run 38024987654（headSha 33b17be）两个 job 成功。原始包 SHA-256 74b66c49…ace3a 本机校验与 sidecar 一致。计划 143 档：执行 124、未执行 19；执行档对账全部通过（TIMEOUT 0、DEAD 0、重复 0、40 预算校验通过），2 档磁盘 noisy 保留。入口稳定档 baseline 与 shared 均 4000 过 / 5000 挂；split28 4000/s 0/4（系统错误 11.8%–22.5%）；split20 3 轮中 2 轮在 2600 或 4000/s 超 1% 丢弃。负载期 SUCCESS/s：3000/s shared 2959–2974 对 baseline 2559–2629（跨阶段比较），4000/s 2222–2514 对 1640–1892；split20 4000/s 3817–3882、零积压。consume deferred 0 次，消费者连接饥饿本轮未触发。本机 Windows `PYTHONUTF8=1 python -m unittest`：test_pool_budget_benchmark 23 通过 / 7 跳过（shell 用例 Windows 跳过；不设 UTF-8 时有 1 个 GBK 读文件 error，与改动无关），test_consistency_evidence 8 通过；`scripts/check-evidence.sh`（python3 转发到 python）通过。Maven 本机未重跑，以 CI 为准。
 - 未完成 / 下一步：split20 入口稳定性需更多轮次及 16/24、24/16 细分；消费者连接饥饿的现场故障注入未做；发送侧 SeckillMessageRetryJob 每 15 秒 50 条的补发速度在 baseline 3000/s 一档主导了 180 秒尾部，各组都有 49–1361 次重试重发，消息停在哪个发送状态未分状态采样；多实例、soak、ACK 丢失与 Redis 投影切点演练未做。
+
+### 2026-10-10 16:22 · 本地 Claude Code · main
+- 改动：PR #3（pro/consumer-pool-budget）核对与同机复测后全部采纳，fast-forward 合并到 main（含复测证据提交 bf4f2d8），PR 已评论复测摘要。obsidian-vault 面试案例稿第十二节 Q54、Q55 按复测结果改写（单事务化与拆池结果、修复的证据层级与边界、发送侧重试补发现象），代码定位补两条；该稿未提交。
+- 验证：bf4f2d8 的 GitHub Actions run 38037448811 两个 job（test、integration-test）均成功；GitHub 显示 PR #3 已合并。
+- 未完成 / 下一步：同上一条；另外容器 /data/ms/mini-seckill 当前停在 pro/consumer-pool-budget 分支（33b17be），下次复测前切回 main 并拉取。
