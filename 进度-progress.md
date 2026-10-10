@@ -96,3 +96,8 @@
 - 改动：PR #5（pro/multi-instance-coordination）核对 diff、CI 与云容器三 JVM 复测后采纳：标为 ready 后 fast-forward 合并到 main（bbb167e，含本机的 IT 断言修正 f86c1d5、编排修正 1fc9e77 与两轮证据提交），GitHub 显示 PR #5 已合并，PR 已评论核对与复测摘要。云容器 /data/ms/mini-seckill 停在 pro/multi-instance-coordination（1fc9e77），两轮原始包留在 /data/ms/results/。
 - 验证：bbb167e 的 PR 触发 run 38054864332 与 main 推送触发 run 38055048618 两个 job（test、integration-test）均成功。
 - 未完成 / 下一步：更新 obsidian-vault 面试案例稿的相关卡片；多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑和性能影响均未测；协调墓碑没有自动清理；OrderCommitBoundaryIT 里只剩测试在用的旧发送侧写法可另行清理。
+
+### 2026-10-10 23:59 · 本地 Claude Code · main
+- 改动：docs/MULTI-INSTANCE-VALIDATION.md 把交付记录里的“45% 指令门禁”更正为行覆盖门禁（pom 规则 LINE COVEREDRATIO ≥ 0.45，行 1800/1076 约 62.6%）。obsidian-vault 面试案例稿按 PR #5 改写：Q2/Q5/Q12/Q14/Q16/Q18/Q22/Q24/Q31/Q34/Q35/Q36/Q39/Q43/Q44/Q48/Q49 的旧口径（逐桶 Cluster 回退、INSERT 失败直接加回库存、死信原地回放、指数退避、超时无条件删幂等 key、Redis 丢失后在线重建、“没有请求级账本/代际令牌”等）改为现行协议与复测事实，新增第十三节 Q56–Q59（预扣在途与墓碑、发送代际、验证方法与首轮失败、协议代价），代码定位补协调相关文件，共 59 卡 13 节；该稿未提交。
+- 验证：面试稿卡号 1–59 连续无重复、13 节，旧口径关键词复查只剩有意保留的历史表述；仓库本条只改文档，未跑测试。
+- 未完成 / 下一步：面试稿定稿要按 Agent后端面试笔记蒸馏 的规则写进上传正文；容器 /data/ms/mini-seckill 停在 pro/multi-instance-coordination（1fc9e77），下次复测前切回 main 并拉取。
