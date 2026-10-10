@@ -101,3 +101,8 @@
 - 改动：docs/MULTI-INSTANCE-VALIDATION.md 把交付记录里的“45% 指令门禁”更正为行覆盖门禁（pom 规则 LINE COVEREDRATIO ≥ 0.45，行 1800/1076 约 62.6%）。obsidian-vault 面试案例稿按 PR #5 改写：Q2/Q5/Q12/Q14/Q16/Q18/Q22/Q24/Q31/Q34/Q35/Q36/Q39/Q43/Q44/Q48/Q49 的旧口径（逐桶 Cluster 回退、INSERT 失败直接加回库存、死信原地回放、指数退避、超时无条件删幂等 key、Redis 丢失后在线重建、“没有请求级账本/代际令牌”等）改为现行协议与复测事实，新增第十三节 Q56–Q59（预扣在途与墓碑、发送代际、验证方法与首轮失败、协议代价），代码定位补协调相关文件，共 59 卡 13 节；该稿未提交。
 - 验证：面试稿卡号 1–59 连续无重复、13 节，旧口径关键词复查只剩有意保留的历史表述；仓库本条只改文档，未跑测试。
 - 未完成 / 下一步：面试稿定稿要按 Agent后端面试笔记蒸馏 的规则写进上传正文；容器 /data/ms/mini-seckill 停在 pro/multi-instance-coordination（1fc9e77），下次复测前切回 main 并拉取。
+
+### 2026-10-11 00:07 · 本地 Claude Code · main
+- 改动：无代码改动，记录一次偶发 CI 失败。e75ff02（只改文档）的 run 38065842025 第 1 次 integration-test 失败：OrderCommitBoundaryIT.concurrentDuplicateDeliveriesCreateOnlyOneBusinessOrder 中 12 条同用户、不同请求号的消息并发 INSERT seckill_order，一个事务被 InnoDB 判为死锁牺牲者（1213，DeadlockLoserDataAccessException），从测试的 race 辅助方法直接抛出。该测试、OrderServiceImpl 与 SeckillOrderMapper 均不在 PR #5 改动内，同一代码在 bbb167e 上两次 CI 通过；牺牲者事务整体回滚，不产生多余订单；生产消费者的 ConsumerFailureClassifier 把 TransientDataAccessException（含死锁）归为可重试，测试直接调服务方法没有这层重试。
+- 验证：`gh run rerun 38065842025 --failed` 后第 2 次两个 job 均成功。
+- 未完成 / 下一步：这条并发测试会偶发死锁失败；可让 race 对死锁牺牲者按消费者语义有限重试，或改走真实消费者入口，未改。
