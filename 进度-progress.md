@@ -61,3 +61,8 @@
 - 改动：PR #4，只加测试和文档、不改业务代码。ConsumerPoolBudgetIT 新增 inFlightClaimIsInvisibleToRecoveryAndTimeoutCasWaitsThenChangesNothing：消费者抢占后暂停在事务中，验证外部读到 SENT、stale CONSUMING 恢复查询为空、重复投递行锁超时后 NACK 重投、超时任务按 SENT 快照发起的 CAS 等到提交后改动 0 行且不删 Redis 幂等键；setUp 抽出 session()，pool() 支持指定锁等待秒数。CONSISTENCY-REVIEW 3.3 追加消费侧 ABA 已由单事务抢占消除的更新、P1 行改为只剩发送侧迟到 confirm 回调；README 两处同步。第一次提交用 information_schema.innodb_trx 判断 LOCK WAIT，CI 上一直读到 0（超时任务连接确实卡了 8 秒，原因未查清），改为记录 CAS 开始与返回时刻判断。
 - 验证：本机 Windows/JDK 17 `mvn -B clean verify`：185 单元通过 / 0 失败 / 0 错误 / 0 跳过；`scripts/check-evidence.sh` 通过。CI run 38038330758（b8642c1）integration-test 失败 1 项（上述检测方法）；修正后 run 38038615216（72e75ab）两个 job 成功，Failsafe XML：ConsumerPoolBudgetIT 11 项全过，集成合计 43、单元 185，0 失败 / 0 错误 / 0 跳过。
 - 未完成 / 下一步：多实例定时任务安全（StockReconcileJob 用租约 + fencing 令牌写 Redis，重试/超时任务按行认领），随后容器上 2–3 实例复测；发送侧迟到 confirm 回调代际；Redis 预扣到消息落库窗口。滚动升级期间旧版本实例仍会单独提交 CONSUMING。
+
+### 2026-10-10 16:50 · 本地 Claude Code · main
+- 改动：PR #4（consumer-claim-interleaving）fast-forward 合并到 main（2347c01），GitHub 显示已合并。obsidian-vault 面试案例稿 Q48 结尾改为“取消已提交的消费中状态而非加代际号”、交错测试内容与两个边界（滚动升级旧实例、发送侧迟到回调）；该稿未提交。上一条 16:41 写于最后一次文档提交之前，本条补记其后的验证与合并。
+- 验证：最终提交 2347c01 的 GitHub Actions run 38038789658 两个 job（test、integration-test）均成功。
+- 未完成 / 下一步：同 16:41 条目。
