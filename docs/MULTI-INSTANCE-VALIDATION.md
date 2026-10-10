@@ -20,7 +20,7 @@ git diff --check
 | 验证 | 实际结果 | 不能替代什么 |
 |---|---|---|
 | 最终 clean verify，结束 2026-10-10T11:57:56Z | 35 份 Surefire XML，242 单元，0失败/0错误/0跳过，BUILD SUCCESS | 不等于 JDK 17 CI 或 Testcontainers IT |
-| JaCoCo | 原有45%指令门禁通过；指令7631 covered /4141 missed，行1800/1076，分支466/282 | 覆盖率不证明并发协议正确 |
+| JaCoCo | 原有45%行覆盖门禁通过（pom 规则为 LINE COVEREDRATIO ≥ 0.45，行 1800/1076 约 62.6%）；指令7631 covered /4141 missed，分支466/282 | 覆盖率不证明并发协议正确 |
 | 新协调编排 unittest | 34项，0失败/0错误/0跳过 | 信号用例作用于短命Python子进程，不是三JVM订单实验 |
 | 原 consistency evidence checker | 8项，0失败/0错误/0跳过 | 合成XML负例不是业务故障实测 |
 | Python语法、Python3.6语法门禁、bash -n | 通过；Python3.6语法检查包含在新34项中 | 不是在Python3.6解释器运行完整native矩阵 |
