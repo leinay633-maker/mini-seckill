@@ -18,14 +18,26 @@ import org.apache.ibatis.annotations.Update;
 public interface SeckillMessageMapper {
 
     @Insert("""
-            INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
-            VALUES (#{requestId}, #{activityId}, #{userId}, #{skuId}, #{status}, 0, NOW(), NOW())
+            INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, send_token, send_lease_until, created_at, updated_at)
+            VALUES (#{requestId}, #{activityId}, #{userId}, #{skuId}, #{status}, 0,
+                    CASE WHEN #{status} = 9 THEN #{requestId} ELSE NULL END,
+                    CASE WHEN #{status} = 9 THEN DATE_ADD(NOW(6), INTERVAL 20 SECOND) ELSE NULL END, NOW(), NOW())
             """)
     int insertPending(@Param("requestId") String requestId,
                       @Param("activityId") Long activityId,
                       @Param("userId") Long userId,
                       @Param("skuId") Long skuId,
                       @Param("status") int status);
+
+    // A cancellation tombstone is inserted only by the uncertain-admission resolver. The
+    // unique request_id race serializes with a delayed/ambiguous real INSERT; never delete it online.
+    @Insert("""
+            INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, last_error, created_at, updated_at)
+            VALUES (#{requestId}, #{activityId}, #{userId}, #{skuId}, 11, 0, 'admission cancelled before durable acceptance', NOW(), NOW())
+            ON DUPLICATE KEY UPDATE request_id = VALUES(request_id)
+            """)
+    int insertAdmissionCancellation(@Param("requestId") String requestId, @Param("activityId") Long activityId,
+            @Param("userId") Long userId, @Param("skuId") Long skuId);
 
     // Legacy synchronous completion: never take over an active consumer or a terminal row.
     @Update("""
@@ -53,19 +65,6 @@ public interface SeckillMessageMapper {
                     @Param("timeoutStatus") int timeoutStatus,
                     @Param("deadStatus") int deadStatus,
                     @Param("consumingStatus") int consumingStatus);
-
-    @Update("""
-            UPDATE seckill_message
-            SET status = #{sentStatus},
-                last_error = NULL,
-                next_retry_at = NULL,
-                updated_at = NOW()
-            WHERE request_id = #{requestId}
-              AND status = #{sendingStatus}
-            """)
-    int markSentFromSending(@Param("requestId") String requestId,
-                            @Param("sentStatus") int sentStatus,
-                            @Param("sendingStatus") int sendingStatus);
 
     @Update("""
             UPDATE seckill_message
@@ -127,21 +126,6 @@ public interface SeckillMessageMapper {
 
     @Update("""
             UPDATE seckill_message
-            SET status = #{failedStatus},
-                retry_count = retry_count + 1,
-                last_error = #{lastError},
-                next_retry_at = NOW(),
-                updated_at = NOW()
-            WHERE request_id = #{requestId}
-              AND status = #{sendingStatus}
-            """)
-    int markPublishFailedFromSending(@Param("requestId") String requestId,
-                                     @Param("failedStatus") int failedStatus,
-                                     @Param("sendingStatus") int sendingStatus,
-                                     @Param("lastError") String lastError);
-
-    @Update("""
-            UPDATE seckill_message
             SET status = #{status},
                 retry_count = retry_count + 1,
                 last_error = #{lastError},
@@ -191,6 +175,7 @@ public interface SeckillMessageMapper {
             FROM seckill_message
             WHERE status IN (#{pendingStatus}, #{sendingStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
               AND retry_count < #{maxRetry}
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
               AND (next_retry_at IS NULL OR next_retry_at <= NOW())
             ORDER BY updated_at ASC
             LIMIT #{limit}
@@ -208,6 +193,8 @@ public interface SeckillMessageMapper {
             FROM seckill_message
             WHERE status IN (#{pendingStatus}, #{sendingStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
               AND retry_count >= #{maxRetry}
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
+              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
             ORDER BY updated_at ASC
             LIMIT #{limit}
             """)
@@ -267,40 +254,20 @@ public interface SeckillMessageMapper {
                                                     @Param("cutoff") LocalDateTime cutoff,
                                                     @Param("limit") int limit);
 
+    // Candidate timing and mutation use the same database clock. A scan is
+    // still only a hint; timeoutIfStale rechecks after acquiring the row lock.
     @Select("""
-            SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count, last_error, next_retry_at, dead_at, created_at, updated_at
+            SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count,
+                   last_error, next_retry_at, dead_at, created_at, updated_at
             FROM seckill_message
-            WHERE status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
-              AND updated_at < #{cutoff}
-            ORDER BY updated_at ASC
-            LIMIT #{limit}
+            WHERE status IN (0,1,3,4,5,8,9)
+              AND updated_at < DATE_SUB(NOW(6), INTERVAL #{timeoutMicros} MICROSECOND)
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
+            ORDER BY updated_at ASC, id ASC LIMIT #{limit}
             """)
-    List<SeckillMessageRecord> selectTimeoutCandidates(@Param("pendingStatus") int pendingStatus,
-                                                       @Param("sendingStatus") int sendingStatus,
-                                                       @Param("sentStatus") int sentStatus,
-                                                       @Param("failedStatus") int failedStatus,
-                                                       @Param("confirmFailedStatus") int confirmFailedStatus,
-                                                       @Param("returnedStatus") int returnedStatus,
-                                                       @Param("cutoff") LocalDateTime cutoff,
-                                                       @Param("limit") int limit);
+    List<SeckillMessageRecord> selectTimeoutDue(@Param("timeoutMicros") long timeoutMicros,
+                                               @Param("limit") int limit);
 
-    @Update("""
-            UPDATE seckill_message
-            SET status = #{timeoutStatus},
-                last_error = #{lastError},
-                updated_at = NOW()
-            WHERE request_id = #{requestId}
-              AND status IN (#{pendingStatus}, #{sendingStatus}, #{sentStatus}, #{failedStatus}, #{confirmFailedStatus}, #{returnedStatus})
-            """)
-    int markTimeout(@Param("requestId") String requestId,
-                    @Param("timeoutStatus") int timeoutStatus,
-                    @Param("pendingStatus") int pendingStatus,
-                    @Param("sendingStatus") int sendingStatus,
-                    @Param("sentStatus") int sentStatus,
-                    @Param("failedStatus") int failedStatus,
-                    @Param("confirmFailedStatus") int confirmFailedStatus,
-                    @Param("returnedStatus") int returnedStatus,
-                    @Param("lastError") String lastError);
 
     @Select("""
             SELECT id, request_id, activity_id, user_id, sku_id, status, retry_count, last_error, next_retry_at, dead_at, created_at, updated_at
@@ -320,18 +287,41 @@ public interface SeckillMessageMapper {
     List<SeckillMessageRecord> selectDead(@Param("deadStatus") int deadStatus, @Param("limit") int limit);
 
     @Update("""
-            UPDATE seckill_message
-            SET status = #{replayedStatus},
-                next_retry_at = NULL,
-                updated_at = NOW()
-            WHERE request_id = #{requestId}
-              AND status IN (#{deadStatus}, #{timeoutStatus}, #{failedStatus}, #{returnedStatus}, #{confirmFailedStatus})
+            UPDATE seckill_message SET status=9, send_token=#{token},
+              send_lease_until=DATE_ADD(NOW(6), INTERVAL 20 SECOND),
+              retry_count=retry_count+1, next_retry_at=NULL, updated_at=NOW()
+            WHERE request_id=#{requestId} AND status IN (0,3,4,5,8,9)
+              AND retry_count < #{maxRetry}
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
+              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
             """)
-    int markReplayed(@Param("requestId") String requestId,
-                     @Param("replayedStatus") int replayedStatus,
-                     @Param("deadStatus") int deadStatus,
-                     @Param("timeoutStatus") int timeoutStatus,
-                     @Param("failedStatus") int failedStatus,
-                     @Param("returnedStatus") int returnedStatus,
-                     @Param("confirmFailedStatus") int confirmFailedStatus);
+    int claimSend(@Param("requestId") String requestId, @Param("token") String token, @Param("maxRetry") int maxRetry);
+
+    @Update("""
+            UPDATE seckill_message SET status=#{status}, last_error=#{error}, updated_at=NOW(),
+              next_retry_at=CASE WHEN #{status}=1 THEN NULL ELSE DATE_ADD(NOW(), INTERVAL 5 SECOND) END,
+              send_lease_until=NULL
+            WHERE request_id=#{requestId} AND status=9 AND send_token=#{token} AND send_lease_until > NOW(6)
+            """)
+    int finishSend(@Param("requestId") String requestId, @Param("token") String token,
+                   @Param("status") int status, @Param("error") String error);
+
+    @Update("""
+            UPDATE seckill_message SET status=7, last_error='message retry exhausted',
+              dead_at=NOW(), updated_at=NOW(), send_token=NULL, send_lease_until=NULL
+            WHERE request_id=#{requestId} AND status IN (0,3,4,5,8,9)
+              AND retry_count >= #{maxRetry}
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
+              AND (next_retry_at IS NULL OR next_retry_at <= NOW())
+            """)
+    int exhaustSend(@Param("requestId") String requestId, @Param("maxRetry") int maxRetry);
+
+    @Update("""
+            UPDATE seckill_message SET status=6, last_error='queued order timeout', updated_at=NOW(),
+              send_token=NULL, send_lease_until=NULL
+            WHERE request_id=#{requestId} AND status IN (0,1,3,4,5,8,9)
+              AND updated_at < DATE_SUB(NOW(6), INTERVAL #{timeoutMicros} MICROSECOND)
+              AND (send_lease_until IS NULL OR send_lease_until <= NOW(6))
+            """)
+    int timeoutIfStale(@Param("requestId") String requestId, @Param("timeoutMicros") long timeoutMicros);
 }

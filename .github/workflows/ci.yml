@@ -43,28 +43,13 @@ jobs:
       - name: Test native pool-budget benchmark orchestration and evidence
         run: python3 -m unittest discover -s scripts -p 'test_pool_budget_benchmark.py' -v
 
+      - name: Test native multi-instance suite and strict evidence validation
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_coordination_suite.py' -v
+          bash -n benchmark/native-linux/coordination-suite.sh
+
       - name: Run Maven verification
         run: mvn -B clean verify
-
-      - name: Prepare offline build inputs for this coordination review
-        if: github.head_ref == 'pro/multi-instance-coordination'
-        run: |
-          mkdir -p "$RUNNER_TEMP/offline-build"
-          MAVEN_HOME_ACTUAL=$(dirname "$(dirname "$(readlink -f "$(command -v mvn)")")")
-          cp -a "$MAVEN_HOME_ACTUAL" "$RUNNER_TEMP/offline-build/maven"
-          cp -a "$HOME/.m2/repository" "$RUNNER_TEMP/offline-build/repository"
-          tar -C "$RUNNER_TEMP/offline-build" -czf offline-build-inputs.tar.gz maven repository
-          sha256sum offline-build-inputs.tar.gz > offline-build-inputs.tar.gz.sha256
-      - name: Upload offline build inputs
-        if: github.head_ref == 'pro/multi-instance-coordination'
-        uses: actions/upload-artifact@v4
-        with:
-          name: offline-build-inputs
-          path: |
-            offline-build-inputs.tar.gz
-            offline-build-inputs.tar.gz.sha256
-          retention-days: 1
-          if-no-files-found: error
 
       - name: Validate Docker Compose files
         run: |

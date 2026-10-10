@@ -34,6 +34,12 @@ mybatis:
     map-underscore-to-camel-case: true
 
 seckill:
+  coordination:
+    repair-lease: 20s
+    reservation-timeout: 60s
+    recovery-delay: 1000
+    recovery-batch-size: 100
+    faults-enabled: false
   idempotent-ttl: 30m
   order-status-ttl: 2h
   default-activity-id: 1

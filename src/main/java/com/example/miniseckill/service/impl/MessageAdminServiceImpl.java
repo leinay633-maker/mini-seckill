@@ -15,7 +15,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
- * Replays dead or failed local messages back to RabbitMQ.
+ * Retries still-budgeted send states through the normal attempt claim. Terminal reopening is forbidden.
  */
 @Service
 public class MessageAdminServiceImpl implements MessageAdminService {
@@ -48,39 +48,16 @@ public class MessageAdminServiceImpl implements MessageAdminService {
 
     @Override
     public MessageReplayResponse replayDead(int limit) {
-        int safeLimit = Math.max(1, Math.min(limit, 200));
-        List<SeckillMessageRecord> records = seckillMessageMapper.selectDead(MessageStatus.DEAD.getCode(), safeLimit);
-        MessageReplayResponse response = new MessageReplayResponse();
-        for (SeckillMessageRecord record : records) {
-            replayRecord(record, response);
-        }
-        return response;
+        throw new BusinessException(409,"终态消息禁止原地重放；请核对事实后以新请求重新准入");
     }
 
     private void replayRecord(SeckillMessageRecord record, MessageReplayResponse response) {
-        int updated = seckillMessageMapper.markReplayed(
-                record.getRequestId(),
-                MessageStatus.REPLAYED.getCode(),
-                MessageStatus.DEAD.getCode(),
-                MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.FAILED.getCode(),
-                MessageStatus.RETURNED.getCode(),
-                MessageStatus.CONFIRM_FAILED.getCode()
-        );
-        if (updated != 1) {
-            response.addSkipped(record.getRequestId());
-            seckillMetrics.replay("skipped");
-            return;
-        }
-        SeckillMessage message = new SeckillMessage(
-                record.getRequestId(),
-                record.getActivityId(),
-                record.getUserId(),
-                record.getSkuId(),
-                System.currentTimeMillis()
-        );
-        seckillProducer.send(message);
-        insertCompensation(record, "MESSAGE_REPLAY", "PUBLISHED", "manual replay to RabbitMQ");
+        if (!List.of(0,3,4,5,8,9).contains(record.getStatus()))
+            throw new BusinessException(409,"只允许重试仍占用库存预算的发送态；不能重开终态消息");
+        SeckillMessage message = new SeckillMessage(record.getRequestId(),record.getActivityId(),record.getUserId(),
+                record.getSkuId(),System.currentTimeMillis());
+        if (!seckillProducer.send(message)) { response.addSkipped(record.getRequestId()); return; }
+        insertCompensation(record,"MESSAGE_RETRY","PUBLISHED","manual send-side retry with attempt token");
         response.addReplayed(record.getRequestId());
         seckillMetrics.replay("published");
     }

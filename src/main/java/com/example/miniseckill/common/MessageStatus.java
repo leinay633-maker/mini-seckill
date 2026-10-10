@@ -14,7 +14,8 @@ public enum MessageStatus {
     DEAD(7),
     REPLAYED(8),
     SENDING(9),
-    CONSUMING(10);
+    CONSUMING(10),
+    CANCELLED(11);
 
     private final int code;
 
@@ -27,6 +28,6 @@ public enum MessageStatus {
     }
 
     public boolean isFinalStatus() {
-        return this == CONSUMED || this == TIMEOUT || this == DEAD;
+        return this == CONSUMED || this == TIMEOUT || this == DEAD || this == CANCELLED;
     }
 }

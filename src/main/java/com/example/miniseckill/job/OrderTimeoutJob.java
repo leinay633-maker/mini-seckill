@@ -1,6 +1,5 @@
 package com.example.miniseckill.job;
 
-import com.example.miniseckill.common.MessageStatus;
 import com.example.miniseckill.common.OrderStatus;
 import com.example.miniseckill.config.SeckillProperties;
 import com.example.miniseckill.entity.CompensationRecord;
@@ -8,8 +7,7 @@ import com.example.miniseckill.entity.SeckillMessageRecord;
 import com.example.miniseckill.mapper.CompensationRecordMapper;
 import com.example.miniseckill.mapper.SeckillLogMapper;
 import com.example.miniseckill.mapper.SeckillMessageMapper;
-import com.example.miniseckill.util.RedisKeyUtil;
-import java.time.LocalDateTime;
+import com.example.miniseckill.service.InventoryCoordinator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +28,14 @@ public class OrderTimeoutJob {
     private final CompensationRecordMapper compensationRecordMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final SeckillProperties seckillProperties;
+    private final InventoryCoordinator inventory;
 
     public OrderTimeoutJob(SeckillMessageMapper seckillMessageMapper,
                            SeckillLogMapper seckillLogMapper,
                            CompensationRecordMapper compensationRecordMapper,
                            StringRedisTemplate stringRedisTemplate,
-                           SeckillProperties seckillProperties) {
+                           SeckillProperties seckillProperties, InventoryCoordinator inventory) {
+        this.inventory=inventory;
         this.seckillMessageMapper = seckillMessageMapper;
         this.seckillLogMapper = seckillLogMapper;
         this.compensationRecordMapper = compensationRecordMapper;
@@ -49,47 +49,23 @@ public class OrderTimeoutJob {
         if (!timeout.isEnabled()) {
             return;
         }
-        LocalDateTime cutoff = LocalDateTime.now().minus(timeout.getQueuedTimeout());
-        List<SeckillMessageRecord> records = seckillMessageMapper.selectTimeoutCandidates(
-                MessageStatus.PENDING.getCode(),
-                MessageStatus.SENDING.getCode(),
-                MessageStatus.SENT.getCode(),
-                MessageStatus.FAILED.getCode(),
-                MessageStatus.CONFIRM_FAILED.getCode(),
-                MessageStatus.RETURNED.getCode(),
-                cutoff,
-                timeout.getBatchSize()
-        );
+        List<SeckillMessageRecord> records = seckillMessageMapper.selectTimeoutDue(
+                timeout.getQueuedTimeout().toNanos() / 1000L, timeout.getBatchSize());
         for (SeckillMessageRecord record : records) {
-            markTimeout(record);
+            try { markTimeout(record); }
+            catch (RuntimeException ex) { log.warn("COORD_TIMEOUT_DEFERRED requestId={}", record.getRequestId(), ex); }
         }
     }
 
     private void markTimeout(SeckillMessageRecord record) {
-        int updated = seckillMessageMapper.markTimeout(
-                record.getRequestId(),
-                MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.PENDING.getCode(),
-                MessageStatus.SENDING.getCode(),
-                MessageStatus.SENT.getCode(),
-                MessageStatus.FAILED.getCode(),
-                MessageStatus.CONFIRM_FAILED.getCode(),
-                MessageStatus.RETURNED.getCode(),
-                "queued order timeout"
-        );
+        int updated = seckillMessageMapper.timeoutIfStale(record.getRequestId(),
+                seckillProperties.getOrderTimeout().getQueuedTimeout().toNanos()/1000L);
         if (updated != 1) {
             log.info("skip timeout side effects because message status changed, requestId={}", record.getRequestId());
             return;
         }
-        stringRedisTemplate.opsForValue().set(
-                RedisKeyUtil.orderStatusKey(record.getActivityId(), record.getUserId(), record.getSkuId()),
-                String.valueOf(OrderStatus.TIMEOUT.getCode()),
-                seckillProperties.getOrderStatusTtl()
-        );
-        // Release the idempotency key so a timed-out user isn't blocked as a "duplicate" for the
-        // remaining idempotent-ttl (30m) while the order was already closed after queued-timeout (10m).
-        // This closes the gap between the two TTLs.
-        stringRedisTemplate.delete(RedisKeyUtil.userSkuKey(record.getActivityId(), record.getUserId(), record.getSkuId()));
+        inventory.projectOwned(record.getActivityId(),record.getSkuId(),record.getUserId(),record.getRequestId(),
+                OrderStatus.TIMEOUT,true);
         try {
             seckillLogMapper.insertLog(
                     record.getRequestId(),

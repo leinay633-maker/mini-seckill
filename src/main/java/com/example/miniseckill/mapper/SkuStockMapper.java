@@ -17,6 +17,12 @@ public interface SkuStockMapper {
     @Insert("""
             INSERT INTO sku_stock (activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at)
             VALUES (#{activityId}, #{skuId}, #{stock}, #{stock}, 0, NOW(), NOW())
+            """)
+    int insertStock(@Param("activityId") Long activityId, @Param("skuId") Long skuId, @Param("stock") Integer stock);
+
+    @Insert("""
+            INSERT INTO sku_stock (activity_id, sku_id, total_stock, available_stock, sold_count, created_at, updated_at)
+            VALUES (#{activityId}, #{skuId}, #{stock}, #{stock}, 0, NOW(), NOW())
             ON DUPLICATE KEY UPDATE
                 total_stock = VALUES(total_stock),
                 available_stock = VALUES(available_stock),

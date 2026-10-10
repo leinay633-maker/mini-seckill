@@ -74,23 +74,14 @@ public class SeckillMessageRetryJob {
                 System.currentTimeMillis()
         );
         try {
-            seckillProducer.send(message);
-            seckillMetrics.mq("retry_published");
-            log.info("retry seckill message published, waiting confirm, requestId={}, activityId={}, userId={}, skuId={}",
-                    record.getRequestId(), record.getActivityId(), record.getUserId(), record.getSkuId());
-        } catch (Exception ex) {
-            int updated = seckillMessageMapper.markFailedForRetry(
-                    record.getRequestId(),
-                    MessageStatus.FAILED.getCode(),
-                    shortError(ex),
-                    nextRetryAt(record)
-            );
-            if (updated != 1) {
-                log.info("skip stale retry failure because message state changed, requestId={}", record.getRequestId());
-                return;
+            if (seckillProducer.send(message)) {
+                seckillMetrics.mq("retry_published");
+                log.info("COORD_RETRY_PUBLISHED requestId={}", record.getRequestId());
             }
-            seckillMetrics.mq("retry_failed");
-            log.warn("retry seckill message failed, requestId={}, error={}", record.getRequestId(), ex.getMessage());
+        } catch (RuntimeException ex) {
+            // The token-qualified producer path either persisted failure or left a leased attempt.
+            // A second status-only update here would let an old worker corrupt a new attempt.
+            log.warn("COORD_RETRY_DEFERRED requestId={}", record.getRequestId(), ex);
         }
     }
 
@@ -105,30 +96,16 @@ public class SeckillMessageRetryJob {
                 retry.getBatchSize()
         );
         for (SeckillMessageRecord record : exhausted) {
-            int updated = seckillMessageMapper.markDead(
-                    record.getRequestId(),
-                    MessageStatus.DEAD.getCode(),
-                    MessageStatus.CONSUMED.getCode(),
-                    "message retry exhausted"
-            );
+            int updated;
+            try { updated=seckillMessageMapper.exhaustSend(record.getRequestId(), retry.getMaxRetry()); }
+            catch (RuntimeException ex) { log.warn("COORD_EXHAUST_DEFERRED requestId={}",record.getRequestId(),ex); continue; }
             if (updated != 1) {
                 // The scan is a snapshot, not authority to close a now-consuming or terminal row.
                 continue;
             }
-            insertCompensation(record, "MQ_RETRY_EXHAUSTED", "WAIT_REPLAY", "retryCount=" + record.getRetryCount());
+            insertCompensation(record, "MQ_RETRY_EXHAUSTED", "WAIT_REVIEW", "retryCount=" + record.getRetryCount());
             seckillMetrics.mq("retry_exhausted_dead");
         }
-    }
-
-    private LocalDateTime nextRetryAt(SeckillMessageRecord record) {
-        SeckillProperties.MessageRetry retry = seckillProperties.getMessageRetry();
-        Duration initial = retry.getInitialBackoff() == null ? Duration.ofSeconds(5) : retry.getInitialBackoff();
-        Duration max = retry.getMaxBackoff() == null ? Duration.ofMinutes(2) : retry.getMaxBackoff();
-        int retryCount = record.getRetryCount() == null ? 0 : record.getRetryCount();
-        int nextRetryCount = retryCount + 1;
-        long multiplier = 1L << Math.min(10, Math.max(0, nextRetryCount - 1));
-        long delayMillis = Math.min(max.toMillis(), initial.toMillis() * multiplier);
-        return LocalDateTime.now().plus(Duration.ofMillis(Math.max(1000L, delayMillis)));
     }
 
     private void insertCompensation(SeckillMessageRecord record, String type, String status, String detail) {

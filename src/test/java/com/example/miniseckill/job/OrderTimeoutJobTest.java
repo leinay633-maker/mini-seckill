@@ -45,6 +45,7 @@ class OrderTimeoutJobTest {
     private ValueOperations<String, String> valueOperations;
 
     private SeckillProperties properties;
+    @Mock private com.example.miniseckill.service.InventoryCoordinator inventory;
     private OrderTimeoutJob job;
 
     @BeforeEach
@@ -55,44 +56,21 @@ class OrderTimeoutJobTest {
                 seckillLogMapper,
                 compensationRecordMapper,
                 stringRedisTemplate,
-                properties
+                properties, inventory
         );
     }
 
     @Test
     void closeTimeoutOrdersWritesSideEffectsOnlyWhenStatusUpdated() {
         SeckillMessageRecord record = record();
-        when(seckillMessageMapper.selectTimeoutCandidates(
-                eq(MessageStatus.PENDING.getCode()),
-                eq(MessageStatus.SENDING.getCode()),
-                eq(MessageStatus.SENT.getCode()),
-                eq(MessageStatus.FAILED.getCode()),
-                eq(MessageStatus.CONFIRM_FAILED.getCode()),
-                eq(MessageStatus.RETURNED.getCode()),
-                any(LocalDateTime.class),
-                eq(properties.getOrderTimeout().getBatchSize())
-        )).thenReturn(List.of(record));
-        when(seckillMessageMapper.markTimeout(
-                REQUEST_ID,
-                MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.PENDING.getCode(),
-                MessageStatus.SENDING.getCode(),
-                MessageStatus.SENT.getCode(),
-                MessageStatus.FAILED.getCode(),
-                MessageStatus.CONFIRM_FAILED.getCode(),
-                MessageStatus.RETURNED.getCode(),
-                "queued order timeout"
-        )).thenReturn(1);
-        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(seckillMessageMapper.selectTimeoutDue(
+                properties.getOrderTimeout().getQueuedTimeout().toNanos()/1000L,
+                properties.getOrderTimeout().getBatchSize())).thenReturn(List.of(record));
+        when(seckillMessageMapper.timeoutIfStale(REQUEST_ID, properties.getOrderTimeout().getQueuedTimeout().toNanos()/1000)).thenReturn(1);
 
         job.closeTimeoutOrders();
 
-        verify(valueOperations).set(
-                RedisKeyUtil.orderStatusKey(ACTIVITY_ID, USER_ID, SKU_ID),
-                String.valueOf(OrderStatus.TIMEOUT.getCode()),
-                properties.getOrderStatusTtl()
-        );
-        verify(stringRedisTemplate).delete(RedisKeyUtil.userSkuKey(ACTIVITY_ID, USER_ID, SKU_ID));
+        verify(inventory).projectOwned(ACTIVITY_ID, SKU_ID, USER_ID, REQUEST_ID, OrderStatus.TIMEOUT, true);
         verify(seckillLogMapper).insertLog(REQUEST_ID, ACTIVITY_ID, USER_ID, SKU_ID, "ORDER_TIMEOUT");
         verify(compensationRecordMapper).insert(any(CompensationRecord.class));
     }
@@ -100,27 +78,10 @@ class OrderTimeoutJobTest {
     @Test
     void closeTimeoutOrdersSkipsSideEffectsWhenStatusUpdateMisses() {
         SeckillMessageRecord record = record();
-        when(seckillMessageMapper.selectTimeoutCandidates(
-                eq(MessageStatus.PENDING.getCode()),
-                eq(MessageStatus.SENDING.getCode()),
-                eq(MessageStatus.SENT.getCode()),
-                eq(MessageStatus.FAILED.getCode()),
-                eq(MessageStatus.CONFIRM_FAILED.getCode()),
-                eq(MessageStatus.RETURNED.getCode()),
-                any(LocalDateTime.class),
-                eq(properties.getOrderTimeout().getBatchSize())
-        )).thenReturn(List.of(record));
-        when(seckillMessageMapper.markTimeout(
-                REQUEST_ID,
-                MessageStatus.TIMEOUT.getCode(),
-                MessageStatus.PENDING.getCode(),
-                MessageStatus.SENDING.getCode(),
-                MessageStatus.SENT.getCode(),
-                MessageStatus.FAILED.getCode(),
-                MessageStatus.CONFIRM_FAILED.getCode(),
-                MessageStatus.RETURNED.getCode(),
-                "queued order timeout"
-        )).thenReturn(0);
+        when(seckillMessageMapper.selectTimeoutDue(
+                properties.getOrderTimeout().getQueuedTimeout().toNanos()/1000L,
+                properties.getOrderTimeout().getBatchSize())).thenReturn(List.of(record));
+        when(seckillMessageMapper.timeoutIfStale(REQUEST_ID, properties.getOrderTimeout().getQueuedTimeout().toNanos()/1000)).thenReturn(0);
 
         job.closeTimeoutOrders();
 

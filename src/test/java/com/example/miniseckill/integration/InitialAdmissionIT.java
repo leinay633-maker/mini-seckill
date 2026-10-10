@@ -124,12 +124,14 @@ class InitialAdmissionIT {
     void persistedSendingWithoutInitialPublicationCanBeRecoveredByTheExistingRetryJob() {
         // Simulate the cut after durable INSERT by not calling sendInitial. No process was killed.
         assertEquals(1, messages.insertPending("cut-before-publish", 1L, 10L, 1001L, harness.producer.initialMessageStatus()));
+        assertTrue(retryable().isEmpty(), "a live initial send lease must not be stolen");
+        jdbc.update("UPDATE seckill_message SET send_lease_until=DATE_SUB(NOW(6), INTERVAL 1 SECOND) WHERE request_id='cut-before-publish'");
         assertEquals("cut-before-publish", retryable().get(0).getRequestId());
         harness.properties.getMessageRetry().setEnabled(true);
         new SeckillMessageRetryJob(messages, mock(CompensationRecordMapper.class), harness.producer,
                 harness.properties, metrics).retrySendMessage();
         verify(harness.rabbit).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class), any(CorrelationData.class));
-        harness.producer.confirm(new CorrelationData("cut-before-publish"), true, null);
+        harness.producer.confirm(new CorrelationData("cut-before-publish|" + jdbc.queryForObject("SELECT send_token FROM seckill_message WHERE request_id='cut-before-publish'", String.class)), true, null);
         assertEquals(MessageStatus.SENT.getCode(), status("cut-before-publish"));
         assertEquals(1, claim("cut-before-publish"));
     }
@@ -141,6 +143,8 @@ class InitialAdmissionIT {
         assertEquals(0, harness.service.placeOrder(harness.request(10L), "test").getCode());
         String id = onlyRequestId();
         assertEquals(MessageStatus.FAILED.getCode(), status(id));
+        assertTrue(retryable().isEmpty(), "failed attempt honors its backoff");
+        jdbc.update("UPDATE seckill_message SET next_retry_at=DATE_SUB(NOW(), INTERVAL 1 SECOND) WHERE request_id=?", id);
         assertEquals(id, retryable().get(0).getRequestId());
         verify(harness.values, never()).increment(anyString());
         verify(harness.redis, never()).delete(anyString());
@@ -158,7 +162,7 @@ class InitialAdmissionIT {
             if (lateSendFailure) {
                 throw new AmqpException("injected transport failure after consumer commit");
             }
-            harness.producer.confirm(new CorrelationData(message.getRequestId()), true, null);
+            harness.producer.confirm(invocation.getArgument(4, CorrelationData.class), true, null);
             return null;
         }).when(harness.rabbit).convertAndSend(anyString(), anyString(), any(), any(MessagePostProcessor.class), any(CorrelationData.class));
         assertEquals(0, harness.service.placeOrder(harness.request(10L), "test").getCode());

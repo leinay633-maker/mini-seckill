@@ -31,9 +31,9 @@ class SeckillInitialSendTest {
         verifyNoInteractions(messages);
         ArgumentCaptor<MessagePostProcessor> post = ArgumentCaptor.forClass(MessagePostProcessor.class);
         verify(rabbit).convertAndSend(eq(RabbitMQConfig.SECKILL_ORDER_EXCHANGE), eq(RabbitMQConfig.SECKILL_ORDER_ROUTING_KEY),
-                same(message), post.capture(), argThat((CorrelationData data) -> "initial".equals(data.getId())));
+                same(message), post.capture(), argThat((CorrelationData data) -> "initial|initial".equals(data.getId())));
         Message raw = post.getValue().postProcessMessage(new Message(new byte[0], new MessageProperties()));
-        assertEquals("initial", raw.getMessageProperties().getCorrelationId());
+        assertEquals("initial|initial", raw.getMessageProperties().getCorrelationId());
     }
 
     @Test
@@ -62,7 +62,6 @@ class SeckillInitialSendTest {
     }
 
     private void verifySendingUpdate() {
-        verify(messages).markSending("initial", MessageStatus.SENDING.getCode(), MessageStatus.CONSUMED.getCode(),
-                MessageStatus.TIMEOUT.getCode(), MessageStatus.DEAD.getCode(), MessageStatus.CONSUMING.getCode());
+        verify(messages).claimSend(eq("initial"), anyString(), eq(5));
     }
 }

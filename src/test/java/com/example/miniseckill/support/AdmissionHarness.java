@@ -26,6 +26,7 @@ public final class AdmissionHarness {
     public final RedisRecoveryStateService recovery = mock(RedisRecoveryStateService.class);
     public final SeckillProperties properties = new SeckillProperties();
     public final DefaultRedisScript<Long> stockScript = new DefaultRedisScript<>();
+    public final InventoryCoordinator inventory = mock(InventoryCoordinator.class);
     public final SeckillProducer producer;
     public final SeckillServiceImpl service;
 
@@ -36,7 +37,8 @@ public final class AdmissionHarness {
         properties.setMqFallbackSync(false);
         when(redis.opsForValue()).thenReturn(values);
         when(values.setIfAbsent(anyString(), anyString(), any(Duration.class))).thenReturn(true);
-        when(redis.execute(eq(stockScript), anyList())).thenReturn(1L);
+        lenient().when(redis.execute(eq(stockScript), anyList())).thenReturn(1L);
+        lenient().when(inventory.reserve(anyLong(),anyLong(),anyLong(),anyString())).thenReturn(1L);
         DynamicRateLimitService limits = mock(DynamicRateLimitService.class);
         when(limits.effectivePlan(anyLong(), anyLong()))
                 .thenReturn(new RateLimitPlan(false, Duration.ofSeconds(1), 0, 0, 0, "test"));
@@ -45,7 +47,7 @@ public final class AdmissionHarness {
                 mock(SeckillLogMapper.class), messages, orders, redis, stockScript, new DefaultRedisScript<>(),
                 new DefaultRedisScript<>(), new DefaultRedisScript<>(), new DefaultRedisScript<>(),
                 producer, mock(OrderService.class), activities, properties, mock(DistributedLockService.class),
-                recovery, limits, mock(SoldOutCacheService.class), metrics, mock(AsyncSeckillLogWriter.class));
+                recovery, limits, mock(SoldOutCacheService.class), metrics, mock(AsyncSeckillLogWriter.class), inventory, mock(StockInitialization.class));
     }
 
     public SeckillOrderRequest request(long userId) {
