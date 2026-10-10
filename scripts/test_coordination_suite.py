@@ -41,6 +41,17 @@ def load(count=15000):
     return {'metrics': metrics}
 
 
+def exported(summary):
+    """Flat `k6 run --summary-export` layout, which is what run_load actually reads."""
+    flat = {}
+    for name, metric in summary['metrics'].items():
+        values = dict(metric['values'])
+        if 'rate' in values and 'count' not in values:
+            values = {'passes': 0, 'fails': 1, 'thresholds': {'rate==0': False}, 'value': values['rate']}
+        flat[name] = values
+    return {'root_group': {}, 'metrics': flat}
+
+
 class FinalValidatorTest(unittest.TestCase):
     def test_positive_conservation_including_cancelled_not_accepted(self):
         self.assertEqual([], m.validate_final(final(),10,3,False))
@@ -107,6 +118,31 @@ class LoadValidatorTest(unittest.TestCase):
         for value in [float('nan'),float('inf'),None,-1,1.5,True,'15000']:
             s=load();s['metrics']['iterations']['values']['count']=value
             with self.assertRaises(AssertionError):m.validate_load(s,0)
+    def test_actual_k6_summary_export_layout_from_devcloud_run(self):
+        # Field layout of run f86c1d55 case 01 (k6 v2.3.0 --summary-export); the nested
+        # synthetic shape above crashed that run with KeyError 'values'.
+        s={'root_group':{},'metrics':{
+            'iterations':{'count':15001,'rate':200.00025286879517},
+            'coordination_requests':{'count':15001,'rate':200.00025286879517},
+            'coordination_queued':{'count':14977,'rate':199.68027379614327},
+            'coordination_sold_out':{'count':24,'rate':0.31997907265189546},
+            'coordination_system_errors':{'passes':0,'fails':15001,'thresholds':{'rate==0':False},'value':0},
+            'coordination_request_started_ms':{'max':1791636367880,'min':1791636292882,'avg':1791636330379.4565,
+                'med':1791636330379,'p(95)':1791636364130,'p(99)':1791636367129}}}
+        r=m.validate_load(s,0)
+        self.assertEqual((15001,14977,24),(r['completed'],r['queued'],r['sold_out']))
+        self.assertIsNone(r['dropped_iterations'])
+        self.assertAlmostEqual(1791636292.882,r['first_request_started_at'],places=3)
+    def test_export_layout_still_rejects_errors_drops_unaccounted_and_missing_fields(self):
+        self.assertEqual(15000,m.validate_load(exported(load()),0)['completed'])
+        s=exported(load());s['metrics']['coordination_system_errors']['value']=0.01
+        with self.assertRaises(AssertionError):m.validate_load(s,0)
+        s=exported(load());s['metrics']['coordination_requests']['count']-=1
+        with self.assertRaises(AssertionError):m.validate_load(s,0)
+        s=exported(load());s['metrics']['dropped_iterations']={'count':1,'rate':0.01}
+        with self.assertRaises(AssertionError):m.validate_load(s,0)
+        s=exported(load());del s['metrics']['coordination_system_errors']['value']
+        with self.assertRaises(KeyError):m.validate_load(s,0)
 
 
 class OrchestrationTest(unittest.TestCase):

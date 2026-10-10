@@ -598,9 +598,11 @@ class Suite:
         errors_before = len(self.evidence_errors)
         try:
             self.reset()
+            # 02 keeps A's lease valid through the 45 s order wait below; 03 needs A's to lapse.
             self.start(stock=30000 if self.live else (41 if name.startswith('09-') else INITIAL),
                        initial_sending=not name.startswith('07-'),
-                       leases=['2s', '20s', '20s'] if name.startswith('03-') else None)
+                       leases=['2s', '20s', '20s'] if name.startswith('03-') else (
+                           ['60s', '20s', '20s'] if name.startswith('02-') else None))
             self.observe_retry('before.jsonl')
             if name.startswith('01-'):
                 def drift():
@@ -619,7 +621,9 @@ class Suite:
                 write_json(self.case_dir / 'repair-during-live-window.json', {'applied':applied,'request_start_window':self.load_window,'drift_at':self.drift_at})
             elif name.startswith('02-'):
                 a = self.nodes[0]; a.arm('after-snapshot'); old = self.async_warm(0); a.hit('after-snapshot'); a.signal(signal.SIGSTOP)
-                self.order(1, 701); wait_for(lambda: self.success(701), 10, 'concurrent durable order')
+                # The broker may deliver this order to stopped A's consumer and requeues it only after
+                # missing A's heartbeats (run f86c1d55: still unacked 10 s after STOP), so allow 45 s.
+                self.order(1, 701); wait_for(lambda: self.success(701), 45, 'concurrent durable order')
                 require(int(self.redis('PTTL', LOCK)) > 500, 'lease expired before version-race test; inconclusive')
                 a.release('after-snapshot'); a.signal(signal.SIGCONT)
                 write_json(self.case_dir / 'old-repair-response.json', old.collect())
@@ -627,7 +631,7 @@ class Suite:
                 require(int(self.redis('GET', TOTAL)) == 9, 'old snapshot overwrote concurrent admission')
             elif name.startswith('03-'):
                 a, b = self.nodes[:2]; a.arm('after-snapshot'); old = self.async_warm(0); a.hit('after-snapshot'); a.signal(signal.SIGSTOP)
-                self.order(2, 702); wait_for(lambda: self.success(702), 15, 'new durable order')
+                self.order(2, 702); wait_for(lambda: self.success(702), 45, 'new durable order')  # same broker redelivery wait as 02
                 wait_for(lambda: int(self.redis('EXISTS', LOCK)) == 0, 10, 'old Redis lease expiry')
                 self.redis('SET', TOTAL, 0); b.arm('after-snapshot'); new = self.async_warm(1); hit = b.hit('after-snapshot')
                 successor = hit[2]; require(self.redis('GET', LOCK) == successor, 'B does not own successor lease')
@@ -716,17 +720,25 @@ class Suite:
 
 def validate_load(result, code, iterations=None):
     metrics = result['metrics']
+    def fields(name):
+        # `k6 run --summary-export` (used by run_load) writes fields directly on each metric,
+        # e.g. {"count": 15001, "rate": ...} and a Rate as {"passes", "fails", "value"};
+        # handleSummary() data nests them under "values". Missing fields stay KeyErrors.
+        metric = metrics[name]
+        return metric['values'] if 'values' in metric else metric
     def count(name):
-        value = metrics[name]['values']['count']
+        value = fields(name)['count']
         require(type(value) in (int, float) and value >= 0 and value % 1 == 0,
                 'invalid k6 count: ' + name)
         return int(value)
     queued, completed, requests = count('coordination_queued'), count('iterations'), count('coordination_requests')
     sold_out = count('coordination_sold_out')
     require(code == 0, 'k6 threshold/process failed; original summary retained')
-    require(metrics['coordination_system_errors']['values']['rate'] == 0, 'unexpected client outcomes')
+    errors = fields('coordination_system_errors')
+    error_rate = errors['rate'] if 'rate' in errors else errors['value']
+    require(type(error_rate) in (int, float) and error_rate == 0, 'unexpected client outcomes')
     require(completed == requests == queued + sold_out, 'incomplete or unaccounted client iterations')
-    window = metrics['coordination_request_started_ms']['values']
+    window = fields('coordination_request_started_ms')
     require(all(type(window.get(k)) in (int,float) and math.isfinite(window[k]) and window[k] > 0 for k in ('min','max')),
             'request-start window missing or invalid')
     require(window['min'] <= window['max'], 'invalid request-start timeline')
