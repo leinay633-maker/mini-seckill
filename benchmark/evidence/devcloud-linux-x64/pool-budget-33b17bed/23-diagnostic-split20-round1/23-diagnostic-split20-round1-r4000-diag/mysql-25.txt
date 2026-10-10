@@ -1,0 +1,403 @@
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Id	User	Host	db	Command	Time	State	Info
+5	event_scheduler	localhost	NULL	Daemon	85810	Waiting on empty queue	NULL
+23142	miniseckill	localhost:59600	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('7af7fb1a-9327-4450-b08d-605b32d09a45', 1, 204077735, 1001, 9, 0, NOW(), NOW())
+23143	miniseckill	localhost:59604	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '32216f1e-c068-471b-81e4-1237317ffbeb'\n  AND status = 9
+23144	miniseckill	localhost:59614	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)\nVALUES ('62a343b8-a5c2-4286-b0da-afcde0eed4bf', 1, 204029284, 1001, 'TOKEN_CREATED', NOW())
+23145	miniseckill	localhost:59618	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '0922f0dc-0f43-412c-a7c2-c4d3f77cc1ec'\n  AND status = 9
+23146	miniseckill	localhost:59624	mini_seckill	Query	0	waiting for handler commit	commit
+23147	miniseckill	localhost:59636	mini_seckill	Query	0	update	INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)\nVALUES ('297fccc2-be5a-4915-b298-40b391444b82', 1, 204050744, 1001, 'ORDER_SUCCESS', NOW())
+23148	miniseckill	localhost:59652	mini_seckill	Query	0	waiting for handler commit	commit
+23149	miniseckill	localhost:59654	mini_seckill	Query	0	waiting for handler commit	commit
+23152	miniseckill	localhost:55890	mini_seckill	Query	0	update	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('ff23f376-5381-4fbf-acfb-7babb1f1e568', 1, 204077738, 1001, 9, 0, NOW(), NOW())
+23153	miniseckill	localhost:55900	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = 'cbd3fbec-f5ee-4058-ad69-190125c8ceeb'\n  AND status = 9
+23154	miniseckill	localhost:55914	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('6ef14b0a-b2e4-4a5d-8168-478e4542efad', 1, 204077730, 1001, 9, 0, NOW(), NOW())
+23155	miniseckill	localhost:55916	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('0f23dcf5-71d6-4494-9f7a-be6972655d02', 1, 204077737, 1001, 9, 0, NOW(), NOW())
+23156	miniseckill	localhost:55918	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '1fe4294b-c255-4536-a095-0111687f415b'\n  AND status = 9
+23157	miniseckill	localhost:55924	mini_seckill	Query	0	waiting for handler commit	commit
+23158	miniseckill	localhost:55926	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('fd9f27d0-a8a5-4c98-ac50-e4ec27707eab', 1, 204077732, 1001, 9, 0, NOW(), NOW())
+23159	miniseckill	localhost:55934	mini_seckill	Query	0	waiting for handler commit	commit
+23160	miniseckill	localhost:55946	mini_seckill	Query	0	waiting for handler commit	commit
+23161	miniseckill	localhost:55948	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)\nVALUES ('f62b7f8d-bedb-4e4e-8216-785c971bf9c3', 1, 204029329, 1001, 'TOKEN_CREATED', NOW())
+23162	miniseckill	localhost:55976	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '1b7bad35-6f49-49c3-83cf-94c9f77b1839'\n  AND status = 9
+23163	miniseckill	localhost:55978	mini_seckill	Query	0	waiting for handler commit	commit
+23164	miniseckill	localhost:55986	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '969283b5-5f74-4ac4-9d29-f6596a927531'\n  AND status = 9
+23165	miniseckill	localhost:55988	mini_seckill	Query	0	waiting for handler commit	commit
+23166	miniseckill	localhost:56008	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('d5bf993a-5169-477d-a931-b9dab717edfa', 1, 204077581, 1001, 9, 0, NOW(), NOW())
+23167	miniseckill	localhost:56016	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '8a1b514a-f0fb-44fb-ac3b-d6274c422763'\n  AND status = 9
+23168	miniseckill	localhost:56022	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '8a0acb47-c2bf-4107-855d-da1b2b528c42'\n  AND status = 9
+23169	miniseckill	localhost:56024	mini_seckill	Query	0	waiting for handler commit	INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)\nVALUES ('91ef4adb-ce74-4014-9909-8d9b89b955b0', 1, 204077741, 1001, 9, 0, NOW(), NOW())
+23170	miniseckill	localhost:56030	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '0534722b-5706-4942-8680-2297cfd1b170'\n  AND status = 9
+23171	miniseckill	localhost:56046	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = 'ed60fefb-cd61-4370-b72b-4ec2afc0e045'\n  AND status = 9
+23172	miniseckill	localhost:56060	mini_seckill	Query	0	waiting for handler commit	UPDATE seckill_message\nSET status = 1,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = 'e0310de6-e295-4163-b26b-215d67d3bce6'\n  AND status = 9
+23183	miniseckill	localhost:44094	mini_seckill	Query	0	waiting for handler commit	commit
+23192	miniseckill	localhost:60320	mini_seckill	Query	0	updating	UPDATE seckill_message\nSET status = 2,\n    last_error = NULL,\n    next_retry_at = NULL,\n    updated_at = NOW()\nWHERE request_id = '7d5ea5d9-d143-41c8-a34e-04fd492d54ac'\n  AND status = 10
+23193	miniseckill	localhost:60334	mini_seckill	Sleep	8		NULL
+23194	miniseckill	localhost:60336	mini_seckill	Sleep	8		NULL
+23195	miniseckill	localhost:60338	mini_seckill	Sleep	8		NULL
+23203	root	localhost	NULL	Query	0	init	SHOW FULL PROCESSLIST
+*************************** 1. row ***************************
+  Type: InnoDB
+  Name: 
+Status: 
+=====================================
+2026-10-10 16:03:11 139743534741248 INNODB MONITOR OUTPUT
+=====================================
+Per second averages calculated from the last 9 seconds
+-----------------
+BACKGROUND THREAD
+-----------------
+srv_master_thread loops: 15217 srv_active, 0 srv_shutdown, 70533 srv_idle
+srv_master_thread log flush and writes: 0
+----------
+SEMAPHORES
+----------
+OS WAIT ARRAY INFO: reservation count 2667911
+OS WAIT ARRAY INFO: signal count 22518378
+RW-shared spins 0, rounds 0, OS waits 0
+RW-excl spins 0, rounds 0, OS waits 0
+RW-sx spins 0, rounds 0, OS waits 0
+Spin rounds per wait: 0.00 RW-shared, 0.00 RW-excl, 0.00 RW-sx
+------------
+TRANSACTIONS
+------------
+Trx id counter 187916940
+Purge done for trx's n:o < 187916789 undo n:o < 0 state: running but idle
+History list length 689
+LIST OF TRANSACTIONS FOR EACH SESSION:
+---TRANSACTION 421222410809008, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410783152, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 421222410782344, not started
+0 lock struct(s), heap size 1128, 0 row lock(s)
+---TRANSACTION 187916939, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23142, OS thread handle 139743537911552, query id 602081530 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('7af7fb1a-9327-4450-b08d-605b32d09a45', 1, 204077735, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916938, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23162, OS thread handle 139746702391040, query id 602081521 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '1b7bad35-6f49-49c3-83cf-94c9f77b1839'
+  AND status = 9
+---TRANSACTION 187916937, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23161, OS thread handle 139746834609920, query id 602081522 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)
+VALUES ('f62b7f8d-bedb-4e4e-8216-785c971bf9c3', 1, 204029329, 1001, 'TOKEN_CREATED', NOW())
+---TRANSACTION 187916936, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23152, OS thread handle 139743525230336, query id 602081519 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('ff23f376-5381-4fbf-acfb-7babb1f1e568', 1, 204077738, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916935, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23168, OS thread handle 139746703447808, query id 602081513 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '8a0acb47-c2bf-4107-855d-da1b2b528c42'
+  AND status = 9
+---TRANSACTION 187916934, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23169, OS thread handle 139746700277504, query id 602081514 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('91ef4adb-ce74-4014-9909-8d9b89b955b0', 1, 204077741, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916933, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23144, OS thread handle 139746833553152, query id 602081515 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_log (request_id, activity_id, user_id, sku_id, result, created_at)
+VALUES ('62a343b8-a5c2-4286-b0da-afcde0eed4bf', 1, 204029284, 1001, 'TOKEN_CREATED', NOW())
+---TRANSACTION 187916932, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23172, OS thread handle 139746718230272, query id 602081477 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = 'e0310de6-e295-4163-b26b-215d67d3bce6'
+  AND status = 9
+---TRANSACTION 187916930, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23170, OS thread handle 139743531570944, query id 602081473 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '0534722b-5706-4942-8680-2297cfd1b170'
+  AND status = 9
+---TRANSACTION 187916929, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23164, OS thread handle 139746694993664, query id 602081471 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '969283b5-5f74-4ac4-9d29-f6596a927531'
+  AND status = 9
+---TRANSACTION 187916928, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23156, OS thread handle 139746704504576, query id 602081472 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '1fe4294b-c255-4536-a095-0111687f415b'
+  AND status = 9
+---TRANSACTION 187916927, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23167, OS thread handle 139746708727552, query id 602081466 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '8a1b514a-f0fb-44fb-ac3b-d6274c422763'
+  AND status = 9
+---TRANSACTION 187916926, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23145, OS thread handle 139746714007296, query id 602081469 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '0922f0dc-0f43-412c-a7c2-c4d3f77cc1ec'
+  AND status = 9
+---TRANSACTION 187916925, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23155, OS thread handle 139743538968320, query id 602081468 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('0f23dcf5-71d6-4494-9f7a-be6972655d02', 1, 204077737, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916924, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23171, OS thread handle 139746712950528, query id 602081457 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = 'ed60fefb-cd61-4370-b72b-4ec2afc0e045'
+  AND status = 9
+---TRANSACTION 187916923, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23159, OS thread handle 139743532627712, query id 602081534 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916929, sees < 187916882
+---TRANSACTION 187916919, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23143, OS thread handle 139746711893760, query id 602081424 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '32216f1e-c068-471b-81e4-1237317ffbeb'
+  AND status = 9
+---TRANSACTION 187916917, ACTIVE 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 4
+MySQL thread id 23147, OS thread handle 139746716116736, query id 602081539 localhost 127.0.0.1 miniseckill starting
+UPDATE seckill_message
+SET status = 2,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = '297fccc2-be5a-4915-b298-40b391444b82'
+  AND status = 10
+Trx read view will not see trx with id >= 187916931, sees < 187916882
+---TRANSACTION 187916915, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23148, OS thread handle 139743529457408, query id 602081533 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916926, sees < 187916882
+---TRANSACTION 187916913, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1128, 2 row lock(s), undo log entries 1
+MySQL thread id 23153, OS thread handle 139746830382848, query id 602081420 localhost 127.0.0.1 miniseckill waiting for handler commit
+UPDATE seckill_message
+SET status = 1,
+    last_error = NULL,
+    next_retry_at = NULL,
+    updated_at = NOW()
+WHERE request_id = 'cbd3fbec-f5ee-4058-ad69-190125c8ceeb'
+  AND status = 9
+---TRANSACTION 187916912, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23192, OS thread handle 139746697107200, query id 602081536 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916926, sees < 187916882
+---TRANSACTION 187916911, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23165, OS thread handle 139743528400640, query id 602081528 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916924, sees < 187916882
+---TRANSACTION 187916910, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23166, OS thread handle 139746699220736, query id 602081423 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('d5bf993a-5169-477d-a931-b9dab717edfa', 1, 204077581, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916909, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23149, OS thread handle 139743535798016, query id 602081535 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916925, sees < 187916882
+---TRANSACTION 187916908, ACTIVE (PREPARED) 0 sec
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23158, OS thread handle 139746710836992, query id 602081414 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('fd9f27d0-a8a5-4c98-ac50-e4ec27707eab', 1, 204077732, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916907, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23157, OS thread handle 139743526287104, query id 602081524 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916924, sees < 187916882
+---TRANSACTION 187916905, ACTIVE (PREPARED) 0 sec committing
+mysql tables in use 1, locked 1
+1 lock struct(s), heap size 1128, 0 row lock(s), undo log entries 1
+MySQL thread id 23154, OS thread handle 139743530514176, query id 602081363 localhost 127.0.0.1 miniseckill waiting for handler commit
+INSERT INTO seckill_message (request_id, activity_id, user_id, sku_id, status, retry_count, created_at, updated_at)
+VALUES ('6ef14b0a-b2e4-4a5d-8168-478e4542efad', 1, 204077730, 1001, 9, 0, NOW(), NOW())
+---TRANSACTION 187916897, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23160, OS thread handle 139743533684480, query id 602081453 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916906, sees < 187916871
+---TRANSACTION 187916896, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23146, OS thread handle 139746706618112, query id 602081447 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916906, sees < 187916871
+---TRANSACTION 187916895, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23183, OS thread handle 139743536854784, query id 602081442 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916906, sees < 187916871
+---TRANSACTION 187916884, ACTIVE (PREPARED) 0 sec
+8 lock struct(s), heap size 1128, 4 row lock(s), undo log entries 5
+MySQL thread id 23163, OS thread handle 139746696050432, query id 602081426 localhost 127.0.0.1 miniseckill waiting for handler commit
+commit
+Trx read view will not see trx with id >= 187916895, sees < 187916844
+--------
+FILE I/O
+--------
+I/O thread 0 state: waiting for completed aio requests (insert buffer thread)
+I/O thread 1 state: waiting for completed aio requests (read thread)
+I/O thread 2 state: waiting for completed aio requests (read thread)
+I/O thread 3 state: waiting for completed aio requests (read thread)
+I/O thread 4 state: waiting for completed aio requests (read thread)
+I/O thread 5 state: complete io for buf page (write thread)
+I/O thread 6 state: complete io for buf page (write thread)
+I/O thread 7 state: waiting for completed aio requests (write thread)
+I/O thread 8 state: waiting for completed aio requests (write thread)
+Pending normal aio reads: [0, 0, 0, 0] , aio writes: [1, 1, 0, 0] ,
+ ibuf aio reads:
+Pending flushes (fsync) log: 1; buffer pool: 2
+484093 OS file reads, 912032366 OS file writes, 41999970 OS fsyncs
+4.15 reads/s, 16384 avg bytes/read, 78357.91 writes/s, 2861.72 fsyncs/s
+-------------------------------------
+INSERT BUFFER AND ADAPTIVE HASH INDEX
+-------------------------------------
+Ibuf: size 1, free list len 84, seg size 86, 2403 merges
+merged operations:
+ insert 39603, delete mark 0, delete 0
+discarded operations:
+ insert 0, delete mark 0, delete 0
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 75 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 2 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+Hash table size 34679, node heap has 1 buffer(s)
+10590.05 hash searches/s, 130141.76 non-hash searches/s
+---
+LOG
+---
+Log capacity                 104857600
+Log capacity used            104857600
+Log sequence number          105072164434
+Log buffer assigned up to    105072164434
+Log buffer completed up to   105072164434
+Log written up to            105072164434
+Log flushed up to            105072145171
+Added dirty pages up to      105072164434
+Pages flushed up to          105025941210
+Last checkpoint at           105025941210
+Log minimum file id is       32056
+Log maximum file id is       32085
+902033302 log i/o's done, 76765.50 log i/o's/second
+----------------------
+BUFFER POOL AND MEMORY
+----------------------
+Total large memory allocated 0
+Dictionary memory allocated 678189
+Buffer pool size   8192
+Free buffers       1001
+Database pages     7108
+Old database pages 2603
+Modified db pages  2047
+Pending reads      0
+Pending writes: LRU 0, flush list 8, single page 0
+Pages made young 3766344, not young 212474664
+7.09 youngs/s, 366.55 non-youngs/s
+Pages read 484068, created 1596273, written 7831416
+4.15 reads/s, 123.67 creates/s, 473.81 writes/s
+Buffer pool hit rate 1000 / 1000, young-making rate 0 / 1000 not 0 / 1000
+Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s
+LRU len: 7108, unzip_LRU len: 0
+I/O sum[10281]:cur[448], unzip sum[0]:cur[0]
+--------------
+ROW OPERATIONS
+--------------
+0 queries inside InnoDB, 0 queries in queue
+10 read views open inside InnoDB
+Process ID=13781, Main thread ID=139746877626112 , state=sleeping
+Number of rows inserted 103260506, updated 107311764, deleted 0, read 6247498463
+8958.12 inserts/s, 10712.48 updates/s, 0.00 deletes/s, 362859.68 reads/s
+Number of system rows inserted 7157, updated 54649, deleted 3374, read 136649
+0.00 inserts/s, 0.00 updates/s, 0.00 deletes/s, 0.00 reads/s
+----------------------------
+END OF INNODB MONITOR OUTPUT
+============================
+
+Variable_name	Value
+Threads_running	33
+Variable_name	Value
+Innodb_row_lock_current_waits	1
+Innodb_row_lock_time	19664471
+Innodb_row_lock_time_avg	2
+Innodb_row_lock_time_max	4652
+Innodb_row_lock_waits	9787208
+Variable_name	Value
+Innodb_log_waits	0

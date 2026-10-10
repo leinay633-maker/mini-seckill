@@ -1,0 +1,11 @@
+--spring.datasource.hikari.maximum-pool-size=40
+--spring.datasource.hikari.minimum-idle=8
+--spring.datasource.hikari.connection-timeout=2000
+--seckill.capacity.activity-cache-ttl=250ms
+--seckill.capacity.initial-sending-enabled=true
+--seckill.mq-consumer.concurrent-consumers=8
+--seckill.mq-consumer.max-concurrent-consumers=32
+--seckill.mq-consumer.prefetch-count=100
+--seckill.pool-budget.enabled=true
+--seckill.pool-budget.total-connections=40
+--seckill.pool-budget.consumer-connections=20

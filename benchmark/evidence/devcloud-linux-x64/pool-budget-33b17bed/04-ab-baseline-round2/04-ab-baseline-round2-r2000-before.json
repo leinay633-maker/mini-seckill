@@ -1,0 +1,17 @@
+{
+  "started_at": 1791610461.809193,
+  "db": {
+    "messages": 0,
+    "nonterminal": 0,
+    "consumed": 0,
+    "timeout": 0,
+    "dead": 0,
+    "orders": 0,
+    "success": 0
+  },
+  "mq": {
+    "messages_ready": 0,
+    "messages_unacknowledged": 0
+  },
+  "t": 1791610461.8210032
+}

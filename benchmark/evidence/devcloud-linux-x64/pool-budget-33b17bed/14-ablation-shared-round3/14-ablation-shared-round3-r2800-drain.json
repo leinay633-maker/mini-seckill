@@ -1,0 +1,23 @@
+{
+  "drained": true,
+  "finished_at": 1791617531.560196,
+  "final": {
+    "started_at": 1791617531.4997811,
+    "db": {
+      "messages": 167633,
+      "nonterminal": 0,
+      "consumed": 167633,
+      "timeout": 0,
+      "dead": 0,
+      "orders": 167633,
+      "success": 167633
+    },
+    "mq": {
+      "messages_ready": 0,
+      "messages_unacknowledged": 0
+    },
+    "t": 1791617531.560131
+  },
+  "quiet_seconds": 5.0,
+  "deadline_seconds": 600
+}
