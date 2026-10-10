@@ -51,6 +51,8 @@
 
 **未解决的 ABA**：旧 worker 看到 CONSUMING，恢复任务把它改 FAILED，后续新 worker 又进入 CONSUMING，此时仅比较状态仍不能识别旧持有者；发送 attempt 的迟到回调也有同类问题。下一步应设计单调 generation/claim token，并在所有完成/失败/恢复 SQL 中携带与核对，而不是缩短或延长 timeout 就称为解决。本轮不把这项设计记成已实现。
 
+**2026-10-10 更新（消费侧）**：PR #3 之后，唯一写入 CONSUMING 的 `ConsumerOrderTransactions.claim` 与订单结果在同一事务内提交，CONSUMING 不再是其他事务可见的已提交中间状态，上述消费侧 ABA 的前提不再成立；没有引入 generation token。`ConsumerPoolBudgetIT.inFlightClaimIsInvisibleToRecoveryAndTimeoutCasWaitsThenChangesNothing` 用真实 MySQL 验证：抢占后暂停的事务期间，外部读到 SENT、stale CONSUMING 恢复查询为空，重复投递在行锁上超时后 NACK 重投，超时任务按 SENT 快照发起的 CAS 等到提交后改动 0 行。边界：滚动升级期间仍运行旧版本的实例会单独提交 CONSUMING，恢复任务为它们保留；发送侧迟到 confirm 回调的代际问题未变。
+
 ### 3.4 指标是诊断线索，不替代数据库事实
 
 `order.success` 只在新订单提交后计数；duplicate reconciliation 不重复增加。`order.status_cache_write_failed` 记录已提交后的缓存异常。
@@ -72,7 +74,7 @@ MQ 路径指标仍在 settlement 前记录，且保留了 `duplicate_acked`、`t
 | 后续优先级 | 尚未解决的问题 | 下一项真正有价值的工作 |
 |---|---|---|
 | P1 | Redis 预扣与 `insertPending` 之间有进程退出/提交结果不明窗口；目前不是跨系统原子 outbox | 先建立 request 级 reservation intent 与事实对账协议，再验证预扣后退出、DB commit 结果不明、补偿重入；不能直接对所有异常“加回库存” |
-| P1 | CONSUMING / SENDING 缺代际 fencing | generation/claim token + 两个 worker、恢复任务交错的真实 MySQL 测试 |
+| P1 | SENDING 迟到 confirm 回调缺代际 fencing（CONSUMING 侧已由单事务抢占消除，见 3.3 更新） | 发送 attempt 代际或等价设计 + 回调迟到与重试任务交错的真实 MySQL 测试 |
 | P1 | 多实例 Redis 恢复态仍有本地状态与恢复屏障的边界 | 在独立环境做逐实例恢复和并发新请求的交错演练；不能把单次串行恢复外推成任意重建安全 |
 | P1 | 非默认 `mqFallbackSync=true` 入口仍有事务外冗余状态更新与失败投影；本轮只验证 service 的终态 CAS，未认证整条兼容入口 | 保持默认 false；启用前统一异常分类并给入口本身增加提交结果不明/重复/事务外失败回归 |
 | P2 | admission latency 不等于最终订单完成延迟；缓存回调可能延迟 ACK | 同机同参测入队、最终落库、队列积压和失败率；结果待本机实测 |
