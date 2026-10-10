@@ -66,3 +66,8 @@
 - 改动：PR #4（consumer-claim-interleaving）fast-forward 合并到 main（2347c01），GitHub 显示已合并。obsidian-vault 面试案例稿 Q48 结尾改为“取消已提交的消费中状态而非加代际号”、交错测试内容与两个边界（滚动升级旧实例、发送侧迟到回调）；该稿未提交。上一条 16:41 写于最后一次文档提交之前，本条补记其后的验证与合并。
 - 验证：最终提交 2347c01 的 GitHub Actions run 38038789658 两个 job（test、integration-test）均成功。
 - 未完成 / 下一步：同 16:41 条目。
+
+### 2026-10-10 16:56 · 本地 Claude Code · main
+- 改动：为交给 GPT-6 Pro 做多实例协调，把 PR #3 复测 23 组 app.log.gz 里的 StockReconcileJob 告警原文抽成 benchmark/evidence/devcloud-linux-x64/pool-budget-33b17bed/reconcile-during-load.txt（连接器读不了 gz）。每组压测期间对账任务约每分钟改写一次 Redis 库存（主矩阵每组 6–13 次），并伴随 soldCount 与 successOrderCount 不一致告警；当时库存为需求 2 倍、MySQL 有库存兜底，最终对账全部通过。另在容器核实：非特权（iptables 权限不足、无 tc）、无 nginx/haproxy/socat，GitHub release 直链可下载。
+- 验证：抽取文件 334 行，逐组计数与各组 app.log.gz 的 grep 计数一致；不含容器主机名。未运行测试（只加证据文本）。
+- 未完成 / 下一步：等 Pro 的 PR（多实例下后台任务与 Redis 库存修复的正确性、一键多实例复测）；容器 /data/ms/mini-seckill 仍停在 pro/consumer-pool-budget，复测前切回 main 并拉取。
