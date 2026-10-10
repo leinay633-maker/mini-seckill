@@ -14,7 +14,7 @@ MiniSeckill 是一个聚焦秒杀下单核心链路的 Java 后端面试项目�
 
 [设计与正确性边界](docs/MULTI-INSTANCE-COORDINATION.md) · [原生三 JVM 一键复测](docs/MULTI-INSTANCE-RETEST.md) · [实际验证记录](docs/MULTI-INSTANCE-VALIDATION.md)
 
-库存对账改为 owner 租约 + 库存版本 + 在途登记的同脚本写回校验；预扣结果不明通过 MySQL requestId 唯一键取消墓碑清算。发送认领与回调携带代际 token，定时超时/重试重新检查数据库时间。云容器上三个原生 JVM 的九个故障与负载场景（负载中修复、旧快照与旧租约写回、预扣后暂停/强杀、提交后强杀、发送代际 ABA、消费者丢失、稀缺库存）已复测通过，见 [证据说明末节](benchmark/evidence/devcloud-linux-x64/README.md)；这只证明正确性，没有测得性能提升，也不覆盖多主机、网络分区与故障转移。
+库存对账改为 owner 租约 + 库存版本 + 在途登记的同脚本写回校验；预扣结果不明通过 MySQL requestId 唯一键取消墓碑清算。发送认领与回调携带代际 token，定时超时/重试重新检查数据库时间。云容器上三个原生 JVM 的九个故障与负载场景（负载中修复、旧快照与旧租约写回、预扣后暂停/强杀、提交后强杀、发送代际 ABA、消费者丢失、稀缺库存）已复测通过，见 [证据说明](benchmark/evidence/devcloud-linux-x64/README.md)“多实例库存协调三 JVM 正确性复测”一节；这只证明正确性，不覆盖多主机、网络分区与故障转移。性能是代价而不是提升：单 JVM 前后 A/B 中，入口 60 秒稳定档从 4000–5000/s 降到 3500/s，同档 Redis CPU 约为旧版 2.5 倍，见同一说明末节。
 
 **协议升级必须冷切换所有节点。** Redis 单主、元数据不丢失且不被驱逐是前提；Redis Cluster 与同步 MQ fallback 现在拒绝启动。`init` 只创建新 SKU，不能覆盖活跃/历史库存；终态消息原地 replay 返回409；warmup 不补 token quota，元数据丢失时不会盲目重建。下文历史功能清单、旧实验手册涉及这些操作时，以本节和新设计文档为准，不能照旧在运行中的活动上重置。
 

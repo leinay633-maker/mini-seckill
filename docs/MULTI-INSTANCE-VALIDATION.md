@@ -74,4 +74,4 @@ JDK17远端CI、Testcontainers真实MySQL/Redis、RabbitMQ真实故障联动、n
 | `1fc9e77`（只改编排与离线测试：两种 k6 布局都接受；02 的 A 租约 60 s、02/03 成单等待 45 s） | CI run 38053832422 | 两个 job 成功：242 单元、57 集成，0 失败 / 0 错误 / 0 跳过；Python 8 / 30 / 36 项 OK |
 | `1fc9e77` | 云容器 `coordination-suite.sh start`（20:59–21:06） | **9/9 通过**，`matrix_completed=true`，归档与 sidecar 齐全；容器内 `mvn -B clean verify` 242 单元通过，jar SHA-256 `3da1a000f43411176f3691d3853cecb4bb05a25d79faa26b191abe66752b3ad5` |
 
-两轮证据（含失败的一轮）、逐场景结果和入库处理见 `benchmark/evidence/devcloud-linux-x64/README.md` 末节。仍未覆盖：多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑，以及任何性能数字。
+两轮证据（含失败的一轮）、逐场景结果和入库处理见 `benchmark/evidence/devcloud-linux-x64/README.md`“多实例库存协调三 JVM 正确性复测”一节。仍未覆盖：多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑，以及多实例下的性能。单 JVM 前后性能 A/B（2026-10-11，入口稳定档 4000–5000 → 3500/s）见同一说明末节。
