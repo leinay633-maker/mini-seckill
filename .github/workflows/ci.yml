@@ -25,6 +25,9 @@ jobs:
       - name: Test evidence checker negative cases
         run: python3 -m unittest discover -s scripts -p 'test_consistency_evidence.py' -v
 
+      - name: Test native pool-budget benchmark orchestration and evidence
+        run: python3 -m unittest discover -s scripts -p 'test_pool_budget_benchmark.py' -v
+
       - name: Run Maven verification
         run: mvn -B clean verify
 
