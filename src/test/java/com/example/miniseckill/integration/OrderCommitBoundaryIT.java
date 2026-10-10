@@ -49,6 +49,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -328,14 +329,18 @@ class OrderCommitBoundaryIT {
                     if (!start.await(10, TimeUnit.SECONDS)) {
                         throw new IllegalStateException("start barrier timed out");
                     }
-                    try {
-                        service.createOrderFromConsumingMessage(message);
-                    } catch (DuplicateKeyException ex) {
-                        service.reconcileExistingOrderFromConsumingMessage(message);
-                    } catch (InsufficientStockException ex) {
-                        service.recordFailedOrder(message);
+                    // InnoDB may roll back one racing insert as a deadlock victim (seen in CI run
+                    // 38065842025); the consumer treats that as transient and the broker redelivers.
+                    for (int attempt = 1; ; attempt++) {
+                        try {
+                            deliver(message);
+                            return null;
+                        } catch (TransientDataAccessException ex) {
+                            if (attempt == 5) {
+                                throw ex;
+                            }
+                        }
                     }
-                    return null;
                 }));
             }
             start.countDown();
@@ -346,6 +351,16 @@ class OrderCommitBoundaryIT {
             start.countDown();
             executor.shutdownNow();
             assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS));
+        }
+    }
+
+    private void deliver(SeckillMessage message) {
+        try {
+            service.createOrderFromConsumingMessage(message);
+        } catch (DuplicateKeyException ex) {
+            service.reconcileExistingOrderFromConsumingMessage(message);
+        } catch (InsufficientStockException ex) {
+            service.recordFailedOrder(message);
         }
     }
 
