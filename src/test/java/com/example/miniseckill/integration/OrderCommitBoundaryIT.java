@@ -234,6 +234,8 @@ class OrderCommitBoundaryIT {
     void delayedRetrySnapshotCannotResurrectCommittedMessage() {
         stocks.upsertStock(1L, 1001L, 2);
         SeckillMessage message = seed("stale-scan", 10L, MessageStatus.SENDING);
+        assertTrue(retryable().isEmpty());
+        expireSendLease("stale-scan");
         assertEquals(1, retryable().size());
         assertEquals(1, messages.markConsuming("stale-scan", 10, 1, 9, 8));
         service.createOrderFromConsumingMessage(message);
@@ -262,6 +264,7 @@ class OrderCommitBoundaryIT {
     @EnumSource(value = MessageStatus.class, names = {"PENDING", "FAILED", "CONFIRM_FAILED", "RETURNED", "SENDING"})
     void eligibleSendFailuresStillAdvanceRetryBudget(MessageStatus status) {
         seed("retryable", 10L, status);
+        if (status == MessageStatus.SENDING) { expireSendLease("retryable"); }
         assertEquals(1, messages.markFailedForRetry("retryable", 3, "send failed", LocalDateTime.now().minusSeconds(1)));
         assertEquals(1, messages.selectByRequestId("retryable").getRetryCount());
         assertEquals(1, retryable().size());
@@ -353,6 +356,13 @@ class OrderCommitBoundaryIT {
 
     private List<?> retryable() {
         return messages.selectRetryable(0, 9, 3, 4, 5, 8, 100);
+    }
+
+    // An initial SENDING INSERT carries its sender's lease; the retry scan only sees the row
+    // after that sender is presumed dead, which these schedules assume already happened.
+    private void expireSendLease(String requestId) {
+        jdbc.update("UPDATE seckill_message SET send_lease_until = DATE_SUB(NOW(6), INTERVAL 1 SECOND) "
+                + "WHERE request_id = ?", requestId);
     }
 
     private int messageStatus(String requestId) {
