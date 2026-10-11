@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "baseline_sha": "e2a6f96fc6b55ac9dc97fd03dc3800e6d758960f",
+  "matrix": "ab-shared",
+  "started_at": 1791691286.5590498,
+  "cases": [
+    {
+      "label": "01-ab-baseline-round1",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 1,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691299.066973,
+      "jar_sha256": "dc883156ab3f5e476018a9400e0c3966fea2874216aeff77e047b674730f5bfc",
+      "exit": 0,
+      "finished_at": 1791691425.4301105
+    },
+    {
+      "label": "02-ab-shared-round1",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691426.4485087,
+      "jar_sha256": "9e67892a3a846d0766e31366f313000da1e28c5f3ea59bda4e6a6b12befefd35",
+      "exit": 0,
+      "finished_at": 1791691551.1866138
+    },
+    {
+      "label": "03-ab-shared-round2",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 2,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691552.2053394,
+      "jar_sha256": "9e67892a3a846d0766e31366f313000da1e28c5f3ea59bda4e6a6b12befefd35",
+      "exit": 0,
+      "finished_at": 1791691676.240556
+    },
+    {
+      "label": "04-ab-baseline-round2",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 2,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691677.2590516,
+      "jar_sha256": "dc883156ab3f5e476018a9400e0c3966fea2874216aeff77e047b674730f5bfc",
+      "exit": 0,
+      "finished_at": 1791691801.0931754
+    },
+    {
+      "label": "05-ab-baseline-round3",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 3,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691802.112126,
+      "jar_sha256": "dc883156ab3f5e476018a9400e0c3966fea2874216aeff77e047b674730f5bfc",
+      "exit": 0,
+      "finished_at": 1791691926.2803915
+    },
+    {
+      "label": "06-ab-shared-round3",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 3,
+      "rates": [
+        1000
+      ],
+      "started_at": 1791691927.3160002,
+      "jar_sha256": "9e67892a3a846d0766e31366f313000da1e28c5f3ea59bda4e6a6b12befefd35",
+      "exit": 0,
+      "finished_at": 1791692050.3486905
+    }
+  ],
+  "method": {
+    "duration_seconds": 60,
+    "disk_await_ms": 2,
+    "disk_noisy_seconds": 5,
+    "minimum_disk_coverage": 0.9,
+    "drain_quiet_seconds": 5,
+    "capacity_claim": "60s sampling only; not a soak test",
+    "warmup_seconds": 15,
+    "warmup_rate": 1000
+  },
+  "candidate_sha": "93dd4e6d5b641da9a60ab2cf6e734b5199af4580",
+  "disk_device": "vdc",
+  "disk_device_source": "vdc from prior same-host evidence; verify mount.txt",
+  "drain_max_seconds": 600,
+  "baseline_jar_sha256": "dc883156ab3f5e476018a9400e0c3966fea2874216aeff77e047b674730f5bfc",
+  "candidate_jar_sha256": "9e67892a3a846d0766e31366f313000da1e28c5f3ea59bda4e6a6b12befefd35",
+  "finished_at": 1791692051.3713212,
+  "status": "completed",
+  "error": null,
+  "observed_steps": 6,
+  "planned_steps": 6,
+  "correctness_false": 0,
+  "correctness_unknown": 0
+}
