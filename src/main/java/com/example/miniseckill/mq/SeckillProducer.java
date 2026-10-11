@@ -81,7 +81,8 @@ public class SeckillProducer implements RabbitTemplate.ConfirmCallback, RabbitTe
     }
     private void finish(String id, String token, int status, String error) {
         int changed=messages.finishSend(id,token,status,error);
-        log.info("COORD_SEND_RESULT requestId={} token={} status={} changed={}",id,token,status,changed);
+        // Runs once per publisher confirm, so DEBUG; the native coordination retest turns it on.
+        log.debug("COORD_SEND_RESULT requestId={} token={} status={} changed={}",id,token,status,changed);
     }
     private static String[] parse(String value) {
         if (value==null) return null;

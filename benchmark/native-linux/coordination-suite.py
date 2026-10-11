@@ -188,7 +188,9 @@ class Node:
             '--seckill.coordination.recovery-delay=500',
             '--seckill.coordination.faults-enabled=true',
             '--seckill.coordination.fault-directory=' + str(self.faults),
-            '--seckill.coordination.fault-wait=120s']
+            '--seckill.coordination.fault-wait=120s',
+            # Scenario 07 reads the late callback's COORD_SEND_RESULT line, logged at DEBUG.
+            '--logging.level.com.example.miniseckill.mq.SeckillProducer=DEBUG']
         # Credentials are supplied only through the environment, not logged argv.
         env = suite.env.copy()
         env['TZ'] = 'Asia/Shanghai'

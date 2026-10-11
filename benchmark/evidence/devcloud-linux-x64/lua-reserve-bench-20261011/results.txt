@@ -1,0 +1,29 @@
+redis_version:7.2.7
+arch_bits:64
+process_id:561109
+hz:10
+repo_head=a49190cdd963ea12c7c4f8064a52b48245c22c43 calls=5000 rounds=3
+plenty current round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=779183,usec_per_call=155.84,rejected_calls=0,failed_calls=0
+plenty mget round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=249732,usec_per_call=49.95,rejected_calls=0,failed_calls=0
+plenty scan round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=105684,usec_per_call=21.14,rejected_calls=0,failed_calls=0
+plenty sharded-baseline round1 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=46275,usec_per_call=9.26,rejected_calls=0,failed_calls=0
+plenty current round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=795636,usec_per_call=159.13,rejected_calls=0,failed_calls=0
+plenty mget round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=245334,usec_per_call=49.07,rejected_calls=0,failed_calls=0
+plenty scan round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=102444,usec_per_call=20.49,rejected_calls=0,failed_calls=0
+plenty sharded-baseline round2 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=43538,usec_per_call=8.71,rejected_calls=0,failed_calls=0
+plenty current round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=756396,usec_per_call=151.28,rejected_calls=0,failed_calls=0
+plenty mget round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=242106,usec_per_call=48.42,rejected_calls=0,failed_calls=0
+plenty scan round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=102075,usec_per_call=20.42,rejected_calls=0,failed_calls=0
+plenty sharded-baseline round3 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=43422,usec_per_call=8.68,rejected_calls=0,failed_calls=0
+sparse current round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=744106,usec_per_call=148.82,rejected_calls=0,failed_calls=0
+sparse mget round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=249016,usec_per_call=49.80,rejected_calls=0,failed_calls=0
+sparse scan round1 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=430007,usec_per_call=86.00,rejected_calls=0,failed_calls=0
+sparse sharded-baseline round1 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=150928,usec_per_call=30.19,rejected_calls=0,failed_calls=0
+sparse current round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=750722,usec_per_call=150.14,rejected_calls=0,failed_calls=0
+sparse mget round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=250919,usec_per_call=50.18,rejected_calls=0,failed_calls=0
+sparse scan round2 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=427153,usec_per_call=85.43,rejected_calls=0,failed_calls=0
+sparse sharded-baseline round2 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=156365,usec_per_call=31.27,rejected_calls=0,failed_calls=0
+sparse current round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=741860,usec_per_call=148.37,rejected_calls=0,failed_calls=0
+sparse mget round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=247426,usec_per_call=49.49,rejected_calls=0,failed_calls=0
+sparse scan round3 reserved=5000 [errors: 0, replies: 25000] cmdstat_evalsha:calls=5000,usec=428085,usec_per_call=85.62,rejected_calls=0,failed_calls=0
+sparse sharded-baseline round3 reserved=5000 [errors: 0, replies: 5000] cmdstat_evalsha:calls=5000,usec=150417,usec_per_call=30.08,rejected_calls=0,failed_calls=0
