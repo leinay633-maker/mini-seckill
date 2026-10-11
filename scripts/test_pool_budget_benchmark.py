@@ -342,6 +342,43 @@ class ScriptTests(unittest.TestCase):
                 self.assertEqual(['reset 120000'] if drain_rc else ['reset 120000', 'reset 240000'],
                                  trace.read_text().splitlines())
 
+    def test_warmup_is_untimed_and_the_first_step_waits_for_its_drain(self):
+        for drain_rc in (0, 20):
+            with self.subTest(drain_rc=drain_rc), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                fake, adapters, bench = root / 'fake', root / 'adapters', root / 'repo' / 'benchmark'
+                for d in (fake, adapters, bench / 'results'): d.mkdir(parents=True)
+                (root / 'env.sh').write_text('')
+                for name in ('k6', 'java', 'lscpu', 'redis-cli', 'sleep'):
+                    p = fake / name; p.write_text('#!/bin/sh\nexit 0\n'); p.chmod(0o755)
+                (adapters / 'sampler.py').write_text('import time\ntime.sleep(20)\n')
+                (adapters / 'pool-budget-observe.py').write_text(
+                    'import os,sys\n'
+                    'if sys.argv[1] == "drain": sys.exit(int(os.environ["DRAIN_RC"]))\n')
+                (adapters / 'cap-report.py').write_text(
+                    'import sys\nif sys.argv[1] == "--stop": sys.exit(1)\nprint("{}")\n')
+                (bench / 'reset-env.sh').write_text('echo "reset $1" >> "$TRACE"\n')
+                (bench / 'run-k6.sh').write_text(
+                    '#!/bin/bash\nwhile (( $# )); do case $1 in --name) name=$2;; --duration) dur=$2;; esac; shift; done\n'
+                    'echo "k6 $name $dur" >> "$TRACE"\n'
+                    'echo "{}" > "$(dirname "$0")/results/stamp-$name-summary.json"\n')
+                (bench / 'run-verify.sh').write_text(
+                    'echo synthetic > "$(dirname "$0")/results/stamp-$1-verify.txt"\n')
+                trace = root / 'trace.txt'
+                env = dict(os.environ, MS_ROOT=str(root), MS_REPO=str(root / 'repo'),
+                           MS_BIN=str(adapters), PATH=str(fake) + ':' + os.environ['PATH'],
+                           DRAIN_RC=str(drain_rc), TRACE=str(trace), CAP_DIAGNOSTIC='0', WARMUP='15')
+                result = subprocess.run(['bash', str(BIN / 'cap-step.sh'), 'synthetic', '1000'],
+                                        env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+                self.assertEqual(drain_rc, result.returncode, result.stderr.decode())
+                expected = ['reset 30000', 'k6 synthetic-warmup 15s']
+                if not drain_rc:
+                    expected += ['reset 120000', 'k6 synthetic-r1000 60s']
+                self.assertEqual(expected, trace.read_text().splitlines())
+                # The warm-up never becomes a report row.
+                steps = root / 'results' / 'synthetic' / 'steps.tsv'
+                self.assertEqual(0 if drain_rc else 1, len(steps.read_text().splitlines()) if steps.exists() else 0)
+
     def test_detached_failure_keeps_lock_and_packages_failure_evidence(self):
         # Real launcher/fd inheritance/finalizer, no DB/GitHub/Java calls.
         with tempfile.TemporaryDirectory() as tmp:
