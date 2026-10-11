@@ -48,6 +48,11 @@ public final class CoordinationRedis {
         switch(op) {
             case "TYPE": {LuaTable type=new LuaTable();type.set("ok",value==null?"none":value instanceof Hash?"hash":value instanceof Zset?"zset":"string");return type;}
             case "GET": return value==null?LuaValue.FALSE:LuaValue.valueOf((String)value);
+            case "MGET": {
+                LuaTable values=new LuaTable();
+                for(int i=2;i<=a.narg();i++){Object v=data.get(a.arg(i).checkjstring());values.set(i-1,v instanceof String s?LuaValue.valueOf(s):LuaValue.FALSE);}
+                return values;
+            }
             case "SET": {
                 String v=a.arg(3).tojstring();long ttl=0;boolean nx=false;
                 for(int i=4;i<=a.narg();i++){String option=a.arg(i).tojstring();if(option.equalsIgnoreCase("NX"))nx=true;else if(option.equalsIgnoreCase("PX"))ttl=a.arg(++i).tolong();else throw new IllegalArgumentException(option);}

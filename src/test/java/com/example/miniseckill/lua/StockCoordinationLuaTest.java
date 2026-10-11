@@ -70,6 +70,11 @@ class StockCoordinationLuaTest {
         assertEquals(-4,reserve("r","2:v1"));assertEquals("10",redis.get("total"));assertEquals(0,redis.hlen("inflight"));
         assertEquals("CORRUPT_TYPE",repair("A","2:v0","7"));assertEquals("5",redis.get("b0"));
     }
+    @Test void missingOrNonNumericBucketBeyondTheChosenOneStillFailsClosed() {
+        init();redis.delete("b1");assertEquals(-1,reserve("r","2:v1"));
+        redis.set("b1","x");assertEquals(-1,reserve("r","2:v1"));
+        assertEquals("10",redis.get("total"));assertEquals("5",redis.get("b0"));assertEquals(0,redis.hlen("inflight"));
+    }
     @Test void wrongLayoutAndMissingFrontierFailClosed() {
         init();redis.set("version","3:v0");assertEquals(-4,reserve("r","2:v1"));assertEquals("LAYOUT_MISMATCH",redis.eval("coord_begin",repair,"A").get(1).tojstring());
         redis.delete("version");assertEquals(-1,reserve("r","2:v1"));assertEquals("UNINITIALIZED",redis.eval("coord_begin",repair,"A").get(1).tojstring());assertEquals("10",redis.get("total"));

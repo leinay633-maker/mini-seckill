@@ -16,13 +16,17 @@ local n = #KEYS - 6
 local bucket = -1
 -- Validate ALL buckets before any write: Redis Lua runtime errors do not roll back.
 local stocks = {}
-for i = 0, n - 1 do
-    if not typed(KEYS[7+i], 'string') then return -4 end
-    local value = tonumber(redis.call('GET', KEYS[7+i]))
-    if not value or value < 0 or value > 2147483647 or value % 1 ~= 0 then return -1 end
-    stocks[i] = value
-end
 if n > 0 then
+    -- One MGET instead of TYPE+GET per bucket. It returns false for a missing key and for a
+    -- non-string one alike, so only those are told apart with TYPE.
+    local values = redis.call('MGET', (unpack or table.unpack)(KEYS, 7, #KEYS))
+    for i = 0, n - 1 do
+        local raw = values[i + 1]
+        if not raw and kind(KEYS[7+i]) ~= 'none' then return -4 end
+        local value = tonumber(raw)
+        if not value or value < 0 or value > 2147483647 or value % 1 ~= 0 then return -1 end
+        stocks[i] = value
+    end
     for offset = 0, n - 1 do
         local index = (tonumber(ARGV[5]) + offset) % n
         if stocks[index] > 0 then bucket = index; break end

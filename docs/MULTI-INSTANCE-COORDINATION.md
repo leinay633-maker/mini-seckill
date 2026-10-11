@@ -33,7 +33,7 @@ E = max(0, A - U)
 
 ## 3. 入口：把“没有落库”变成可追踪状态
 
-`coord_reserve.lua` 同时完成：校验用户 requestId 所有权、校验布局和数值、总库存与一个 bucket 扣减、写入在途 hash、以 Redis TIME 记录回收期限、更新版本 nonce。hash 和版本不设 TTL；到期只意味着可以尝试恢复，**不意味着可以直接退款**。所有已知类型/范围检查在写操作之前，避免把 Lua 原子执行误当成报错后的事务回滚。
+`coord_reserve.lua` 同时完成：校验用户 requestId 所有权、校验布局和数值、总库存与一个 bucket 扣减、写入在途 hash、以 Redis TIME 记录回收期限、更新版本 nonce。hash 和版本不设 TTL；到期只意味着可以尝试恢复，**不意味着可以直接退款**。所有已知类型/范围检查在写操作之前，避免把 Lua 原子执行误当成报错后的事务回滚。全部 bucket 用一次 `MGET` 读出后逐个校验，只对返回空值的 key 补查 TYPE，以区分缺失与类型错误，结果与逐个 TYPE+GET 相同；任何一个 bucket 缺失或损坏，整次预扣都会拒绝，即使选中的 bucket 正常。
 
 版本格式为 `bucketCount:UUID`。每次预扣、登记结算及实际修复都换一个值，用来识别变化和避免 empty→非空→empty 的 ABA；不是单调数字 fencing token。UUID 唯一性是协议假设，布局前缀能拒绝不同 Redis bucket 数量，MySQL segment 配置仍须由部署保持一致。
 
