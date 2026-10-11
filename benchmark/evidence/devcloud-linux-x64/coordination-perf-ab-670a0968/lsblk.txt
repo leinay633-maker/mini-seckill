@@ -1,0 +1,6 @@
+NAME   MAJ:MIN  SIZE TYPE MOUNTPOINT
+zram0  250:0    247G disk [SWAP]
+vda    253:0    100G disk 
+└─vda1 253:1    100G part 
+vdb    253:16     2T disk /etc/hosts
+vdc    253:32   4.4T disk /root

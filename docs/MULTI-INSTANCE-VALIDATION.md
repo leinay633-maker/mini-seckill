@@ -73,5 +73,7 @@ JDK17远端CI、Testcontainers真实MySQL/Redis、RabbitMQ真实故障联动、n
 | `f86c1d5` | 云容器 `coordination-suite.sh start` | 5/9：01/08/09 在 k6 正常结束后因 `KeyError: 'values'`（脚本按 handleSummary 布局读 `--summary-export`）没有执行最终校验；02 等新订单 10 s 超时（消息被投给暂停的 A，broker 尚未重投） |
 | `1fc9e77`（只改编排与离线测试：两种 k6 布局都接受；02 的 A 租约 60 s、02/03 成单等待 45 s） | CI run 38053832422 | 两个 job 成功：242 单元、57 集成，0 失败 / 0 错误 / 0 跳过；Python 8 / 30 / 36 项 OK |
 | `1fc9e77` | 云容器 `coordination-suite.sh start`（20:59–21:06） | **9/9 通过**，`matrix_completed=true`，归档与 sidecar 齐全；容器内 `mvn -B clean verify` 242 单元通过，jar SHA-256 `3da1a000f43411176f3691d3853cecb4bb05a25d79faa26b191abe66752b3ad5` |
+| `670a096`（2026-10-11：预扣改为一次 MGET 校验全部分桶，`COORD_SEND_RESULT` 降为 DEBUG，复测脚本为三个 JVM 打开该日志） | CI run 38105309579 | 两个 job 成功：Surefire 243、Failsafe 57（集成测试未被跳过的断言通过），0 失败 / 0 错误；Python 8 / 33 / 36 项 OK |
+| `670a096` | 云容器 `coordination-suite.sh start`（2026-10-11 10:28–10:34） | **9/9 通过**，`matrix_completed=true`；容器内 `mvn -B clean verify` 243 单元通过，jar SHA-256 `97a48fe7c5ba107bc19cb5a3fc82c437209fff153f1f8837a64eab7777519809`；01 注入偏差 76 ms 后节点 B 写回 APPLIED，其间 15 个请求得到售罄；07 的迟到回调仍记录为 `changed=0` |
 
-两轮证据（含失败的一轮）、逐场景结果和入库处理见 `benchmark/evidence/devcloud-linux-x64/README.md`“多实例库存协调三 JVM 正确性复测”一节。仍未覆盖：多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑，以及多实例下的性能。单 JVM 前后性能 A/B（2026-10-11，入口稳定档 4000–5000 → 3500/s）见同一说明末节。
+两轮证据（含失败的一轮）、逐场景结果和入库处理见 `benchmark/evidence/devcloud-linux-x64/README.md`“多实例库存协调三 JVM 正确性复测”一节。仍未覆盖：多主机、网络分区、Redis/MySQL 故障转移、协调元数据丢失与驱逐、新旧版本混跑，以及多实例下的性能。单 JVM 前后性能 A/B 见同一说明最后三节：最初实现入口稳定档 4000–5000 → 3500/s；预扣改为一次 MGET 后为 4500/s（同轮旧版 4500–5000/s）。
