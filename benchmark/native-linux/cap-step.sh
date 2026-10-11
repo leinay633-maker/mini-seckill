@@ -8,8 +8,8 @@ if (( $# < 2 )) || [[ ! $1 =~ ^[a-zA-Z0-9_.-]+$ ]]; then
   echo "usage: DUR=60 cap-step.sh <label> <rate> [rate ...]" >&2; exit 2
 fi
 LABEL=$1; shift
-DUR=${DUR:-60}; DRAIN_MAX=${DRAIN_MAX:-600}
-[[ $DUR =~ ^[1-9][0-9]*$ && $DRAIN_MAX =~ ^[1-9][0-9]*$ ]] || exit 2
+DUR=${DUR:-60}; DRAIN_MAX=${DRAIN_MAX:-600}; WARMUP=${WARMUP:-0}; WARMUP_RATE=${WARMUP_RATE:-1000}
+[[ $DUR =~ ^[1-9][0-9]*$ && $DRAIN_MAX =~ ^[1-9][0-9]*$ && $WARMUP =~ ^[0-9]+$ && $WARMUP_RATE =~ ^[1-9][0-9]*$ ]] || exit 2
 for rate in "$@"; do [[ $rate =~ ^[1-9][0-9]*$ ]] || exit 2; done
 B=${MS_REPO:-$ROOT/mini-seckill}/benchmark
 BIN=${MS_BIN:-$ROOT/bin}
@@ -31,6 +31,28 @@ trap 'exit 143' TERM
   k6 version
   java -version 2>&1
 } > "$OUT/env.txt"
+# Untimed load on the freshly started JVM, so the first measured step does not include JIT
+# compilation and Hikari growing from minimum-idle. Not a ladder step: no window, report row
+# or stop decision, and the first step resets only after this load has drained.
+if (( WARMUP > 0 )); then
+  prefix="$OUT/$LABEL-warmup"
+  [[ ! -e $prefix-reset.log ]] || { echo "warm-up already exists: $prefix" >&2; exit 2; }
+  stock=$((WARMUP_RATE * WARMUP * 2))
+  echo "== warm-up rate=$WARMUP_RATE ${WARMUP}s stock=$stock $(date '+%T')"
+  bash "$B/reset-env.sh" "$stock" 1 1001 http://localhost:18080 > "$prefix-reset.log" 2>&1
+  redis-cli --scan --pattern 'seckill:rate:*' | xargs -r redis-cli del > /dev/null
+  rc=0
+  BASE_URL=http://localhost:18080 bash "$B/run-k6.sh" --name "$LABEL-warmup" --mode unique \
+    --rate "$WARMUP_RATE" --duration "${WARMUP}s" --stock "$stock" --user-base 100000000 \
+    --vus $(( WARMUP_RATE > 2000 ? WARMUP_RATE : 2000 )) --max-vus 30000 > "$prefix-k6.log" 2>&1 || rc=$?
+  shopt -s nullglob
+  summaries=("$B"/results/*-"$LABEL-warmup"-summary.json)
+  if (( ${#summaries[@]} == 1 )); then cp "${summaries[0]}" "$prefix-summary.json"; fi
+  drained=0
+  python3 "$BIN/pool-budget-observe.py" drain "$prefix" "$DRAIN_MAX" || drained=$?
+  if (( drained != 0 )); then echo "drain not proven after warm-up" >&2; exit 20; fi
+  if (( rc != 0 && rc != 99 )); then echo "k6 infrastructure failure during warm-up: $rc" >&2; exit 21; fi
+fi
 for rate in "$@"; do
   name="$LABEL-r$rate"; prefix="$OUT/$name"
   [[ ! -e $prefix-reset.log ]] || { echo "step already exists: $prefix" >&2; exit 2; }

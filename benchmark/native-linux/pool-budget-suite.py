@@ -195,10 +195,15 @@ def worker(args):
         shutil.copytree(str(sources / 'candidate' / 'benchmark' / 'native-linux'), str(scripts))
         # One identical instrumentation/benchmark snapshot is used with both binaries.
         env.update({'MS_ROOT': str(root), 'MS_BIN': str(scripts), 'MS_REPO': str(sources / 'candidate'),
-                    'MS_RESULTS': str(out), 'DUR': '60', 'DRAIN_MAX': os.environ.get('DRAIN_MAX', '600')})
+                    'MS_RESULTS': str(out), 'DUR': '60', 'DRAIN_MAX': os.environ.get('DRAIN_MAX', '600'),
+                    'WARMUP': os.environ.get('BUDGET_WARMUP_SECONDS', '15'), 'WARMUP_RATE': '1000'})
         if not re.fullmatch(r'[1-9][0-9]*', env['DRAIN_MAX']):
             raise ValueError('DRAIN_MAX must be a positive integer')
+        if not re.fullmatch(r'[0-9]+', env['WARMUP']):
+            raise ValueError('BUDGET_WARMUP_SECONDS must be a non-negative integer')
         manifest['drain_max_seconds'] = int(env['DRAIN_MAX'])
+        # Older evidence has no warm-up: its first step ran on a cold JVM and a minimum-idle pool.
+        manifest['method'].update({'warmup_seconds': int(env['WARMUP']), 'warmup_rate': int(env['WARMUP_RATE'])})
         jars = {}
         (out / 'jars').mkdir()
         for version in ('baseline', 'candidate'):
@@ -247,9 +252,11 @@ def worker(args):
                         folder / 'startup-prometheus.txt', env, timeout=10, check=False)
                 case_env = env.copy()
                 case_env['CAP_DIAGNOSTIC'] = '1' if case['phase'] == 'diagnostic' else '0'
+                warmup = int(env['WARMUP'])
                 code = command(['bash', scripts / 'cap-step.sh', case['label']] + list(map(str, case['rates'])),
                                folder / 'ladder.log', case_env,
-                               timeout=len(case['rates']) * (int(env['DRAIN_MAX']) + 240) + 120, check=False)
+                               timeout=(len(case['rates']) + (1 if warmup else 0)) * (int(env['DRAIN_MAX']) + 240)
+                               + warmup + 120, check=False)
                 case['exit'] = code
                 # 20 = not drained, 21 = k6 artifact/infrastructure error; retain and move to a
                 # fresh JVM only after stop. Script/config failures must not waste the whole matrix.
