@@ -75,6 +75,11 @@ class FinalValidatorTest(unittest.TestCase):
     def test_bucket_shape_sum_and_nonintegral_values_rejected(self):
         for buckets in [[],[7],[0]*64,[7]+[0]*62,[-1,8]+[0]*62,[0.1]*64,[None]*64]:
             s=final();s['buckets']=buckets;self.assertTrue(m.validate_final(s,10,3,False))
+    def test_unsharded_fixture_has_no_buckets_but_still_checks_redis_against_mysql(self):
+        s=final();s['buckets']=[]
+        self.assertEqual([],m.validate_final(s,10,3,False,0))
+        self.assertTrue(m.validate_final(final(),10,3,False,0))
+        s['redis_total']=8;self.assertTrue(m.validate_final(s,10,3,False,0))
     def test_accepted_client_cannot_be_lost(self):
         self.assertTrue(m.validate_final(final(),10,4,False))
     def test_scarcity_requires_all_supply_sold_not_merely_no_oversell(self):

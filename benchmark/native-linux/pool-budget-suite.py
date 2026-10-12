@@ -34,7 +34,7 @@ def build_plan(rounds=3, rates=None, matrix='full'):
     rates = list(RATES if rates is None else rates)
     if rounds < 1 or rounds > 20 or not rates or any(r <= 0 for r in rates) or rates != sorted(set(rates)):
         raise ValueError('rounds must be 1..20; rates must be unique, positive and ascending')
-    if matrix not in ('full', 'ab-shared'):
+    if matrix not in ('full', 'ab-shared', 'buckets'):
         raise ValueError('unknown matrix: %s' % matrix)
     cases = []
     def add(phase, variant, number, ladder):
@@ -46,6 +46,12 @@ def build_plan(rounds=3, rates=None, matrix='full'):
         for number in range(1, rounds + 1):
             for variant in (['baseline', 'shared'] if number % 2 else ['shared', 'baseline']):
                 add('ab', variant, number, rates)
+        return cases
+    if matrix == 'buckets':
+        # Same candidate binary: profile default (128 Redis stock buckets) vs bucketing disabled.
+        for number in range(1, rounds + 1):
+            for variant in (['shared', 'unsharded'] if number % 2 else ['unsharded', 'shared']):
+                add('ablation', variant, number, rates)
         return cases
     # AB, BA, AB ...: primary historical baseline vs selected experimental split.
     for number in range(1, rounds + 1):
@@ -68,6 +74,8 @@ def app_args(variant):
     args = list(COMMON)
     if variant in ('baseline', 'shared'):
         return args + ['--seckill.pool-budget.enabled=false']
+    if variant == 'unsharded':
+        return args + ['--seckill.pool-budget.enabled=false', '--seckill.stock-shard.enabled=false']
     if variant not in ('split28', 'split20'):
         raise ValueError('unknown variant: ' + variant)
     return args + ['--seckill.pool-budget.enabled=true', '--seckill.pool-budget.total-connections=40',
