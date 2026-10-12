@@ -25,6 +25,8 @@ import urllib.request
 BASE = 'e2a6f96fc6b55ac9dc97fd03dc3800e6d758960f'
 PORTS = [18081, 18082, 18083]
 POOL = [14, 13, 13]  # global maximum remains 40, not 40 per JVM
+# Redis stock buckets of the fixture; 0 runs the same protocol with bucketing disabled.
+BUCKETS = int(os.environ.get('COORD_REDIS_BUCKETS', '64'))
 INITIAL = 10
 QUEUE = 'mini.seckill.order.queue'
 DEAD_QUEUE = 'mini.seckill.dead.queue'
@@ -175,7 +177,8 @@ class Node:
             '--seckill.anti-brush.enabled=false', '--seckill.dynamic-rate-limit.enabled=false',
             '--seckill.user-auth.enabled=false', '--seckill.admin-auth.enabled=false',
             '--seckill.mq-fallback-sync=false', '--seckill.sold-out-local-cache.enabled=false',
-            '--seckill.stock-shard.enabled=true', '--seckill.stock-shard.bucket-count=64',
+            *(['--seckill.stock-shard.enabled=true', '--seckill.stock-shard.bucket-count=%d' % BUCKETS]
+              if BUCKETS else ['--seckill.stock-shard.enabled=false']),
             '--seckill.mysql-stock-segment.enabled=true', '--seckill.mysql-stock-segment.segment-count=32',
             '--seckill.capacity.initial-sending-enabled=' + str(initial_sending).lower(),
             '--seckill.mq-consumer.concurrent-consumers=2', '--seckill.mq-consumer.max-concurrent-consumers=2',
@@ -299,7 +302,7 @@ class Suite:
         self.manifest = {'format': 1, 'started_at': time.time(), 'status': 'running', 'cases': plan(),
             'scope': 'one host, three native JVMs, one MySQL/Redis/RabbitMQ; process signals only',
             'configuration_not_results': {'pool_maximum_per_node': POOL, 'pool_maximum_total': sum(POOL),
-                'redis_buckets': 64, 'mysql_segments': 32, 'production_repair_lease_seconds': 20,
+                'redis_buckets': BUCKETS, 'mysql_segments': 32, 'production_repair_lease_seconds': 20,
                 'fixture_broker_heartbeat_seconds': 5, 'fixture_reservation_timeout_seconds': 5, 'production_reservation_timeout_seconds': 60,
                 'live_rate_per_second': 200, 'live_seconds': 75, 'scarce_supply': 41, 'scarce_demand': 410}}
 
@@ -493,11 +496,11 @@ class Suite:
              (SELECT 1 FROM seckill_order o WHERE o.activity_id=m.activity_id AND o.sku_id=m.sku_id AND o.user_id=m.user_id AND o.status=2))"""
         fields = self.sql(query).split('\t'); require(len(fields) == len(columns), 'incomplete MySQL observation')
         result = dict(zip(columns, map(int, fields)))
-        # One read-only Lua gives a coherent Redis observation of all 64 buckets + ledger.
+        # One read-only Lua gives a coherent Redis observation of all buckets + ledger.
         script = "local r={redis.call('GET',KEYS[1]) or 'MISSING',redis.call('HLEN',KEYS[2]),redis.call('ZCARD',KEYS[3])}; for i=4,#KEYS do r[#r+1]=redis.call('GET',KEYS[i]) or 'MISSING' end; return r"
-        keys = [TOTAL, INFLIGHT, DEADLINES] + [TOTAL + ':bucket:%d' % i for i in range(64)]
+        keys = [TOTAL, INFLIGHT, DEADLINES] + [TOTAL + ':bucket:%d' % i for i in range(BUCKETS)]
         values = self.redis('EVAL', script, len(keys), *keys).splitlines()
-        require(len(values) == 67 and 'MISSING' not in values, 'incomplete Redis observation')
+        require(len(values) == 3 + BUCKETS and 'MISSING' not in values, 'incomplete Redis observation')
         values = list(map(int, values))
         result.update(redis_total=values[0], inflight=values[1], deadlines=values[2], buckets=values[3:])
         queue = self.mq(QUEUE); dead = self.mq(DEAD_QUEUE)
@@ -692,7 +695,7 @@ class Suite:
                         self.event('metrics_unknown', node=node.index, error=str(error))
             self.stop_all()
             final = self.observe_retry('stopped-final.jsonl')
-            failures = validate_final(final, self.initial_stock, self.queued, name.startswith('09-'))
+            failures = validate_final(final, self.initial_stock, self.queued, name.startswith('09-'), BUCKETS)
             require(not failures, '; '.join(failures))
             case.update(status='passed', final=final, client_queued=self.queued)
         except BaseException as error:
@@ -758,7 +761,7 @@ def validate_load(result, code, iterations=None):
             'coverage_basis': 'completed iterations == requests == queued + sold_out; completed >= planned demand'}
 
 
-def validate_final(s, stock, queued, scarce):
+def validate_final(s, stock, queued, scarce, buckets=64):
     """Strict validator: missing observations are UNKNOWN/error, never substituted with zeros."""
     required = ['total','available','sold','success','orders_other','messages','cancelled','unfinished','failed_terminal',
         'duplicate_business','duplicate_order_id','consumed_without_success','redis_total','inflight','deadlines','buckets',
@@ -779,9 +782,9 @@ def validate_final(s, stock, queued, scarce):
     for field in ['orders_other','unfinished','failed_terminal','duplicate_business','duplicate_order_id','consumed_without_success',
                   'inflight','deadlines','mq_ready','mq_unacked','mq_dead']:
         if s[field] != 0: errors.append('%s=%s' % (field,s[field]))
-    if not isinstance(s['buckets'], list) or len(s['buckets']) != 64 or any(type(v) is not int or v < 0 for v in s['buckets']):
+    if not isinstance(s['buckets'], list) or len(s['buckets']) != buckets or any(type(v) is not int or v < 0 for v in s['buckets']):
         errors.append('invalid bucket observation')
-    elif sum(s['buckets']) != s['redis_total']: errors.append('Redis aggregate != bucket sum')
+    elif buckets and sum(s['buckets']) != s['redis_total']: errors.append('Redis aggregate != bucket sum')
     if s['redis_total'] != s['available']: errors.append('Redis != quiescent MySQL budget')
     if scarce and s['success'] != stock: errors.append('scarce scenario did not sell exactly the supply')
     return errors

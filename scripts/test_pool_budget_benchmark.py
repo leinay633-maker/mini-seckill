@@ -72,13 +72,21 @@ class PlanTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             suite.build_plan(1, [1000], 'unknown')
 
+    def test_bucket_matrix_alternates_two_configurations_of_the_candidate(self):
+        cases = suite.build_plan(3, [1000, 2000], 'buckets')
+        self.assertEqual(['shared', 'unsharded', 'unsharded', 'shared', 'shared', 'unsharded'],
+                         [c['variant'] for c in cases])
+        self.assertTrue(all(c['phase'] == 'ablation' and c['rates'] == [1000, 2000] for c in cases))
+        self.assertEqual(suite.app_args('shared') + ['--seckill.stock-shard.enabled=false'],
+                         suite.app_args('unsharded'))
+
     def test_plan_rejects_ambiguous_or_nonpositive_ladders(self):
         for rounds, rates in [(0, [1]), (21, [1]), (1, []), (1, [2, 1]), (1, [1, 1]), (1, [0])]:
             with self.subTest(rounds=rounds, rates=rates), self.assertRaises(ValueError):
                 suite.build_plan(rounds, rates)
 
     def test_each_configuration_keeps_total_and_listener_settings(self):
-        for name in ('baseline', 'shared', 'split28', 'split20'):
+        for name in ('baseline', 'shared', 'unsharded', 'split28', 'split20'):
             args = suite.app_args(name)
             self.assertIn('--spring.datasource.hikari.maximum-pool-size=40', args)
             self.assertIn('--spring.datasource.hikari.minimum-idle=8', args)
