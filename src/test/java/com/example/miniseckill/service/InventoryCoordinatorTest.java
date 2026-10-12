@@ -36,6 +36,11 @@ class InventoryCoordinatorTest {
         reserve();h.store.delete(InventoryCoordinator.versionKey(1L,1001L));
         assertDoesNotThrow(()->h.inventory.accepted(1L,1001L,7L,"r"));assertEquals(1,h.store.hlen(inflight));assertEquals("9",h.store.get(total));
     }
+    @Test void acceptedSettlesAndProjectsQueuingWithoutASeparateRead() {
+        reserve();h.inventory.accepted(1L,1001L,7L,"r");
+        assertEquals(0,h.store.hlen(inflight));assertEquals("9",h.store.get(total));assertEquals("1",h.store.get(RedisKeyUtil.orderStatusKey(1L,7L,1001L)));
+        verify(h.redis.opsForHash(),never()).get(anyString(),any());
+    }
     @Test void expiryAllowsResolverToCancelButDoesNotItselfExpireTheIntent() {
         reserve();when(h.messages.selectByRequestId("r")).thenReturn(row(MessageStatus.CANCELLED));
         h.inventory.recoverExpired(1L,1001L);verifyNoInteractions(h.messages);h.store.advance(60_001);

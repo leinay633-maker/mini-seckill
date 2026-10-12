@@ -32,6 +32,7 @@ public class InventoryCoordinator {
     private final SeckillMetrics metrics;
     private final DefaultRedisScript<Long> reserve = script("coord_reserve", Long.class);
     private final DefaultRedisScript<Long> settle = script("coord_settle", Long.class);
+    private final DefaultRedisScript<Long> accept = script("coord_accept", Long.class);
     private final DefaultRedisScript<Long> initialize = script("coord_initialize", Long.class);
     private final DefaultRedisScript<Long> release = script("compare_delete", Long.class);
     private final DefaultRedisScript<Long> projection = script("coord_project", Long.class);
@@ -59,9 +60,9 @@ public class InventoryCoordinator {
     }
     private static String nonce() { return UUID.randomUUID().toString(); }
     // Layout travels with every frontier version: mismatched rolling configurations fail closed.
-    private String frontier() {
-        int buckets = properties.getStockShard().isEnabled() ? Math.max(1, properties.getStockShard().getBucketCount()) : 0;
-        return buckets + ":" + nonce();
+    private String frontier() { return layoutBuckets() + ":" + nonce(); }
+    private int layoutBuckets() {
+        return properties.getStockShard().isEnabled() ? Math.max(1, properties.getStockShard().getBucketCount()) : 0;
     }
     public static String versionKey(Long a, Long s) { return "seckill:coord:" + a + ":" + s + ":version"; }
     public static String inflightKey(Long a, Long s) { return "seckill:coord:" + a + ":" + s + ":inflight"; }
@@ -86,12 +87,20 @@ public class InventoryCoordinator {
         if (Long.valueOf(1L).equals(result)) faults.hit("after-reserve", requestId + " " + a + " " + user + " " + s);
         return result;
     }
-    /** INSERT has definitely returned success. Failure here leaves a recoverable reservation, not a refund. */
+    /**
+     * INSERT has definitely returned success. One script clears the reservation without refund and
+     * projects QUEUING. Failure here leaves a recoverable reservation, not a refund.
+     */
     public void accepted(Long a, Long s, Long user, String requestId) {
         requireAutocommitBoundary();
         faults.hit("after-persist", requestId + " " + a + " " + user + " " + s);
-        try { settleKnown(a,s,user,requestId,false); }
-        catch (RuntimeException e) { log.warn("COORD_ACCEPTED_PENDING_SETTLEMENT requestId={}", requestId, e); }
+        try {
+            Long code = redis.execute(accept, List.of(versionKey(a,s), inflightKey(a,s), deadlinesKey(a,s),
+                    RedisKeyUtil.userSkuKey(a,user,s), RedisKeyUtil.orderStatusKey(a,user,s)),
+                    requestId, user.toString(), Integer.toString(layoutBuckets()), frontier(),
+                    Integer.toString(OrderStatus.QUEUING.getCode()), Long.toString(properties.getOrderStatusTtl().toMillis()));
+            if (code == null || code < 0) throw new IllegalStateException("reservation settlement refused: " + code);
+        } catch (RuntimeException e) { log.warn("COORD_ACCEPTED_PENDING_SETTLEMENT requestId={}", requestId, e); }
     }
     /** Never infer rollback from an exception. The unique-key cancellation insertion is the database fence. */
     public void resolveUncertain(Long a, Long s, Long user, String requestId) {

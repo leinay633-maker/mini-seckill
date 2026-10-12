@@ -282,10 +282,9 @@ public class SeckillServiceImpl implements SeckillService {
             throw ex;
         }
 
+        // Also projects QUEUING. A very fast consumer may already have committed SUCCESS; the
+        // projection never overwrites it, and queryOrder reads MySQL first.
         inventory.accepted(activityId, skuId, userId, requestId);
-        // A very fast consumer may already have committed SUCCESS; queryOrder reads MySQL first.
-        try { inventory.projectOwned(activityId, skuId, userId, requestId, OrderStatus.QUEUING, false); }
-        catch (RuntimeException e) { log.warn("COORD_QUEUING_PROJECTION_FAILED requestId={}", requestId,e); }
         try {
             long publishStarted = System.nanoTime();
             try {
