@@ -21,6 +21,11 @@ spring:
     password: guest
     publisher-confirm-type: correlated
     publisher-returns: true
+    # Boot's default of 25 cached channels is below the number of request threads publishing at
+    # once; every extra send would open and close a confirm-mode channel.
+    cache:
+      channel:
+        size: 256
     listener:
       simple:
         retry:
