@@ -39,6 +39,8 @@ E = max(0, A - U)
 
 自动提交的本地消息 INSERT 明确成功后，`accepted` 只清除在途登记，**不退款**。消费者可能已先行提交；消息对应预算由数据库事实接手。清理 Redis 失败保留登记，其他实例之后可以接续。
 
+这一步由 `coord_accept.lua` 一次完成：只传版本、在途、期限、用户锁、状态 5 个 key，在脚本内读登记，校验 owner 前缀、版本布局和 bucket 序号范围后删除登记、更换版本，再投影“排队中”（只有仍持有用户锁的 requestId 才写，不覆盖成功/失败等终态）。接纳不读写库存 key，所以不传 128 个 bucket；清算被拒绝（版本缺失、布局不符、owner 不符）时登记原样保留、交给恢复，投影照常进行，与原来“先清算、再单独投影”的两次调用结果相同。此前这里是 Java 先 HGET 读登记、再带全部 bucket key 调 `coord_settle.lua`、再调 `coord_project.lua`，每单入口的 Redis 往返由 5 次（SET NX、预扣、HGET、清算、投影）降为 3 次（SET NX、预扣、接纳），与 PR #5 之前相同。
+
 ### INSERT 结果不明、暂停或强杀
 
 `resolveUncertain` 先尝试插入同 requestId 的 CANCELLED 墓碑：
@@ -50,7 +52,7 @@ ON DUPLICATE KEY UPDATE request_id = VALUES(request_id);
 
 唯一键与迟到/尚未提交的真实 INSERT 争同一行。真实 INSERT 已提交时，恢复者读回实际消息，不退款；真实事务回滚、墓碑先建立时才退款。旧 JVM 恢复后不能越过墓碑重新受理。数据库暂时不可用或锁等待超时只留下未清算登记，不以“SELECT 看不到”“已经过了 5 秒”推断回滚。
 
-随后 `coord_settle.lua` 用 requestId 和登记内容 CAS；退款与删除登记、变更版本在同一脚本内，多个恢复者只能退款一次。迟到状态投影和删除用户锁也必须匹配原 requestId，不能删除后来同用户的新请求。总库存/bucket 丢失时不使用 INCR 创建不完整库存；清算后由受保护修复统一重建计数。
+随后 `coord_settle.lua` 用 requestId 和登记内容 CAS（这条路径可能退款，需要 bucket key，仍是 HGET + 清算脚本两步）；退款与删除登记、变更版本在同一脚本内，多个恢复者只能退款一次。迟到状态投影和删除用户锁也必须匹配原 requestId，不能删除后来同用户的新请求。总库存/bucket 丢失时不使用 INCR 创建不完整库存；清算后由受保护修复统一重建计数。
 
 数据库墓碑必须保留到能够证明所有旧写入者不可能恢复。现在没有自动垃圾回收协议；不能为了省空间在线删除墓碑或在途元数据。恢复扫描按 SKU 游标分页，每个实例都可扫描，某行失败不阻断整批，但持续数据库故障下不保证有限时间恢复。
 
@@ -109,7 +111,7 @@ DEAD/TIMEOUT/CANCELLED/CONSUMED 等终态不再支持原地 replay，返回 409�
 
 ## 8. 深挖时可复现的反例与源文件
 
-- `StockCoordinationLuaTest`：旧 owner、登记进出后空表 ABA、错误类型不能写一半、单次退款及 owner 投影。
+- `StockCoordinationLuaTest`：旧 owner、登记进出后空表 ABA、错误类型不能写一半、单次退款及 owner 投影；接纳脚本的无退款清算与投影、不覆盖终态和他人用户锁、拒绝时保留登记。
 - `InventoryCoordinatorTest`：读数据库与提交 Lua 之间插入真实脚本操作；前后边界与恢复结果。
 - `CoordinationBoundaryTest`：外层事务拒绝、生产默认不能触发文件故障点、终态重放与重复初始化拒绝。
 - `StockCoordinationIT`：真实 MySQL/Redis 的版本交错、unique-key 锁等待错误 1205、提交/回滚两种实际结果、多个恢复者退款一次、发送认领与旧回调、同语句事实、分段统计。固定规模用例不是容量测试。

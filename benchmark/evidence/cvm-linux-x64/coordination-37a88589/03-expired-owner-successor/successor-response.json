@@ -1,0 +1,10 @@
+{
+  "started_at": 1791778165.8530748,
+  "finished_at": 1791778166.0045905,
+  "http_status": 200,
+  "raw": "{\"code\":0,\"message\":\"库存已核对\"}",
+  "body": {
+    "code": 0,
+    "message": "库存已核对"
+  }
+}
