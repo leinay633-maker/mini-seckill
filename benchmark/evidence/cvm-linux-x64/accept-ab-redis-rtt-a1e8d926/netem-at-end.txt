@@ -1,0 +1,6 @@
+qdisc prio 1: root refcnt 2 bands 4 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1
+ Sent 46792767961 bytes 170895398 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+qdisc netem 40: parent 1:4 limit 1000 delay 249us seed 16235671052997479701
+ Sent 22587644467 bytes 36544402 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0

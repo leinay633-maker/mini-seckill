@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "baseline_sha": "761981bd9a6857c6904f95c6b9b728e3c9160ae5",
+  "matrix": "ab-shared",
+  "started_at": 1791784530.6491272,
+  "cases": [
+    {
+      "label": "01-ab-baseline-round1",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791784544.6623025,
+      "jar_sha256": "720186b9d2eeceb5ac7b2063afbd12fb1a28e7b16f72fecff7de80abc9978aab",
+      "exit": 0,
+      "finished_at": 1791784947.8824773
+    },
+    {
+      "label": "02-ab-shared-round1",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791784948.9523606,
+      "jar_sha256": "1193efe5134436365b5e478e45c9d92cd0aa72fd8237acb563fbdd9b7e2081b9",
+      "exit": 0,
+      "finished_at": 1791785348.1865308
+    },
+    {
+      "label": "03-ab-shared-round2",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791785350.2594583,
+      "jar_sha256": "1193efe5134436365b5e478e45c9d92cd0aa72fd8237acb563fbdd9b7e2081b9",
+      "exit": 0,
+      "finished_at": 1791785747.9266725
+    },
+    {
+      "label": "04-ab-baseline-round2",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791785749.998005,
+      "jar_sha256": "720186b9d2eeceb5ac7b2063afbd12fb1a28e7b16f72fecff7de80abc9978aab",
+      "exit": 0,
+      "finished_at": 1791786147.7696533
+    },
+    {
+      "label": "05-ab-baseline-round3",
+      "phase": "ab",
+      "variant": "baseline",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791786148.8391235,
+      "jar_sha256": "720186b9d2eeceb5ac7b2063afbd12fb1a28e7b16f72fecff7de80abc9978aab",
+      "exit": 0,
+      "finished_at": 1791786548.047794
+    },
+    {
+      "label": "06-ab-shared-round3",
+      "phase": "ab",
+      "variant": "shared",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        3000
+      ],
+      "started_at": 1791786549.1175263,
+      "jar_sha256": "1193efe5134436365b5e478e45c9d92cd0aa72fd8237acb563fbdd9b7e2081b9",
+      "exit": 0,
+      "finished_at": 1791786948.225179
+    }
+  ],
+  "method": {
+    "duration_seconds": 60,
+    "disk_await_ms": 2,
+    "disk_noisy_seconds": 5,
+    "minimum_disk_coverage": 0.9,
+    "drain_quiet_seconds": 5,
+    "capacity_claim": "60s sampling only; not a soak test",
+    "warmup_seconds": 15,
+    "warmup_rate": 1000
+  },
+  "candidate_sha": "a1e8d92658eb764658778f97b93916c7a7522124",
+  "disk_device": "vdb",
+  "disk_device_source": "DISK_DEVICE override",
+  "drain_max_seconds": 600,
+  "baseline_jar_sha256": "720186b9d2eeceb5ac7b2063afbd12fb1a28e7b16f72fecff7de80abc9978aab",
+  "candidate_jar_sha256": "1193efe5134436365b5e478e45c9d92cd0aa72fd8237acb563fbdd9b7e2081b9",
+  "finished_at": 1791786949.2991056,
+  "status": "completed",
+  "error": null,
+  "observed_steps": 18,
+  "planned_steps": 18,
+  "correctness_false": 0,
+  "correctness_unknown": 0
+}

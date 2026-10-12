@@ -1,0 +1,9 @@
+{
+  "rate": 1000,
+  "duration": 60,
+  "t0": 1791781599.3944874,
+  "t1": 1791781659.8151147,
+  "k6_exit": 0,
+  "initial_stock": 120000,
+  "load_window": "launch t0 .. t0+60s; sample-based estimate"
+}

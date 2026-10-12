@@ -1,0 +1,2540 @@
+[
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60000,
+    "http_p99_ms": 7.983588099999981,
+    "success_per_s_60s_estimate": 992.35,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 13.7,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 1,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 5.1,
+        "active_peak": 21.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 34.517,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354301.0,
+        "acquire_ms": 0.026,
+        "usage_count_delta": 354302.0,
+        "usage_ms": 0.389,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781197.9475021,
+      "db": {
+        "messages": 60000,
+        "nonterminal": 0,
+        "consumed": 60000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60000,
+        "success": 60000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781197.9907162,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 60000,
+        "stock_available": 98941
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791781123.782445,
+      "t1": 1791781184.1860764,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120002,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120002,
+    "http_p99_ms": 34.87877213000001,
+    "success_per_s_60s_estimate": 1969.47,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 13.01,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 11.283,
+        "active_peak": 40.0,
+        "pending_mean": 0.283,
+        "pending_peak": 17.0,
+        "idle_mean": 28.717,
+        "idle_peak": 35.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708145.0,
+        "acquire_ms": 0.075,
+        "usage_count_delta": 708147.0,
+        "usage_ms": 0.494,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781278.0228057,
+      "db": {
+        "messages": 120002,
+        "nonterminal": 0,
+        "consumed": 120002,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120002,
+        "success": 120002
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781278.0932283,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119998,
+        "stock_available": 119998
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791781204.3634303,
+      "t1": 1791781264.9521065,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180000,
+    "http_p99_ms": 60.29972550999993,
+    "success_per_s_60s_estimate": 2943.05,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.07,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 1,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 23.417,
+        "active_peak": 40.0,
+        "pending_mean": 0.617,
+        "pending_peak": 16.0,
+        "idle_mean": 16.617,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1061997.0,
+        "acquire_ms": 0.06,
+        "usage_count_delta": 1061975.0,
+        "usage_ms": 0.822,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781357.4533489,
+      "db": {
+        "messages": 180000,
+        "nonterminal": 0,
+        "consumed": 180000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180000,
+        "success": 180000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781357.55178,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 180000,
+        "stock_available": 244292
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791781286.4952407,
+      "t1": 1791781347.3262758,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210003,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 209998,
+    "http_p99_ms": 360.11889610000054,
+    "success_per_s_60s_estimate": 2443.7,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.35,
+    "mq_ready_peak": 53958,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 27.333,
+        "active_peak": 40.0,
+        "pending_mean": 7.433,
+        "pending_peak": 98.0,
+        "idle_mean": 12.717,
+        "idle_peak": 31.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1010652.0,
+        "acquire_ms": 1.114,
+        "usage_count_delta": 1010642.0,
+        "usage_ms": 1.34,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781447.692036,
+      "db": {
+        "messages": 209998,
+        "nonterminal": 0,
+        "consumed": 209998,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 209998,
+        "success": 209998
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781447.8054044,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 210002,
+        "stock_available": 210002
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791781368.2428145,
+      "t1": 1791781430.2805924,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 216025,
+    "dropped": 23978,
+    "sys_err": 0.0399583381553061,
+    "queued": 207392,
+    "http_p99_ms": 1637.6604087400012,
+    "success_per_s_60s_estimate": 2378.17,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.62,
+    "mq_ready_peak": 44779,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 30.97,
+        "active_peak": 40.0,
+        "pending_mean": 14.667,
+        "pending_peak": 108.0,
+        "idle_mean": 9.03,
+        "idle_peak": 25.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 577831.0,
+        "acquire_ms": 1.294,
+        "usage_count_delta": 577830.0,
+        "usage_ms": 1.342,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781538.141904,
+      "db": {
+        "messages": 207392,
+        "nonterminal": 0,
+        "consumed": 207392,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 207392,
+        "success": 207392
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781538.256817,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 272608,
+        "stock_available": 363688
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791781459.8174684,
+      "t1": 1791781526.4675045,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "01-ab-baseline-round1",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 1,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 12.273059930000072,
+    "success_per_s_60s_estimate": 993.37,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 7.44,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 4.433,
+        "active_peak": 11.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 34.933,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354431.0,
+        "acquire_ms": 0.033,
+        "usage_count_delta": 354428.0,
+        "usage_ms": 0.419,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781667.3202772,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781667.3636308,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791781599.3944874,
+      "t1": 1791781659.8151147,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 25.894781809999984,
+    "success_per_s_60s_estimate": 1973.77,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 8.72,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 11.883,
+        "active_peak": 29.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 28.083,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 706626.0,
+        "acquire_ms": 0.045,
+        "usage_count_delta": 706615.0,
+        "usage_ms": 0.521,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781742.9826558,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781743.0527704,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791781673.6093292,
+      "t1": 1791781734.1980195,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180001,
+    "http_p99_ms": 73.21717039999997,
+    "success_per_s_60s_estimate": 2933.82,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.16,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 26.467,
+        "active_peak": 40.0,
+        "pending_mean": 1.433,
+        "pending_peak": 22.0,
+        "idle_mean": 13.5,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1059576.0,
+        "acquire_ms": 0.115,
+        "usage_count_delta": 1059543.0,
+        "usage_ms": 1.075,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781823.5534348,
+      "db": {
+        "messages": 180001,
+        "nonterminal": 0,
+        "consumed": 180001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180001,
+        "success": 180001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781823.6502154,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179999,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791781751.4637551,
+      "t1": 1791781812.330761,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210002,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 210002,
+    "http_p99_ms": 199.7931138599999,
+    "success_per_s_60s_estimate": 2220.32,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.42,
+    "mq_ready_peak": 68013,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 34.133,
+        "active_peak": 40.0,
+        "pending_mean": 20.5,
+        "pending_peak": 150.0,
+        "idle_mean": 5.85,
+        "idle_peak": 25.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 991943.0,
+        "acquire_ms": 1.339,
+        "usage_count_delta": 991919.0,
+        "usage_ms": 1.494,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791781913.0821915,
+      "db": {
+        "messages": 210002,
+        "nonterminal": 0,
+        "consumed": 210002,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 210002,
+        "success": 210002
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791781913.1955595,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 209998,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791781834.3252573,
+      "t1": 1791781895.6007702,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 218862,
+    "dropped": 21138,
+    "sys_err": 0.020944704882528718,
+    "queued": 214278,
+    "http_p99_ms": 1488.5590533599986,
+    "success_per_s_60s_estimate": 2068.05,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.24,
+    "mq_ready_peak": 70081,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 35.441,
+        "active_peak": 40.0,
+        "pending_mean": 41.588,
+        "pending_peak": 255.0,
+        "idle_mean": 4.529,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 572948.0,
+        "acquire_ms": 1.768,
+        "usage_count_delta": 572909.0,
+        "usage_ms": 1.555,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782008.4156847,
+      "db": {
+        "messages": 214278,
+        "nonterminal": 0,
+        "consumed": 214278,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 214278,
+        "success": 214278
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782008.531101,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 265722,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791781925.5367417,
+      "t1": 1791781992.1185093,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ab-shared-round1",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 1,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60000,
+    "http_p99_ms": 12.200768489999945,
+    "success_per_s_60s_estimate": 992.32,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 8.48,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 3.9,
+        "active_peak": 7.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 35.0,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354349.0,
+        "acquire_ms": 0.032,
+        "usage_count_delta": 354345.0,
+        "usage_ms": 0.428,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782137.7945604,
+      "db": {
+        "messages": 60000,
+        "nonterminal": 0,
+        "consumed": 60000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60000,
+        "success": 60000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782137.8377237,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 60000,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791782068.8313298,
+      "t1": 1791782129.2489672,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 23.35798239999996,
+    "success_per_s_60s_estimate": 1969.53,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 7.66,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 0.983,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 10.95,
+        "active_peak": 21.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 29.05,
+        "idle_peak": 36.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708358.0,
+        "acquire_ms": 0.037,
+        "usage_count_delta": 708357.0,
+        "usage_ms": 0.512,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782212.4308736,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782212.501803,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791782144.1022658,
+      "t1": 1791782204.7114441,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180002,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180002,
+    "http_p99_ms": 75.58520055999999,
+    "success_per_s_60s_estimate": 2931.45,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 6.79,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 25.433,
+        "active_peak": 40.0,
+        "pending_mean": 0.833,
+        "pending_peak": 20.0,
+        "idle_mean": 14.567,
+        "idle_peak": 32.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1062173.0,
+        "acquire_ms": 0.102,
+        "usage_count_delta": 1062161.0,
+        "usage_ms": 1.053,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782288.5618072,
+      "db": {
+        "messages": 180002,
+        "nonterminal": 0,
+        "consumed": 180002,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180002,
+        "success": 180002
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782288.658737,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179998,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791782220.861785,
+      "t1": 1791782281.7152698,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 209999,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 209999,
+    "http_p99_ms": 277.21028836999966,
+    "success_per_s_60s_estimate": 2148.7,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 21.89,
+    "mq_ready_peak": 67438,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 1,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 33.867,
+        "active_peak": 40.0,
+        "pending_mean": 20.25,
+        "pending_peak": 150.0,
+        "idle_mean": 6.15,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 983536.0,
+        "acquire_ms": 1.471,
+        "usage_count_delta": 983496.0,
+        "usage_ms": 1.498,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782382.7170668,
+      "db": {
+        "messages": 209999,
+        "nonterminal": 0,
+        "consumed": 209999,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 209999,
+        "success": 209999
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782382.8298588,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 210001,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791782299.369062,
+      "t1": 1791782360.7711883,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 214129,
+    "dropped": 25872,
+    "sys_err": 0.03899051506334966,
+    "queued": 205780,
+    "http_p99_ms": 2123.281786079999,
+    "success_per_s_60s_estimate": 2136.12,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 81.77,
+    "mq_ready_peak": 54765,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 1,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 31.838,
+        "active_peak": 40.0,
+        "pending_mean": 28.622,
+        "pending_peak": 230.0,
+        "idle_mean": 8.081,
+        "idle_peak": 26.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 630947.0,
+        "acquire_ms": 1.68,
+        "usage_count_delta": 630946.0,
+        "usage_ms": 1.523,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782543.3484972,
+      "db": {
+        "messages": 205780,
+        "nonterminal": 0,
+        "consumed": 205780,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 205780,
+        "success": 205780
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782543.4594254,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 274220,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791782394.8674796,
+      "t1": 1791782461.5146923,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ab-shared-round2",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 2,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 10.094342190000024,
+    "success_per_s_60s_estimate": 992.22,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 7.45,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 5.5,
+        "active_peak": 40.0,
+        "pending_mean": 0.183,
+        "pending_peak": 11.0,
+        "idle_mean": 32.433,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354299.0,
+        "acquire_ms": 0.041,
+        "usage_count_delta": 354300.0,
+        "usage_ms": 0.407,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782672.6701462,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782672.7125793,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 102974
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791782604.7415984,
+      "t1": 1791782665.1636837,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120000,
+    "http_p99_ms": 34.792300300000065,
+    "success_per_s_60s_estimate": 1972.4,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 8.73,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 10.983,
+        "active_peak": 30.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 28.967,
+        "idle_peak": 35.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708234.0,
+        "acquire_ms": 0.07,
+        "usage_count_delta": 708240.0,
+        "usage_ms": 0.494,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782748.3352697,
+      "db": {
+        "messages": 120000,
+        "nonterminal": 0,
+        "consumed": 120000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120000,
+        "success": 120000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782748.4065,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 120000,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791782678.9705908,
+      "t1": 1791782739.5424743,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180000,
+    "http_p99_ms": 45.080581909999964,
+    "success_per_s_60s_estimate": 2941.83,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.06,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 25.35,
+        "active_peak": 40.0,
+        "pending_mean": 0.783,
+        "pending_peak": 23.0,
+        "idle_mean": 14.683,
+        "idle_peak": 30.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1063629.0,
+        "acquire_ms": 0.052,
+        "usage_count_delta": 1063621.0,
+        "usage_ms": 0.822,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782827.8526766,
+      "db": {
+        "messages": 180000,
+        "nonterminal": 0,
+        "consumed": 180000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180000,
+        "success": 180000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782827.9492395,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 180000,
+        "stock_available": 224699
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791782756.8950458,
+      "t1": 1791782817.72976,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 209705,
+    "dropped": 296,
+    "sys_err": 0,
+    "queued": 209704,
+    "http_p99_ms": 578.6080483,
+    "success_per_s_60s_estimate": 2390.78,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.38,
+    "mq_ready_peak": 55423,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 29.288,
+        "active_peak": 40.0,
+        "pending_mean": 14.339,
+        "pending_peak": 111.0,
+        "idle_mean": 10.593,
+        "idle_peak": 33.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 998346.0,
+        "acquire_ms": 1.194,
+        "usage_count_delta": 998370.0,
+        "usage_ms": 1.29,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791782918.0248678,
+      "db": {
+        "messages": 209704,
+        "nonterminal": 0,
+        "consumed": 209704,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 209704,
+        "success": 209704
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791782918.138344,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 210296,
+        "stock_available": 360825
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791782838.6525843,
+      "t1": 1791782900.5891333,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 215127,
+    "dropped": 24874,
+    "sys_err": 0.04897572131810512,
+    "queued": 204588,
+    "http_p99_ms": 1592.18396697,
+    "success_per_s_60s_estimate": 2343.32,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.57,
+    "mq_ready_peak": 45224,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 27.719,
+        "active_peak": 40.0,
+        "pending_mean": 27.75,
+        "pending_peak": 282.0,
+        "idle_mean": 12.188,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 553718.0,
+        "acquire_ms": 1.402,
+        "usage_count_delta": 553679.0,
+        "usage_ms": 1.363,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783008.4008067,
+      "db": {
+        "messages": 204588,
+        "nonterminal": 0,
+        "consumed": 204588,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 204588,
+        "success": 204588
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783008.5121582,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 275412,
+        "stock_available": 350888
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791782930.1161616,
+      "t1": 1791782996.769756,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "04-ab-baseline-round2",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 2,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 7.428538900000024,
+    "success_per_s_60s_estimate": 992.18,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 7.45,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 3.644,
+        "active_peak": 8.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 35.288,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 348289.0,
+        "acquire_ms": 0.021,
+        "usage_count_delta": 348292.0,
+        "usage_ms": 0.368,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783137.8163707,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783137.8602185,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 103061
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791783069.8901622,
+      "t1": 1791783130.3117483,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 23.70276020999989,
+    "success_per_s_60s_estimate": 1971.33,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 8.74,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 11.25,
+        "active_peak": 37.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 28.75,
+        "idle_peak": 37.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708511.0,
+        "acquire_ms": 0.051,
+        "usage_count_delta": 708508.0,
+        "usage_ms": 0.481,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783213.4928508,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783213.5650964,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 119999
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791783144.118689,
+      "t1": 1791783204.696482,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180001,
+    "http_p99_ms": 59.430649799999934,
+    "success_per_s_60s_estimate": 2950.25,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.07,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 24.4,
+        "active_peak": 40.0,
+        "pending_mean": 1.183,
+        "pending_peak": 18.0,
+        "idle_mean": 15.583,
+        "idle_peak": 29.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1065556.0,
+        "acquire_ms": 0.068,
+        "usage_count_delta": 1065566.0,
+        "usage_ms": 0.84,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783293.0023022,
+      "db": {
+        "messages": 180001,
+        "nonterminal": 0,
+        "consumed": 180001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180001,
+        "success": 180001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783293.102613,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179999,
+        "stock_available": 225642
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791783222.0207012,
+      "t1": 1791783282.8739393,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210005,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 210005,
+    "http_p99_ms": 463.0417802999995,
+    "success_per_s_60s_estimate": 2536.58,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.26,
+    "mq_ready_peak": 47148,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 30.283,
+        "active_peak": 40.0,
+        "pending_mean": 13.583,
+        "pending_peak": 110.0,
+        "idle_mean": 9.717,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1019281.0,
+        "acquire_ms": 0.981,
+        "usage_count_delta": 1019269.0,
+        "usage_ms": 1.315,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783383.1610441,
+      "db": {
+        "messages": 210005,
+        "nonterminal": 0,
+        "consumed": 210005,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 210005,
+        "success": 210005
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783383.273337,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 209995,
+        "stock_available": 356078
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791783303.9020476,
+      "t1": 1791783365.8396769,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 215602,
+    "dropped": 24408,
+    "sys_err": 0.03482342464355618,
+    "queued": 208094,
+    "http_p99_ms": 1574.75892205,
+    "success_per_s_60s_estimate": 2368.32,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.64,
+    "mq_ready_peak": 48729,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 27.886,
+        "active_peak": 40.0,
+        "pending_mean": 15.657,
+        "pending_peak": 136.0,
+        "idle_mean": 12.057,
+        "idle_peak": 30.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 615233.0,
+        "acquire_ms": 1.436,
+        "usage_count_delta": 615230.0,
+        "usage_ms": 1.34,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783473.4937482,
+      "db": {
+        "messages": 208094,
+        "nonterminal": 0,
+        "consumed": 208094,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 208094,
+        "success": 208094
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783473.6055741,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 271906,
+        "stock_available": 351989
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791783395.151075,
+      "t1": 1791783461.7930079,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "05-ab-baseline-round3",
+    "phase": "ab",
+    "variant": "baseline",
+    "round": 3,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 9.756799200000113,
+    "success_per_s_60s_estimate": 992.68,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 7.44,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 4.233,
+        "active_peak": 18.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 33.75,
+        "idle_peak": 39.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354557.0,
+        "acquire_ms": 0.027,
+        "usage_count_delta": 354560.0,
+        "usage_ms": 0.413,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783602.647845,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783602.6916943,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791783534.7181509,
+      "t1": 1791783595.1429174,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 19.97907449999987,
+    "success_per_s_60s_estimate": 1973.28,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 8.73,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 11.467,
+        "active_peak": 29.0,
+        "pending_mean": 0.017,
+        "pending_peak": 1.0,
+        "idle_mean": 28.533,
+        "idle_peak": 36.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708539.0,
+        "acquire_ms": 0.023,
+        "usage_count_delta": 708541.0,
+        "usage_ms": 0.496,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783678.3083458,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783678.378943,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791783608.93791,
+      "t1": 1791783669.5191011,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180000,
+    "http_p99_ms": 64.43969720000018,
+    "success_per_s_60s_estimate": 2932.4,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.16,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 25.867,
+        "active_peak": 40.0,
+        "pending_mean": 2.15,
+        "pending_peak": 25.0,
+        "idle_mean": 14.0,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1058726.0,
+        "acquire_ms": 0.091,
+        "usage_count_delta": 1058697.0,
+        "usage_ms": 1.041,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783758.9466605,
+      "db": {
+        "messages": 180000,
+        "nonterminal": 0,
+        "consumed": 180000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180000,
+        "success": 180000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783759.0437477,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 180000,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791783686.852534,
+      "t1": 1791783747.7218752,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 208996,
+    "dropped": 1005,
+    "sys_err": 0,
+    "queued": 208996,
+    "http_p99_ms": 624.7418964999996,
+    "success_per_s_60s_estimate": 2233.15,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.34,
+    "mq_ready_peak": 62094,
+    "disk": {
+      "coverage": 0.983,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 31.767,
+        "active_peak": 40.0,
+        "pending_mean": 19.55,
+        "pending_peak": 186.0,
+        "idle_mean": 8.25,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 993733.0,
+        "acquire_ms": 1.334,
+        "usage_count_delta": 993703.0,
+        "usage_ms": 1.474,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783848.280695,
+      "db": {
+        "messages": 208996,
+        "nonterminal": 0,
+        "consumed": 208996,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 208996,
+        "success": 208996
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783848.393627,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 211004,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791783769.8398597,
+      "t1": 1791783831.8775902,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 219878,
+    "dropped": 20125,
+    "sys_err": 0.014708156341243782,
+    "queued": 216644,
+    "http_p99_ms": 1601.8753096899998,
+    "success_per_s_60s_estimate": 2010.13,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.28,
+    "mq_ready_peak": 68366,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "HikariPool-1": {
+        "active_mean": 35.667,
+        "active_peak": 40.0,
+        "pending_mean": 41.933,
+        "pending_peak": 305.0,
+        "idle_mean": 4.4,
+        "idle_peak": 33.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 764667.0,
+        "acquire_ms": 1.764,
+        "usage_count_delta": 764640.0,
+        "usage_ms": 1.474,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791783943.4372587,
+      "db": {
+        "messages": 216644,
+        "nonterminal": 0,
+        "consumed": 216644,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 216644,
+        "success": 216644
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791783943.554303,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 263356,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791783860.5257804,
+      "t1": 1791783927.0988002,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ab-shared-round3",
+    "phase": "ab",
+    "variant": "shared",
+    "round": 3,
+    "rate": 5500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  }
+]
