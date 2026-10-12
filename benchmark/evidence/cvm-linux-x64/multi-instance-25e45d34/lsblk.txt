@@ -1,0 +1,4 @@
+NAME   MAJ:MIN  SIZE TYPE MOUNTPOINT
+vda    253:0    100G disk 
+└─vda1 253:1    100G part /
+vdb    253:16    50G disk /data

@@ -1,0 +1,29 @@
+{
+  "name": "01-live-three-and-repair",
+  "status": "passed",
+  "started_at": 1791795015.9394963,
+  "final": {
+    "total": 30000,
+    "available": 15102,
+    "sold": 14898,
+    "success": 14898,
+    "orders_other": 0,
+    "messages": 14898,
+    "cancelled": 0,
+    "unfinished": 0,
+    "failed_terminal": 0,
+    "duplicate_business": 0,
+    "duplicate_order_id": 0,
+    "consumed_without_success": 0,
+    "redis_total": 15102,
+    "inflight": 0,
+    "deadlines": 0,
+    "buckets": [],
+    "mq_ready": 0,
+    "mq_unacked": 0,
+    "mq_dead": 0,
+    "at": 1791795124.6794436
+  },
+  "client_queued": 14898,
+  "finished_at": 1791795124.6887186
+}

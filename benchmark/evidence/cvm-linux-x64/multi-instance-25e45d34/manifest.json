@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "baseline_sha": "3117404bb9e3303e9d6aa1756d54d41fbf9355d3",
+  "matrix": "multi",
+  "started_at": 1791792378.9789078,
+  "cases": [
+    {
+      "label": "01-ablation-shared-round1",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791792393.3220325,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791792867.7486537
+    },
+    {
+      "label": "02-ablation-multi3-round1",
+      "phase": "ablation",
+      "variant": "multi3",
+      "round": 1,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791792868.8232036,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791793252.4324064
+    },
+    {
+      "label": "03-ablation-multi3-round2",
+      "phase": "ablation",
+      "variant": "multi3",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791793256.5590112,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791793638.003642
+    },
+    {
+      "label": "04-ablation-shared-round2",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 2,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791793642.1302743,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791794113.6702588
+    },
+    {
+      "label": "05-ablation-shared-round3",
+      "phase": "ablation",
+      "variant": "shared",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791794114.7411056,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791794583.5288756
+    },
+    {
+      "label": "06-ablation-multi3-round3",
+      "phase": "ablation",
+      "variant": "multi3",
+      "round": 3,
+      "rates": [
+        1000,
+        2000,
+        3000,
+        3500,
+        4000,
+        4500,
+        5000
+      ],
+      "started_at": 1791794584.6002827,
+      "jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+      "exit": 0,
+      "finished_at": 1791794972.451737
+    }
+  ],
+  "method": {
+    "duration_seconds": 60,
+    "disk_await_ms": 2,
+    "disk_noisy_seconds": 5,
+    "minimum_disk_coverage": 0.9,
+    "drain_quiet_seconds": 5,
+    "capacity_claim": "60s sampling only; not a soak test",
+    "warmup_seconds": 15,
+    "warmup_rate": 1000
+  },
+  "candidate_sha": "25e45d3416e04a85a2e06a67b1f5b8b299134164",
+  "disk_device": "vdb",
+  "disk_device_source": "DISK_DEVICE override",
+  "drain_max_seconds": 600,
+  "multi": {
+    "ports": [
+      18080,
+      18081,
+      18082
+    ],
+    "pools": [
+      14,
+      13,
+      13
+    ]
+  },
+  "baseline_jar_sha256": "fc846069b95e995e5cc74bdaa971f6d7c5de673de59c89fab44728ad35eb4ed2",
+  "candidate_jar_sha256": "51ae00ee91405e4cde63e8b6916caf93945bb544028719bbdf3231be5583880a",
+  "finished_at": 1791794977.631171,
+  "status": "completed",
+  "error": null,
+  "observed_steps": 26,
+  "planned_steps": 42,
+  "correctness_false": 0,
+  "correctness_unknown": 0
+}

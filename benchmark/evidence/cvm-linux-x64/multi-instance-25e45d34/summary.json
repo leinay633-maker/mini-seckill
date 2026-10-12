@@ -1,0 +1,2536 @@
+[
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 10.083960390000007,
+    "success_per_s_60s_estimate": 992.0,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 13.69,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 4.75,
+        "active_peak": 15.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 34.033,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354338.0,
+        "acquire_ms": 0.029,
+        "usage_count_delta": 354340.0,
+        "usage_ms": 0.418,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792515.1643298,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792515.2076192,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791792440.9673717,
+      "t1": 1791792501.4144564,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120000,
+    "http_p99_ms": 23.590977390000006,
+    "success_per_s_60s_estimate": 1974.3,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 13.01,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 0.983,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 12.407,
+        "active_peak": 40.0,
+        "pending_mean": 0.475,
+        "pending_peak": 14.0,
+        "idle_mean": 27.525,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 696404.0,
+        "acquire_ms": 0.046,
+        "usage_count_delta": 696401.0,
+        "usage_ms": 0.532,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792595.05708,
+      "db": {
+        "messages": 120000,
+        "nonterminal": 0,
+        "consumed": 120000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120000,
+        "success": 120000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792595.1277175,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 120000,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791792521.3867884,
+      "t1": 1791792581.9820461,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180003,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180003,
+    "http_p99_ms": 131.5359235500002,
+    "success_per_s_60s_estimate": 2908.8,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.07,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 28.65,
+        "active_peak": 40.0,
+        "pending_mean": 2.9,
+        "pending_peak": 69.0,
+        "idle_mean": 11.25,
+        "idle_peak": 26.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1059634.0,
+        "acquire_ms": 0.124,
+        "usage_count_delta": 1059622.0,
+        "usage_ms": 1.09,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792674.7910118,
+      "db": {
+        "messages": 180003,
+        "nonterminal": 0,
+        "consumed": 180003,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180003,
+        "success": 180003
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792674.8883061,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179997,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791792603.680782,
+      "t1": 1791792664.656627,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 210001,
+    "http_p99_ms": 477.4807206999999,
+    "success_per_s_60s_estimate": 2145.53,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.42,
+    "mq_ready_peak": 67711,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 33.356,
+        "active_peak": 40.0,
+        "pending_mean": 34.356,
+        "pending_peak": 252.0,
+        "idle_mean": 6.627,
+        "idle_peak": 25.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 970847.0,
+        "acquire_ms": 1.407,
+        "usage_count_delta": 970833.0,
+        "usage_ms": 1.5,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792764.8954995,
+      "db": {
+        "messages": 210001,
+        "nonterminal": 0,
+        "consumed": 210001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 210001,
+        "success": 210001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792765.0091298,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 209999,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791792685.6653824,
+      "t1": 1791792747.4172945,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 219828,
+    "dropped": 20173,
+    "sys_err": 0.016098950088250814,
+    "queued": 216289,
+    "http_p99_ms": 1607.059650079996,
+    "success_per_s_60s_estimate": 1982.2,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.32,
+    "mq_ready_peak": 74749,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 35.63,
+        "active_peak": 40.0,
+        "pending_mean": 39.0,
+        "pending_peak": 160.0,
+        "idle_mean": 4.391,
+        "idle_peak": 21.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 778916.0,
+        "acquire_ms": 1.818,
+        "usage_count_delta": 778933.0,
+        "usage_ms": 1.507,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792859.8898294,
+      "db": {
+        "messages": 216289,
+        "nonterminal": 0,
+        "consumed": 216289,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 216289,
+        "success": 216289
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792860.0052154,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 263711,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791792776.9583178,
+      "t1": 1791792843.5086758,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "01-ablation-shared-round1",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 1,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60000,
+    "http_p99_ms": 13.974276699999999,
+    "success_per_s_60s_estimate": 993.62,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 12.66,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 1.45,
+        "active_peak": 6.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 12.517,
+        "idle_peak": 14.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 118160.0,
+        "acquire_ms": 0.05,
+        "usage_count_delta": 118157.0,
+        "usage_ms": 0.486,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 1.85,
+        "active_peak": 8.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.15,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118179.0,
+        "acquire_ms": 0.052,
+        "usage_count_delta": 118177.0,
+        "usage_ms": 0.474,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 1.5,
+        "active_peak": 4.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.5,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118196.0,
+        "acquire_ms": 0.059,
+        "usage_count_delta": 118195.0,
+        "usage_ms": 0.472,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791792995.0706642,
+      "db": {
+        "messages": 60000,
+        "nonterminal": 0,
+        "consumed": 60000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60000,
+        "success": 60000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791792995.1144753,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 60000,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791792921.8682165,
+      "t1": 1791792982.348061,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 16.586817509999992,
+    "success_per_s_60s_estimate": 1974.82,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 7.67,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 4.05,
+        "active_peak": 14.0,
+        "pending_mean": 0.1,
+        "pending_peak": 3.0,
+        "idle_mean": 9.95,
+        "idle_peak": 13.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 236347.0,
+        "acquire_ms": 0.028,
+        "usage_count_delta": 236350.0,
+        "usage_ms": 0.643,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 4.567,
+        "active_peak": 13.0,
+        "pending_mean": 0.733,
+        "pending_peak": 22.0,
+        "idle_mean": 8.433,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236356.0,
+        "acquire_ms": 0.05,
+        "usage_count_delta": 236358.0,
+        "usage_ms": 0.637,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 3.733,
+        "active_peak": 9.0,
+        "pending_mean": 0.033,
+        "pending_peak": 1.0,
+        "idle_mean": 9.267,
+        "idle_peak": 12.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236360.0,
+        "acquire_ms": 0.054,
+        "usage_count_delta": 236360.0,
+        "usage_ms": 0.637,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793069.7225258,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793069.794135,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791793001.3606772,
+      "t1": 1791793061.9932168,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180000,
+    "http_p99_ms": 250.89488694000013,
+    "success_per_s_60s_estimate": 2483.53,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.38,
+    "mq_ready_peak": 17409,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 13.525,
+        "active_peak": 14.0,
+        "pending_mean": 100.508,
+        "pending_peak": 215.0,
+        "idle_mean": 0.475,
+        "idle_peak": 2.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 285591.0,
+        "acquire_ms": 18.212,
+        "usage_count_delta": 285591.0,
+        "usage_ms": 2.256,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 12.542,
+        "active_peak": 13.0,
+        "pending_mean": 128.593,
+        "pending_peak": 255.0,
+        "idle_mean": 0.492,
+        "idle_peak": 3.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 273743.0,
+        "acquire_ms": 24.638,
+        "usage_count_delta": 273743.0,
+        "usage_ms": 2.179,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 12.78,
+        "active_peak": 13.0,
+        "pending_mean": 120.068,
+        "pending_peak": 208.0,
+        "idle_mean": 0.237,
+        "idle_peak": 2.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 272210.0,
+        "acquire_ms": 24.297,
+        "usage_count_delta": 272209.0,
+        "usage_ms": 2.197,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793150.2263424,
+      "db": {
+        "messages": 180000,
+        "nonterminal": 0,
+        "consumed": 180000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180000,
+        "success": 180000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793150.3264537,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 180000,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791793078.216211,
+      "t1": 1791793139.783288,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 201062,
+    "dropped": 8939,
+    "sys_err": 0,
+    "queued": 201062,
+    "http_p99_ms": 1750.7698863300004,
+    "success_per_s_60s_estimate": 1972.63,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 19.66,
+    "mq_ready_peak": 60000,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 13.718,
+        "active_peak": 14.0,
+        "pending_mean": 183.692,
+        "pending_peak": 248.0,
+        "idle_mean": 0.333,
+        "idle_peak": 1.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 264032.0,
+        "acquire_ms": 38.623,
+        "usage_count_delta": 264032.0,
+        "usage_ms": 2.396,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 12.513,
+        "active_peak": 13.0,
+        "pending_mean": 201.641,
+        "pending_peak": 305.0,
+        "idle_mean": 0.487,
+        "idle_peak": 2.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 258281.0,
+        "acquire_ms": 42.338,
+        "usage_count_delta": 258285.0,
+        "usage_ms": 2.291,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 12.667,
+        "active_peak": 13.0,
+        "pending_mean": 191.846,
+        "pending_peak": 283.0,
+        "idle_mean": 0.333,
+        "idle_peak": 3.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 258944.0,
+        "acquire_ms": 43.368,
+        "usage_count_delta": 258943.0,
+        "usage_ms": 2.357,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793245.0810044,
+      "db": {
+        "messages": 201062,
+        "nonterminal": 0,
+        "consumed": 201062,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 201062,
+        "success": 201062
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793245.1917636,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 218938,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791793161.2514474,
+      "t1": 1791793225.3592181,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "02-ablation-multi3-round1",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 1,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 10.298529720000026,
+    "success_per_s_60s_estimate": 994.03,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 8.49,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 2.0,
+        "active_peak": 8.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 12.033,
+        "idle_peak": 14.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 118329.0,
+        "acquire_ms": 0.026,
+        "usage_count_delta": 118325.0,
+        "usage_ms": 0.44,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 2.017,
+        "active_peak": 9.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.017,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118318.0,
+        "acquire_ms": 0.03,
+        "usage_count_delta": 118319.0,
+        "usage_ms": 0.438,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 1.667,
+        "active_peak": 4.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.333,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118311.0,
+        "acquire_ms": 0.029,
+        "usage_count_delta": 118313.0,
+        "usage_ms": 0.441,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793380.5113587,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793380.555542,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791793311.4842792,
+      "t1": 1791793371.9632914,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 17.660064489999964,
+    "success_per_s_60s_estimate": 1977.43,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 7.67,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 6.417,
+        "active_peak": 14.0,
+        "pending_mean": 0.45,
+        "pending_peak": 11.0,
+        "idle_mean": 7.567,
+        "idle_peak": 13.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 236350.0,
+        "acquire_ms": 0.018,
+        "usage_count_delta": 236351.0,
+        "usage_ms": 0.631,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 6.767,
+        "active_peak": 13.0,
+        "pending_mean": 0.367,
+        "pending_peak": 6.0,
+        "idle_mean": 6.283,
+        "idle_peak": 11.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236326.0,
+        "acquire_ms": 0.04,
+        "usage_count_delta": 236321.0,
+        "usage_ms": 0.634,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 5.717,
+        "active_peak": 13.0,
+        "pending_mean": 0.633,
+        "pending_peak": 6.0,
+        "idle_mean": 7.283,
+        "idle_peak": 11.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236349.0,
+        "acquire_ms": 0.029,
+        "usage_count_delta": 236349.0,
+        "usage_ms": 0.627,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793455.1934116,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793455.2645419,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791793386.7929206,
+      "t1": 1791793447.4634826,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180001,
+    "http_p99_ms": 265.7336591099999,
+    "success_per_s_60s_estimate": 2413.2,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.38,
+    "mq_ready_peak": 22809,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 13.61,
+        "active_peak": 14.0,
+        "pending_mean": 89.576,
+        "pending_peak": 183.0,
+        "idle_mean": 0.39,
+        "idle_peak": 2.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 288461.0,
+        "acquire_ms": 19.305,
+        "usage_count_delta": 288460.0,
+        "usage_ms": 2.241,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 12.61,
+        "active_peak": 13.0,
+        "pending_mean": 125.271,
+        "pending_peak": 235.0,
+        "idle_mean": 0.424,
+        "idle_peak": 3.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 270753.0,
+        "acquire_ms": 24.685,
+        "usage_count_delta": 270754.0,
+        "usage_ms": 2.209,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 12.542,
+        "active_peak": 13.0,
+        "pending_mean": 108.288,
+        "pending_peak": 179.0,
+        "idle_mean": 0.475,
+        "idle_peak": 2.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 269661.0,
+        "acquire_ms": 24.363,
+        "usage_count_delta": 269660.0,
+        "usage_ms": 2.222,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793535.6966832,
+      "db": {
+        "messages": 180001,
+        "nonterminal": 0,
+        "consumed": 180001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180001,
+        "success": 180001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793535.7957532,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179999,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791793463.6287363,
+      "t1": 1791793525.2584777,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 202012,
+    "dropped": 7989,
+    "sys_err": 0,
+    "queued": 202012,
+    "http_p99_ms": 1308.9136615,
+    "success_per_s_60s_estimate": 1942.2,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 19.98,
+    "mq_ready_peak": 61737,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 13.6,
+        "active_peak": 14.0,
+        "pending_mean": 185.5,
+        "pending_peak": 297.0,
+        "idle_mean": 0.45,
+        "idle_peak": 4.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 263259.0,
+        "acquire_ms": 39.431,
+        "usage_count_delta": 263259.0,
+        "usage_ms": 2.43,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 12.775,
+        "active_peak": 13.0,
+        "pending_mean": 193.0,
+        "pending_peak": 382.0,
+        "idle_mean": 0.25,
+        "idle_peak": 1.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 256265.0,
+        "acquire_ms": 44.177,
+        "usage_count_delta": 256266.0,
+        "usage_ms": 2.345,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 12.625,
+        "active_peak": 13.0,
+        "pending_mean": 201.75,
+        "pending_peak": 317.0,
+        "idle_mean": 0.425,
+        "idle_peak": 3.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 260301.0,
+        "acquire_ms": 44.035,
+        "usage_count_delta": 260300.0,
+        "usage_ms": 2.35,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793630.5485804,
+      "db": {
+        "messages": 202012,
+        "nonterminal": 0,
+        "consumed": 202012,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 202012,
+        "success": 202012
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793630.6611776,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 217988,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791793546.73781,
+      "t1": 1791793610.5118139,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "03-ablation-multi3-round2",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 2,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 11.836429520000042,
+    "success_per_s_60s_estimate": 992.23,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 12.66,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 4.6,
+        "active_peak": 20.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 33.9,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 354039.0,
+        "acquire_ms": 0.036,
+        "usage_count_delta": 354034.0,
+        "usage_ms": 0.42,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793765.0984094,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793765.142648,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791793691.9551759,
+      "t1": 1791793752.376094,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 24.38381280999982,
+    "success_per_s_60s_estimate": 1969.82,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 8.73,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 11.867,
+        "active_peak": 38.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 28.15,
+        "idle_peak": 36.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708581.0,
+        "acquire_ms": 0.05,
+        "usage_count_delta": 708568.0,
+        "usage_ms": 0.511,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793840.7607763,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793840.8316238,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791793771.374446,
+      "t1": 1791793831.9715104,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180003,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180003,
+    "http_p99_ms": 77.96643350000015,
+    "success_per_s_60s_estimate": 2933.18,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 10.07,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 28.783,
+        "active_peak": 40.0,
+        "pending_mean": 1.517,
+        "pending_peak": 55.0,
+        "idle_mean": 11.133,
+        "idle_peak": 32.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1061766.0,
+        "acquire_ms": 0.113,
+        "usage_count_delta": 1061762.0,
+        "usage_ms": 1.066,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791793920.3187902,
+      "db": {
+        "messages": 180003,
+        "nonterminal": 0,
+        "consumed": 180003,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180003,
+        "success": 180003
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791793920.4154034,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179997,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791793849.3177586,
+      "t1": 1791793910.185863,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 210001,
+    "http_p99_ms": 283.08934790999996,
+    "success_per_s_60s_estimate": 2211.62,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 18.56,
+    "mq_ready_peak": 67875,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 33.417,
+        "active_peak": 40.0,
+        "pending_mean": 16.9,
+        "pending_peak": 119.0,
+        "idle_mean": 6.65,
+        "idle_peak": 27.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 996541.0,
+        "acquire_ms": 1.211,
+        "usage_count_delta": 996553.0,
+        "usage_ms": 1.488,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794011.0904686,
+      "db": {
+        "messages": 210001,
+        "nonterminal": 0,
+        "consumed": 210001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 210001,
+        "success": 210001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794011.2041278,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 209999,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791793931.1304684,
+      "t1": 1791793992.470264,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 99,
+    "iters": 216825,
+    "dropped": 23175,
+    "sys_err": 0.03427187824282255,
+    "queued": 209394,
+    "http_p99_ms": 1598.8345061400007,
+    "success_per_s_60s_estimate": 2084.38,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.17,
+    "mq_ready_peak": 62716,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 29.706,
+        "active_peak": 40.0,
+        "pending_mean": 23.794,
+        "pending_peak": 179.0,
+        "idle_mean": 10.471,
+        "idle_peak": 31.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 575603.0,
+        "acquire_ms": 1.613,
+        "usage_count_delta": 575616.0,
+        "usage_ms": 1.511,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794106.05525,
+      "db": {
+        "messages": 209394,
+        "nonterminal": 0,
+        "consumed": 209394,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 209394,
+        "success": 209394
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794106.171796,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 270606,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791794023.2494926,
+      "t1": 1791794089.8252034,
+      "k6_exit": 99,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "04-ablation-shared-round2",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 2,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 11.0442212,
+    "success_per_s_60s_estimate": 992.43,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 8.48,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 4.467,
+        "active_peak": 20.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 33.367,
+        "idle_peak": 38.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 353628.0,
+        "acquire_ms": 0.035,
+        "usage_count_delta": 353626.0,
+        "usage_ms": 0.415,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794235.5090132,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794235.5521395,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791794166.539759,
+      "t1": 1791794226.9644237,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120000,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120000,
+    "http_p99_ms": 22.14364150000002,
+    "success_per_s_60s_estimate": 1974.2,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 7.68,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 10.833,
+        "active_peak": 29.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 29.167,
+        "idle_peak": 34.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 708555.0,
+        "acquire_ms": 0.038,
+        "usage_count_delta": 708555.0,
+        "usage_ms": 0.514,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794310.0969083,
+      "db": {
+        "messages": 120000,
+        "nonterminal": 0,
+        "consumed": 120000,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120000,
+        "success": 120000
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794310.1668332,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 120000,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791794241.7799466,
+      "t1": 1791794302.3597891,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 180001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 180001,
+    "http_p99_ms": 74.26174649999993,
+    "success_per_s_60s_estimate": 2935.2,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 11.17,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 28.068,
+        "active_peak": 40.0,
+        "pending_mean": 2.085,
+        "pending_peak": 27.0,
+        "idle_mean": 11.915,
+        "idle_peak": 32.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 1046028.0,
+        "acquire_ms": 0.099,
+        "usage_count_delta": 1046011.0,
+        "usage_ms": 1.066,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794390.6858928,
+      "db": {
+        "messages": 180001,
+        "nonterminal": 0,
+        "consumed": 180001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 180001,
+        "success": 180001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794390.7837021,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 179999,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791794318.6065342,
+      "t1": 1791794379.4608212,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 210001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 210001,
+    "http_p99_ms": 181.5789584,
+    "success_per_s_60s_estimate": 2135.83,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 17.44,
+    "mq_ready_peak": 69926,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 33.65,
+        "active_peak": 40.0,
+        "pending_mean": 31.767,
+        "pending_peak": 163.0,
+        "idle_mean": 6.3,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 986977.0,
+        "acquire_ms": 1.312,
+        "usage_count_delta": 986951.0,
+        "usage_ms": 1.5,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794480.2856898,
+      "db": {
+        "messages": 210001,
+        "nonterminal": 0,
+        "consumed": 210001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 210001,
+        "success": 210001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794480.3980222,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 209999,
+        "stock_available": 420000
+      }
+    },
+    "window": {
+      "rate": 3500,
+      "duration": 60,
+      "t0": 1791794401.4525878,
+      "t1": 1791794462.7884216,
+      "k6_exit": 0,
+      "initial_stock": 420000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 222207,
+    "dropped": 17794,
+    "sys_err": 0.003915268195871418,
+    "queued": 221337,
+    "http_p99_ms": 1374.55979863,
+    "success_per_s_60s_estimate": 1979.33,
+    "success_sample_coverage": 0.933,
+    "drained": true,
+    "drain_observed_tail_s": 16.34,
+    "mq_ready_peak": 74889,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 32.755,
+        "active_peak": 40.0,
+        "pending_mean": 44.811,
+        "pending_peak": 309.0,
+        "idle_mean": 7.151,
+        "idle_peak": 40.0,
+        "max_mean": 40.0,
+        "max_peak": 40.0,
+        "acquire_count_delta": 901753.0,
+        "acquire_ms": 1.697,
+        "usage_count_delta": 901713.0,
+        "usage_ms": 1.515,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794575.4050808,
+      "db": {
+        "messages": 221337,
+        "nonterminal": 0,
+        "consumed": 221337,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 221337,
+        "success": 221337
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794575.526627,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 258663,
+        "stock_available": 480000
+      }
+    },
+    "window": {
+      "rate": 4000,
+      "duration": 60,
+      "t0": 1791794492.4068887,
+      "t1": 1791794559.0067637,
+      "k6_exit": 0,
+      "initial_stock": 480000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "05-ablation-shared-round3",
+    "phase": "ablation",
+    "variant": "shared",
+    "round": 3,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 1000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 60001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 60001,
+    "http_p99_ms": 12.25788849000001,
+    "success_per_s_60s_estimate": 994.47,
+    "success_sample_coverage": 0.967,
+    "drained": true,
+    "drain_observed_tail_s": 13.71,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 1.7,
+        "active_peak": 4.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 12.3,
+        "idle_peak": 14.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 118314.0,
+        "acquire_ms": 0.042,
+        "usage_count_delta": 118315.0,
+        "usage_ms": 0.463,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 1.433,
+        "active_peak": 4.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.567,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118301.0,
+        "acquire_ms": 0.043,
+        "usage_count_delta": 118303.0,
+        "usage_ms": 0.455,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 1.717,
+        "active_peak": 6.0,
+        "pending_mean": 0.0,
+        "pending_peak": 0.0,
+        "idle_mean": 11.283,
+        "idle_peak": 13.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 118300.0,
+        "acquire_ms": 0.042,
+        "usage_count_delta": 118303.0,
+        "usage_ms": 0.454,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794710.5339117,
+      "db": {
+        "messages": 60001,
+        "nonterminal": 0,
+        "consumed": 60001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 60001,
+        "success": 60001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794710.5778499,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 59999,
+        "stock_available": 120000
+      }
+    },
+    "window": {
+      "rate": 1000,
+      "duration": 60,
+      "t0": 1791794636.271271,
+      "t1": 1791794696.7675037,
+      "k6_exit": 0,
+      "initial_stock": 120000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 2000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": true,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 120001,
+    "dropped": 0,
+    "sys_err": 0,
+    "queued": 120001,
+    "http_p99_ms": 20.278198109999995,
+    "success_per_s_60s_estimate": 1980.18,
+    "success_sample_coverage": 0.95,
+    "drained": true,
+    "drain_observed_tail_s": 7.67,
+    "mq_ready_peak": 0,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 4.25,
+        "active_peak": 14.0,
+        "pending_mean": 0.05,
+        "pending_peak": 1.0,
+        "idle_mean": 9.717,
+        "idle_peak": 13.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 236434.0,
+        "acquire_ms": 0.027,
+        "usage_count_delta": 236444.0,
+        "usage_ms": 0.633,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 4.7,
+        "active_peak": 12.0,
+        "pending_mean": 0.533,
+        "pending_peak": 15.0,
+        "idle_mean": 8.3,
+        "idle_peak": 12.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236399.0,
+        "acquire_ms": 0.059,
+        "usage_count_delta": 236409.0,
+        "usage_ms": 0.63,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 5.033,
+        "active_peak": 13.0,
+        "pending_mean": 1.267,
+        "pending_peak": 18.0,
+        "idle_mean": 7.95,
+        "idle_peak": 11.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 236370.0,
+        "acquire_ms": 0.043,
+        "usage_count_delta": 236378.0,
+        "usage_ms": 0.631,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794785.1883202,
+      "db": {
+        "messages": 120001,
+        "nonterminal": 0,
+        "consumed": 120001,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 120001,
+        "success": 120001
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794785.2602692,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 119999,
+        "stock_available": 240000
+      }
+    },
+    "window": {
+      "rate": 2000,
+      "duration": 60,
+      "t0": 1791794716.8101523,
+      "t1": 1791794777.463337,
+      "k6_exit": 0,
+      "initial_stock": 240000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 3000,
+    "case_exit": 0,
+    "status": "observed",
+    "admission_pass": false,
+    "correctness": true,
+    "k6_exit": 0,
+    "iters": 177953,
+    "dropped": 2048,
+    "sys_err": 0,
+    "queued": 177953,
+    "http_p99_ms": 870.1551245500008,
+    "success_per_s_60s_estimate": 2284.77,
+    "success_sample_coverage": 0.917,
+    "drained": true,
+    "drain_observed_tail_s": 110.4,
+    "mq_ready_peak": 24751,
+    "disk": {
+      "coverage": 1.0,
+      "stall_seconds": 0,
+      "class": "low-stall"
+    },
+    "pools": {
+      "18080": {
+        "active_mean": 13.649,
+        "active_peak": 14.0,
+        "pending_mean": 107.93,
+        "pending_peak": 219.0,
+        "idle_mean": 0.281,
+        "idle_peak": 2.0,
+        "max_mean": 14.0,
+        "max_peak": 14.0,
+        "acquire_count_delta": 282032.0,
+        "acquire_ms": 23.341,
+        "usage_count_delta": 282032.0,
+        "usage_ms": 2.323,
+        "timeout_delta": 0.0
+      },
+      "18081": {
+        "active_mean": 12.526,
+        "active_peak": 13.0,
+        "pending_mean": 143.632,
+        "pending_peak": 417.0,
+        "idle_mean": 0.439,
+        "idle_peak": 3.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 271607.0,
+        "acquire_ms": 29.103,
+        "usage_count_delta": 271608.0,
+        "usage_ms": 2.227,
+        "timeout_delta": 0.0
+      },
+      "18082": {
+        "active_mean": 12.439,
+        "active_peak": 13.0,
+        "pending_mean": 133.965,
+        "pending_peak": 247.0,
+        "idle_mean": 0.596,
+        "idle_peak": 5.0,
+        "max_mean": 13.0,
+        "max_peak": 13.0,
+        "acquire_count_delta": 270697.0,
+        "acquire_ms": 29.202,
+        "usage_count_delta": 270697.0,
+        "usage_ms": 2.231,
+        "timeout_delta": 0.0
+      }
+    },
+    "pool_budget_valid": true,
+    "final": {
+      "started_at": 1791794965.7218754,
+      "db": {
+        "messages": 177953,
+        "nonterminal": 0,
+        "consumed": 177953,
+        "timeout": 0,
+        "dead": 0,
+        "cancelled": 0,
+        "orders": 177953,
+        "success": 177953
+      },
+      "mq": {
+        "messages_ready": 0,
+        "messages_unacknowledged": 0
+      },
+      "t": 1791794965.8205051,
+      "checks": {
+        "duplicate_groups": 0,
+        "duplicate_order_ids": 0,
+        "segment_available": 182047,
+        "stock_available": 360000
+      }
+    },
+    "window": {
+      "rate": 3000,
+      "duration": 60,
+      "t0": 1791794793.641252,
+      "t1": 1791794855.2685356,
+      "k6_exit": 0,
+      "initial_stock": 360000,
+      "load_window": "launch t0 .. t0+60s; sample-based estimate"
+    }
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 3500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 4000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 4500,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  },
+  {
+    "case": "06-ablation-multi3-round3",
+    "phase": "ablation",
+    "variant": "multi3",
+    "round": 3,
+    "rate": 5000,
+    "case_exit": 0,
+    "status": "not-run",
+    "admission_pass": null,
+    "correctness": null
+  }
+]

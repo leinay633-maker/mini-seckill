@@ -1,0 +1,27 @@
+===== MySQL verify.sql =====
+section	activity_id	sku_id	total_stock	available_stock	sold_count
+stock_summary	1	1001	420000	420000	0
+section	activity_id	sku_id	segment_count	segment_total_stock	segment_available_stock	segment_sold_count	min_segment_available
+stock_segments	1	1001	128	420000	212654	207346	1661
+section	total_orders	success_orders	distinct_order_users	first_order_at	last_order_at	mysql_order_span_ms
+orders	207346	207346	207346	2026-10-12 15:34:30	2026-10-12 15:35:40	70000.0000
+section	duplicate_group_count
+duplicate_order_groups	0
+section	order_count	distinct_order_id_count	duplicate_order_id_count
+order_id_uniqueness	207346	207346	0
+section	worker_id	order_count
+order_worker_distribution	7	207346
+section	status	retry_count	message_count
+messages_by_status	2	0	207346
+section	local_messages	consumed_messages	success_orders	consumed_equals_orders
+message_order_consistency	207346	207346	207346	1
+
+===== Redis stock keys (total + buckets) =====
+seckill:stock:1:1001 = 212654
+
+===== RabbitMQ queues =====
+Timeout: 60.0 seconds ...
+Listing queues for vhost / ...
+name	messages	messages_ready	messages_unacknowledged
+mini.seckill.dead.queue	0	0	0
+mini.seckill.order.queue	0	0	0
