@@ -12,6 +12,7 @@ class StockCoordinationLuaTest {
     private final List<String> repair=List.of("total","version","inflight","deadlines","lease","b0","b1");
     private final List<String> reserve=List.of("total","version","inflight","deadlines","lease","user","b0","b1");
     private final List<String> settle=List.of("total","version","inflight","deadlines","lease","user","status","b0","b1");
+    private final List<String> accept=List.of("version","inflight","deadlines","user","status");
     private void init() {assertEquals(1,redis.eval("coord_initialize",repair,"10","2:v0").toint());redis.lease("lease","A",20_000);}
     private long reserve(String id,String version) {redis.set("user",id);return redis.eval("coord_reserve",reserve,id,"7","1000",version,"0").tolong();}
     private long settle(String id,boolean refund,String version) {
@@ -19,6 +20,35 @@ class StockCoordinationLuaTest {
         return redis.eval("coord_settle",settle,id,meta==null?"7:0":meta,refund?"1":"0",version,"3","60000").tolong();
     }
     private String repair(String owner,String expectedVersion,String stock) {return redis.eval("coord_repair",repair,owner,expectedVersion,stock,"2:next").tojstring();}
+    private long accept(String id,String user,String version) {return redis.eval("coord_accept",accept,id,user,"2",version,"1","60000").tolong();}
+    @Test void acceptanceClearsLedgerWithoutRefundAndProjectsQueuingInOneScript() {
+        init();reserve("r","2:v1");assertEquals(1,accept("r","7","2:v2"));
+        assertEquals("9",redis.get("total"));assertEquals("4",redis.get("b0"));assertEquals(0,redis.hlen("inflight"));
+        assertEquals("2:v2",redis.get("version"));assertEquals("r",redis.get("user"));assertEquals("1",redis.get("status"));
+        assertEquals("UNCHANGED",repair("A","2:v2","9"));
+    }
+    @Test void acceptanceNeverRegressesTerminalStatusNorProjectsForAnotherOwner() {
+        init();reserve("r","2:v1");redis.set("status","2");assertEquals(1,accept("r","7","2:v2"));assertEquals("2",redis.get("status"));
+        reserve("s","2:v3");redis.set("user","newer");redis.delete("status");assertEquals(1,accept("s","7","2:v4"));
+        assertNull(redis.get("status"));assertEquals("newer",redis.get("user"));assertEquals(0,redis.hlen("inflight"));
+    }
+    @Test void refusedAcceptanceLeavesReservationRecoverableAndStillProjects() {
+        init();reserve("r","2:v1");
+        assertEquals(-3,accept("r","8","2:v2"));assertEquals(1,redis.hlen("inflight"));assertEquals("2:v1",redis.get("version"));
+        redis.set("version","3:v1");assertEquals(-4,accept("r","7","2:v2"));assertEquals(1,redis.hlen("inflight"));assertEquals("3:v1",redis.get("version"));
+        redis.delete("version");assertEquals(-1,accept("r","7","2:v2"));assertEquals(1,redis.hlen("inflight"));assertNull(redis.get("version"));
+        assertEquals("1",redis.get("status"));assertEquals("9",redis.get("total"));
+    }
+    @Test void acceptanceOfSettledReservationOnlyProjects() {
+        init();reserve("r","2:v1");assertEquals(1,settle("r",false,"2:v2"));
+        assertEquals(0,accept("r","7","2:v3"));assertEquals("2:v2",redis.get("version"));assertEquals("1",redis.get("status"));
+    }
+    @Test void acceptanceChecksTypesBeforeAnyWrite() {
+        init();reserve("r","2:v1");redis.hash("status","corrupt","value");
+        assertEquals(-4,accept("r","7","2:v2"));assertEquals(1,redis.hlen("inflight"));assertEquals("2:v1",redis.get("version"));
+        redis.delete("status");redis.hash("inflight","bad","7:5");assertEquals(-4,accept("bad","7","2:v2"));
+        assertEquals("7:5",redis.hget("inflight","bad"));assertEquals("2:v1",redis.get("version"));
+    }
     @Test void liveDeductionCannotBeOverwrittenByLegitimateOwner() {
         init();assertEquals("READY",redis.eval("coord_begin",repair,"A").get(1).tojstring());
         assertEquals(1,reserve("r","2:v1"));assertEquals("VERSION_CHANGED",repair("A","2:v0","10"));

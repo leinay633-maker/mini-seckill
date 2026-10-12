@@ -107,6 +107,13 @@ class StockCoordinationIT {
             assertEquals(9L,facts.snapshot(1L,1001L,false).expected());assertEquals("UNCHANGED",b.reconcile(1L,1001L).outcome());
         } finally {release.countDown();pool.shutdownNow();}
     }
+    @Test void acceptanceSettlesAndProjectsQueuingInOneScriptButNeverRegressesTerminalStatus() {
+        reserve(a,"q",7);persist("q",7);
+        assertEquals(0L,redis.opsForHash().size(inflight));assertEquals(9,stock());
+        assertEquals("1",redis.opsForValue().get(RedisKeyUtil.orderStatusKey(1L,7L,1001L)));assertEquals("UNCHANGED",b.reconcile(1L,1001L).outcome());
+        reserve(a,"t",8);redis.opsForValue().set(RedisKeyUtil.orderStatusKey(1L,8L,1001L),"2");persist("t",8);
+        assertEquals("2",redis.opsForValue().get(RedisKeyUtil.orderStatusKey(1L,8L,1001L)));assertEquals(0L,redis.opsForHash().size(inflight));assertEquals(8,stock());
+    }
     @Test void expiredOwnerIsFencedAtRedisAndCannotDeleteSuccessorsLease() throws Exception {
         a=coordinator(faults,Duration.ofMillis(200));CountDownLatch read=new CountDownLatch(1),release=new CountDownLatch(1);
         doAnswer(i->{read.countDown();waitLatch(release);return null;}).when(faults).hit(eq("after-snapshot"),anyString());
