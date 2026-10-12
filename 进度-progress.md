@@ -166,3 +166,8 @@
 - 改动：Redis 延迟这组 A/B（pool-budget-20261012-135530-a1e8d926-220817，13:55–14:37）跑完后关掉 tc（Redis 往返回到 0.06 ms）。第二组、延迟组和 binlog 探针都已下载、校验、瘦身入库到 `benchmark/evidence/cvm-linux-x64/`（accept-ab-vs-e2a6f96-a1e8d926、accept-ab-redis-rtt-a1e8d926、binlog-probe-20261012-134945，连同 `ab-chain.sh`、`binlog-probe.sh`、`redis-netem.sh`）；证据说明补齐第二组、延迟组、连接池全满排查和本目录结论；README、MULTI-INSTANCE-COORDINATION（第 6 节性能段与第 7 节表格新增一行）和 MULTI-INSTANCE-VALIDATION 同步。
 - 验证：延迟组原始包 SHA-256 `9f68a69e…703ebc`、第二组 `7551ec7b…8618a4`，都与 sidecar 一致，包内运行数据逐个一致（只有 `sources/` 因 Windows 路径限制未解出）；入库文件不含主机名、内网域名和 IP。延迟组计划 18 档、执行 18 档，全部通过、对账全过、取消墓碑 0；netem 队列发送 3654 万个包、丢弃 0。Redis 往返 0.6 ms 下 main 对接纳合并：下单接口中位 1000/s 4.8 → 3.3 ms、2000/s 6.6 → 4.2–4.3 ms、3000/s 18.7–19.6 → 10.4–10.7 ms；HTTP p99 16–18 → 12、24–29 → 17–22、152–156 → 105–119 ms；3000/s 负载期落库 2136–2184 → 2406–2441/s，队列峰值约 4.0 万 → 2.6–2.7 万。与不加延迟时相比，main 下单中位多 3.0–3.1 ms、接纳合并多 1.8 ms，比例约 5:3，与下单接口 5 次和 3 次 Redis 往返一致。`scripts/check-evidence.sh` 通过（37 个 summary、131 个必需文件）。
 - 未完成 / 下一步：推送后看 CI，通过后 fast-forward 合并到 main，新机器上的仓库切回 main。可以继续的优化：减少预扣时校验的分桶数；连接池偶发全满的根因（需要同时抓 MySQL 内部等待）；多实例下的性能。新机器上的中间件数据在 tmpfs 里，重启会丢，下次用前要按 `services.sh` 重新初始化。
+
+### 2026-10-12 14:49 · 本地 Claude Code · main
+- 改动：feature/coord-accept-fused（b374ef2…177569b：新机器 setup/services 脚本、接纳合并 cb567fb、新机器全部证据与文档）fast-forward 合并到 main 并推送；新机器上的仓库切回 main（177569b，工作树干净）。新机器的中间件仍在运行，数据在 40 GB tmpfs `/data/ms/data` 上，重启后要重新初始化；云盘上的旧数据目录保留在 `/data/ms/data.vdb-20261012`。
+- 验证：分支最后一次 CI run 38213806501 两个 job 成功；main 推送触发的 CI run 38214115861（headSha 177569b）两个 job 成功。
+- 未完成 / 下一步：同上一条（预扣分桶数、连接池偶发全满根因、多实例性能）。面试稿素材：这一轮可写的点是“换机器后瓶颈变成云盘 IOPS 及判断方法”“接纳合并把每单 Redis 往返 5 → 3、稳定档 3000 → 3500/s”“tc 只给 Redis 加延迟后，往返次数按 5:3 进入下单延迟”“连接池全满排查排除了 GC、对账和 binlog，根因未定”。
