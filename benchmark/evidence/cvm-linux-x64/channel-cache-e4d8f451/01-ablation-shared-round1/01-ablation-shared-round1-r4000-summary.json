@@ -1,0 +1,272 @@
+{
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": []
+  },
+  "options": {
+    "noColor": false,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "p(90)",
+      "p(95)",
+      "p(99)",
+      "max"
+    ],
+    "summaryTimeUnit": ""
+  },
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 65015.377183
+  },
+  "metrics": {
+    "http_reqs": {
+      "contains": "default",
+      "values": {
+        "count": 427712,
+        "rate": 6578.628295827786
+      },
+      "type": "counter"
+    },
+    "http_req_sending": {
+      "values": {
+        "p(90)": 0.038209,
+        "p(95)": 0.137767,
+        "p(99)": 0.6200604000000008,
+        "max": 57.638136,
+        "avg": 0.04491441269124925,
+        "min": 0,
+        "med": 0.01255
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.01182103845578333,
+        "passes": 5056,
+        "fails": 422656
+      }
+    },
+    "data_received": {
+      "values": {
+        "count": 113694464,
+        "rate": 1748731.8989164988
+      },
+      "type": "counter",
+      "contains": "data"
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 10392,
+        "min": 4000,
+        "max": 10392
+      }
+    },
+    "http_req_connecting": {
+      "values": {
+        "avg": 0.07702806609587765,
+        "min": 0,
+        "med": 0,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0.18262259000000045,
+        "max": 1053.349487
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "queue_response_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 1003.2647475,
+        "p(90)": 1330.3485540000001,
+        "p(95)": 1423.3469917,
+        "p(99)": 1568.2817402400012,
+        "max": 1732.569057,
+        "avg": 929.9389017414198,
+        "min": 2.650391
+      }
+    },
+    "http_req_blocked": {
+      "values": {
+        "p(95)": 0.010669,
+        "p(99)": 0.3919174900000006,
+        "max": 1068.679223,
+        "avg": 0.0906761958701029,
+        "min": 0,
+        "med": 0.00388,
+        "p(90)": 0.006219
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "token_created": {
+      "contains": "default",
+      "values": {
+        "count": 211328,
+        "rate": 3250.4310388782505
+      },
+      "type": "counter"
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 0,
+        "med": 0,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "max": 0,
+        "avg": 0
+      }
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 83068004,
+        "rate": 1277667.0320036279
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 216384,
+        "rate": 3328.197256949535
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 1900.138914942424,
+        "min": 6.631184,
+        "med": 2015.4288915,
+        "p(90)": 2614.9683733,
+        "p(95)": 2763.4001315,
+        "p(99)": 5000.73627103,
+        "max": 5029.264842
+      }
+    },
+    "dropped_iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 23616,
+        "rate": 363.23714516840533
+      }
+    },
+    "system_error_rate": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.02336586808636498,
+        "passes": 5056,
+        "fails": 211328
+      },
+      "thresholds": {
+        "rate<0.01": {
+          "ok": false
+        }
+      }
+    },
+    "http_req_waiting": {
+      "values": {
+        "min": 0,
+        "med": 984.7985894999999,
+        "p(90)": 1314.1403059000002,
+        "p(95)": 1406.581931,
+        "p(99)": 1539.3978893,
+        "max": 5003.51578,
+        "avg": 902.8958822456513
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 1732.569057,
+        "avg": 912.6457772784438,
+        "min": 1.572655,
+        "med": 988.9856565,
+        "p(90)": 1315.5943499999998,
+        "p(95)": 1408.2428415,
+        "p(99)": 1538.703711
+      }
+    },
+    "http_req_receiving": {
+      "values": {
+        "min": 0,
+        "med": 0.039449,
+        "p(90)": 0.092128,
+        "p(95)": 0.25401849999999954,
+        "p(99)": 0.9870681000000012,
+        "max": 64.292801,
+        "avg": 0.08551627961806314
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 36,
+        "min": 36,
+        "max": 10321
+      }
+    },
+    "token_failed": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 5056,
+        "rate": 77.76621807128461
+      }
+    },
+    "order_system_error": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 5056,
+        "rate": 77.76621807128461
+      }
+    },
+    "order_queued": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "rate": 3250.4310388782505,
+        "count": 211328
+      }
+    },
+    "http_req_duration": {
+      "values": {
+        "p(90)": 1314.223197,
+        "p(95)": 1406.9629258999992,
+        "p(99)": 1539.5279078200006,
+        "max": 5003.550629,
+        "avg": 903.0263129379748,
+        "min": 0,
+        "med": 984.9244685
+      },
+      "type": "trend",
+      "contains": "time"
+    }
+  }
+}

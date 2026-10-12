@@ -87,3 +87,7 @@ Redis 的 SUCCESS/QUEUING 和幂等键命中可以快速拒绝；但它们缺失
 代码及回归已实现；当前编辑环境 `mvn -B clean verify` 无法启动（`mvn: command not found`），不是 Java 测试通过或测试失败的记录。`bash -n benchmark/native-linux/ab-rounds.sh` 通过。PR 的 CI 编译、单元/真实 MySQL 集成结果另行追加；当前没有新版本压测、真实 MQ/Redis 故障或端到端吞吐数据。
 
 2026-10-09 复测（本机 Claude Code）：本机 Windows 与云研发容器 Linux 各跑 `mvn -B clean verify`，均 146 单元通过 / 0 失败 / 0 错误 / 0 跳过；两处都无 Docker，集成测试以 CI 为准。同机两组交错 A/B（6 轮）、四组消融（2 轮）和拐点线程栈的结论见 [复测章节](../benchmark/evidence/devcloud-linux-x64/README.md)。与第 2 节预期不同的一点：收益主要来自首次 INSERT SENDING 融合（省一次写提交），活动缓存单独开时 3000/s 改善有限；入口放量越大负载期落库越慢，第 5 节说的固定总预算隔离实验仍是下一步。
+
+## 9. 后续：发布端 channel 缓存（2026-10-12）
+
+本节的 `initial_publish` 计时后来定位到下一个拐点。2026-10-12 在独占云服务器上，3500/s 时首次发送平均约 20 ms，而 `message_insert` 只有约 2.4 ms；RabbitMQ 每秒新建、关闭约 1100 个 channel。发布端和消费者共用 Spring Boot 默认的 CachingConnectionFactory，只缓存 25 个 channel，同时发送的请求线程多于 25 个时，多出来的每次发送都要开关一个开启了 publisher confirm 的 channel。`application.yml` 改为缓存 256 个（9175b05）后，同一个 jar 交错 3 轮：入口稳定档 3500 → 4000/s，3500/s 时首次发送 2.4–3.1 ms、每秒新建 channel 60–89 个、负载期落库多约两成。数据与方法见 `benchmark/evidence/cvm-linux-x64/README.md`“发布端 channel 缓存”一节。
