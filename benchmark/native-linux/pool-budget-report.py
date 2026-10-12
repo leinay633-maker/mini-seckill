@@ -128,7 +128,8 @@ def summarize(root):
                 success = [s['success'] for s in samples if s.get('success') is not None]
                 observations = [r for r in metrics if t0 <= r['t'] < t0 + duration]
                 expected = {'admission': 12, 'consumer': 28} if case['variant'] == 'split28' else (
-                    {'admission': 20, 'consumer': 20} if case['variant'] == 'split20' else {'shared': 40})
+                    {'admission': 20, 'consumer': 20} if case['variant'] == 'split20' else (
+                        {'18080': 14, '18081': 13, '18082': 13} if case['variant'] == 'multi3' else {'shared': 40}))
                 pools, budget = pool_statistics(observations, expected)
                 final, drained = load(str(prefix) + '-final.json'), load(str(prefix) + '-drain.json')
                 before = load(str(prefix) + '-before.json', {}).get('db', {}).get('success')

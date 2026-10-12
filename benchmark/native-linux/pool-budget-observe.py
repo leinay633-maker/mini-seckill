@@ -154,8 +154,8 @@ def reset_stopped(repo, root):
     race reset.sql on requeued old deliveries. Existing cap-step still does the
     normal stock init/warmup once the next JVM is healthy.
     """
-    pidfile = Path(root) / 'run' / 'app.pid'
-    if pidfile.exists():
+    run = Path(root) / 'run'
+    if (run / 'app.pid').exists() or list(run.glob('app-[1-9].pid')):
         raise RuntimeError('refusing cold reset while app PID file exists')
     deadline = time.monotonic() + 20
     while True:

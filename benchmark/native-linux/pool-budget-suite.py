@@ -34,7 +34,7 @@ def build_plan(rounds=3, rates=None, matrix='full'):
     rates = list(RATES if rates is None else rates)
     if rounds < 1 or rounds > 20 or not rates or any(r <= 0 for r in rates) or rates != sorted(set(rates)):
         raise ValueError('rounds must be 1..20; rates must be unique, positive and ascending')
-    if matrix not in ('full', 'ab-shared', 'buckets'):
+    if matrix not in ('full', 'ab-shared', 'buckets', 'multi'):
         raise ValueError('unknown matrix: %s' % matrix)
     cases = []
     def add(phase, variant, number, ladder):
@@ -46,6 +46,12 @@ def build_plan(rounds=3, rates=None, matrix='full'):
         for number in range(1, rounds + 1):
             for variant in (['baseline', 'shared'] if number % 2 else ['shared', 'baseline']):
                 add('ab', variant, number, rates)
+        return cases
+    if matrix == 'multi':
+        # Same candidate binary and the same 40-connection total: one JVM vs three JVMs (14/13/13).
+        for number in range(1, rounds + 1):
+            for variant in (['shared', 'multi3'] if number % 2 else ['multi3', 'shared']):
+                add('ablation', variant, number, rates)
         return cases
     if matrix == 'buckets':
         # Same candidate binary: profile default (128 Redis stock buckets) vs bucketing disabled.
@@ -74,12 +80,26 @@ def app_args(variant):
     args = list(COMMON)
     if variant in ('baseline', 'shared'):
         return args + ['--seckill.pool-budget.enabled=false']
+    if variant == 'multi3':
+        # app.sh appends each instance's own maximum-pool-size from MULTI_ENV.
+        return [a for a in args if not a.startswith('--spring.datasource.hikari.maximum-pool-size=')] + [
+            '--seckill.pool-budget.enabled=false']
     if variant == 'unsharded':
         return args + ['--seckill.pool-budget.enabled=false', '--seckill.stock-shard.enabled=false']
     if variant not in ('split28', 'split20'):
         raise ValueError('unknown variant: ' + variant)
     return args + ['--seckill.pool-budget.enabled=true', '--seckill.pool-budget.total-connections=40',
                    '--seckill.pool-budget.consumer-connections=' + ('28' if variant == 'split28' else '20')]
+
+
+MULTI_PORTS = [18080, 18081, 18082]
+MULTI_POOLS = [14, 13, 13]  # total stays 40
+MULTI_ENV = {'APP_INSTANCES': '3', 'APP_POOL_SIZES': ' '.join(map(str, MULTI_POOLS)),
+             'BASE_URLS': ','.join('http://localhost:%d' % p for p in MULTI_PORTS)}
+
+
+def case_environment(env, variant):
+    return dict(env, **MULTI_ENV) if variant == 'multi3' else env
 
 
 def write(path, value):
@@ -210,6 +230,10 @@ def worker(args):
         if not re.fullmatch(r'[0-9]+', env['WARMUP']):
             raise ValueError('BUDGET_WARMUP_SECONDS must be a non-negative integer')
         manifest['drain_max_seconds'] = int(env['DRAIN_MAX'])
+        if matrix == 'multi':
+            # The side sampler outlives cases: scrape every port and keep whichever answer.
+            env['MS_APP_URLS'] = MULTI_ENV['BASE_URLS']
+            manifest['multi'] = {'ports': MULTI_PORTS, 'pools': MULTI_POOLS}
         # Older evidence has no warm-up: its first step ran on a cold JVM and a minimum-idle pool.
         manifest['method'].update({'warmup_seconds': int(env['WARMUP']), 'warmup_rate': int(env['WARMUP_RATE'])})
         jars = {}
@@ -254,11 +278,12 @@ def worker(args):
                 command(['python3', scripts / 'pool-budget-observe.py', 'reset-stopped',
                          sources / 'candidate', root], folder / 'cold-reset.log', env, timeout=90)
                 started_app = True  # start may launch JVM then fail health; still stop it
-                command(['bash', app, 'start', jar] + options, folder / 'start.log', env, timeout=390)
+                case_env = case_environment(env, case['variant'])
+                command(['bash', app, 'start', jar] + options, folder / 'start.log', case_env, timeout=390)
                 time.sleep(10)
                 command(['curl', '-fsS', '--max-time', '5', 'http://localhost:18080/actuator/prometheus'],
                         folder / 'startup-prometheus.txt', env, timeout=10, check=False)
-                case_env = env.copy()
+                case_env = dict(case_env)
                 case_env['CAP_DIAGNOSTIC'] = '1' if case['phase'] == 'diagnostic' else '0'
                 warmup = int(env['WARMUP'])
                 code = command(['bash', scripts / 'cap-step.sh', case['label']] + list(map(str, case['rates'])),
@@ -278,6 +303,12 @@ def worker(args):
                 if previous_log.exists():
                     with previous_log.open('rb') as src, gzip.open(str(folder / 'app.log.gz'), 'wb') as dest:
                         shutil.copyfileobj(src, dest)
+                if case['variant'] == 'multi3':
+                    for index in range(1, len(MULTI_PORTS)):
+                        extra = root / 'logs' / ('app-%d.log' % index)
+                        if extra.exists():
+                            with extra.open('rb') as src, gzip.open(str(folder / ('app-%d.log.gz' % index)), 'wb') as dest:
+                                shutil.copyfileobj(src, dest)
                 write(out / 'manifest.json', manifest)
             if any(child.poll() is not None for child in samplers):
                 raise RuntimeError('side sampler died during suite; retain the incomplete evidence')
