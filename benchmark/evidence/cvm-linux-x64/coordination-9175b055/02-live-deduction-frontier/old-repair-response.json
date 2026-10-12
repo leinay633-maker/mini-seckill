@@ -1,0 +1,10 @@
+{
+  "started_at": 1791798414.871707,
+  "finished_at": 1791798415.3635216,
+  "http_status": 503,
+  "raw": "{\"code\":503,\"message\":\"库存预热未写入: VERSION_CHANGED\"}",
+  "body": {
+    "code": 503,
+    "message": "库存预热未写入: VERSION_CHANGED"
+  }
+}

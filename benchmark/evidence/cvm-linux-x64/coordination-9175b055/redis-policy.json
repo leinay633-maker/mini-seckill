@@ -1,0 +1,8 @@
+{
+  "maxmemory_policy": [
+    "maxmemory-policy",
+    "noeviction"
+  ],
+  "maxmemory": "maxmemory\n0",
+  "note": "noeviction and adequate memory headroom are prerequisites; failover/data-loss not tested"
+}
