@@ -4,12 +4,15 @@ labels. Sum connection counts/counter deltas, not mean per-pool latencies.
 """
 import base64
 import json
+import os
 import re
 import sys
 import time
 import urllib.request
 
 APP = 'http://localhost:18080/actuator/prometheus'
+# Several instances (comma-separated base URLs): counters are summed and pools are labelled by port.
+APPS = [u for u in os.environ.get('MS_APP_URLS', '').split(',') if u]
 MQ = 'http://localhost:15672/api/queues/%2F/mini.seckill.order.queue'
 KEEP = re.compile(r'^(hikaricp_connections(?:_[a-z_]+)?|jdbc_connections_[a-z_]+'
                   r'|seckill_capacity_stage_seconds_(?:count|sum|max)|seckill_activity_cache_total'
@@ -43,9 +46,34 @@ def parse_prometheus(text):
     return {'app': app, 'pools': pools}
 
 
+def merge_instances(scraped):
+    """scraped: [(port, parse_prometheus result)] from the instances that answered."""
+    app, pools = {}, {}
+    for port, one in scraped:
+        for name, values in one['pools'].items():
+            pools[port if len(one['pools']) == 1 else port + '/' + name] = values
+        for key, value in one['app'].items():
+            if key.split('{', 1)[0].endswith('_seconds_max'):
+                app[key] = max(app.get(key, 0), value)
+            else:
+                app[key] = app.get(key, 0) + value
+    return {'app': app, 'pools': pools, 'instances': len(scraped)}
+
+
 def scrape_app():
-    with urllib.request.urlopen(APP, timeout=2) as response:
-        return parse_prometheus(response.read().decode())
+    if not APPS:
+        with urllib.request.urlopen(APP, timeout=2) as response:
+            return parse_prometheus(response.read().decode())
+    scraped = []
+    for base in APPS:
+        try:
+            with urllib.request.urlopen(base.rstrip('/') + '/actuator/prometheus', timeout=2) as response:
+                scraped.append((base.rstrip('/').rsplit(':', 1)[-1], parse_prometheus(response.read().decode())))
+        except Exception:
+            continue  # an instance that is not running in this case
+    if not scraped:
+        raise RuntimeError('no app instance answered')
+    return merge_instances(scraped)
 
 
 def scrape_mq():

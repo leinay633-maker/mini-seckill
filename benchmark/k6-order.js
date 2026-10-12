@@ -21,6 +21,8 @@ export const options = {
 };
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
+// Several app instances without a load balancer: each iteration's token and order go to one of them.
+const BASE_URLS = (__ENV.BASE_URLS || BASE_URL).split(',');
 const ACTIVITY_ID = Number(__ENV.ACTIVITY_ID || 1);
 const SKU_ID = Number(__ENV.SKU_ID || 1001);
 const USER_BASE = Number(__ENV.USER_BASE || 10000000);
@@ -129,8 +131,8 @@ function authHeaders() {
   return headers;
 }
 
-function createOrderToken(userId) {
-  const res = http.get(`${BASE_URL}/api/seckill/token?activityId=${ACTIVITY_ID}&userId=${userId}&skuId=${SKU_ID}`, {
+function createOrderToken(userId, base) {
+  const res = http.get(`${base}/api/seckill/token?activityId=${ACTIVITY_ID}&userId=${userId}&skuId=${SKU_ID}`, {
     headers: authHeaders(),
     timeout: TIMEOUT,
     tags: { endpoint: 'token', mode: MODE },
@@ -164,7 +166,8 @@ function createOrderToken(userId) {
 export default function () {
   const iteration = exec.scenario.iterationInTest;
   const userId = userIdForIteration(iteration);
-  const tokenData = createOrderToken(userId);
+  const base = BASE_URLS[iteration % BASE_URLS.length];
+  const tokenData = createOrderToken(userId, base);
   if (!tokenData) {
     return;
   }
@@ -175,8 +178,8 @@ export default function () {
     token: tokenData.token,
   });
   const orderUrl = USE_HIDDEN_PATH && tokenData.orderPath
-    ? `${BASE_URL}/api/seckill/order/${tokenData.orderPath}`
-    : `${BASE_URL}/api/seckill/order`;
+    ? `${base}/api/seckill/order/${tokenData.orderPath}`
+    : `${base}/api/seckill/order`;
   const res = http.post(orderUrl, payload, {
     headers: authHeaders(),
     timeout: TIMEOUT,

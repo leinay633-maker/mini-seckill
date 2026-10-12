@@ -80,6 +80,18 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(suite.app_args('shared') + ['--seckill.stock-shard.enabled=false'],
                          suite.app_args('unsharded'))
 
+    def test_multi_matrix_keeps_the_40_total_across_three_instances(self):
+        cases = suite.build_plan(3, [1000], 'multi')
+        self.assertEqual(['shared', 'multi3', 'multi3', 'shared', 'shared', 'multi3'], [c['variant'] for c in cases])
+        args = suite.app_args('multi3')
+        self.assertFalse(any(a.startswith('--spring.datasource.hikari.maximum-pool-size=') for a in args))
+        self.assertIn('--seckill.pool-budget.enabled=false', args)
+        self.assertEqual(40, sum(suite.MULTI_POOLS))
+        env = suite.case_environment({'X': '1'}, 'multi3')
+        self.assertEqual(('3', '14 13 13', 'http://localhost:18080,http://localhost:18081,http://localhost:18082'),
+                         (env['APP_INSTANCES'], env['APP_POOL_SIZES'], env['BASE_URLS']))
+        self.assertEqual({'X': '1'}, suite.case_environment({'X': '1'}, 'shared'))
+
     def test_plan_rejects_ambiguous_or_nonpositive_ladders(self):
         for rounds, rates in [(0, [1]), (21, [1]), (1, []), (1, [2, 1]), (1, [1, 1]), (1, [0])]:
             with self.subTest(rounds=rounds, rates=rates), self.assertRaises(ValueError):
@@ -114,6 +126,22 @@ seckill_mq_total{application="mini",result="consume_retry_requeued"} 9
         self.assertEqual(28, parsed['pools']['consumer']['hikaricp_connections_active'])
         self.assertEqual(9, parsed['app']['seckill_mq_total{result="consume_retry_requeued"}'])
 
+    def test_instances_are_summed_and_pools_labelled_by_port(self):
+        one = metrics.parse_prometheus('''hikaricp_connections_max{pool="HikariPool-1"} 14
+hikaricp_connections_acquire_seconds_max{pool="HikariPool-1"} 0.5
+tomcat_threads_busy_threads 3
+''')
+        two = metrics.parse_prometheus('''hikaricp_connections_max{pool="HikariPool-1"} 13
+hikaricp_connections_acquire_seconds_max{pool="HikariPool-1"} 0.2
+tomcat_threads_busy_threads 4
+''')
+        merged = metrics.merge_instances([('18080', one), ('18081', two)])
+        self.assertEqual(2, merged['instances'])
+        self.assertEqual(27, merged['app']['hikaricp_connections_max'])
+        self.assertEqual(.5, merged['app']['hikaricp_connections_acquire_seconds_max'])
+        self.assertEqual(7, merged['app']['tomcat_threads_busy_threads'])
+        self.assertEqual({'18080', '18081'}, set(merged['pools']))
+
     def test_pool_stats_use_counter_deltas_not_mean_of_means(self):
         def point(count, seconds):
             return {'pools': {'consumer': {'hikaricp_connections_max': 28,
@@ -136,6 +164,14 @@ seckill_mq_total{application="mini",result="consume_retry_requeued"} 9
         data = [{'pools': {k: {'hikaricp_connections_max': v}
                           for k, v in [('admission', 12), ('consumer', 28), ('oops', 40)]}}]
         self.assertFalse(report.pool_statistics(data, {'admission': 12, 'consumer': 28})[1])
+
+    def test_three_instance_budget_must_match_each_instance(self):
+        expected = {'18080': 14, '18081': 13, '18082': 13}
+        good = [{'pools': {k: {'hikaricp_connections_max': v} for k, v in expected.items()}}]
+        self.assertTrue(report.pool_statistics(good, expected)[1])
+        bad = [{'pools': {'18080': {'hikaricp_connections_max': 40}, '18081': {'hikaricp_connections_max': 13},
+                          '18082': {'hikaricp_connections_max': 13}}}]
+        self.assertFalse(report.pool_statistics(bad, expected)[1])
 
     def test_shared_pool_name_may_vary_but_limit_may_not(self):
         for maximum in (40, 80):
@@ -266,6 +302,10 @@ class DrainTests(unittest.TestCase):
     def test_cold_reset_refuses_existing_pid_before_destructive_io(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); (root / 'run').mkdir(); (root / 'run' / 'app.pid').write_text('123')
+            with mock.patch.object(observe, 'mysql') as sql, self.assertRaises(RuntimeError):
+                observe.reset_stopped(root, root)
+            sql.assert_not_called()
+            (root / 'run' / 'app.pid').unlink(); (root / 'run' / 'app-2.pid').write_text('124')
             with mock.patch.object(observe, 'mysql') as sql, self.assertRaises(RuntimeError):
                 observe.reset_stopped(root, root)
             sql.assert_not_called()
