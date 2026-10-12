@@ -34,7 +34,7 @@ def build_plan(rounds=3, rates=None, matrix='full'):
     rates = list(RATES if rates is None else rates)
     if rounds < 1 or rounds > 20 or not rates or any(r <= 0 for r in rates) or rates != sorted(set(rates)):
         raise ValueError('rounds must be 1..20; rates must be unique, positive and ascending')
-    if matrix not in ('full', 'ab-shared', 'buckets', 'multi'):
+    if matrix not in ('full', 'ab-shared', 'buckets', 'multi', 'channels'):
         raise ValueError('unknown matrix: %s' % matrix)
     cases = []
     def add(phase, variant, number, ladder):
@@ -51,6 +51,12 @@ def build_plan(rounds=3, rates=None, matrix='full'):
         # Same candidate binary and the same 40-connection total: one JVM vs three JVMs (14/13/13).
         for number in range(1, rounds + 1):
             for variant in (['shared', 'multi3'] if number % 2 else ['multi3', 'shared']):
+                add('ablation', variant, number, rates)
+        return cases
+    if matrix == 'channels':
+        # Same candidate binary: Spring Boot's default publisher channel cache (25) vs 256.
+        for number in range(1, rounds + 1):
+            for variant in (['shared', 'chan256'] if number % 2 else ['chan256', 'shared']):
                 add('ablation', variant, number, rates)
         return cases
     if matrix == 'buckets':
@@ -84,6 +90,8 @@ def app_args(variant):
         # app.sh appends each instance's own maximum-pool-size from MULTI_ENV.
         return [a for a in args if not a.startswith('--spring.datasource.hikari.maximum-pool-size=')] + [
             '--seckill.pool-budget.enabled=false']
+    if variant == 'chan256':
+        return args + ['--seckill.pool-budget.enabled=false', '--spring.rabbitmq.cache.channel.size=256']
     if variant == 'unsharded':
         return args + ['--seckill.pool-budget.enabled=false', '--seckill.stock-shard.enabled=false']
     if variant not in ('split28', 'split20'):
