@@ -39,6 +39,11 @@ if ! command -v mysqld >/dev/null; then
   log "MySQL 8.0 (dnf)"
   dnf -y -q install mysql-server mysql
 fi
+# services.sh runs this copy: cp drops the file capabilities that stop the dnf binary from
+# executing in an unprivileged container. On a VM the copy is simply identical code.
+if [ ! -x "$R/opt/mysql-bin/mysqld" ]; then
+  mkdir -p "$R/opt/mysql-bin" && cp "$(command -v mysqld)" "$R/opt/mysql-bin/mysqld"
+fi
 
 if [ ! -x "$R/opt/redis/bin/redis-server" ]; then
   log "Redis 7.2 (source build)"
@@ -49,11 +54,21 @@ if [ ! -x "$R/opt/redis/bin/redis-server" ]; then
   make -s -C "$R/src/redis" PREFIX="$R/opt/redis" install >/dev/null
 fi
 
-if ! command -v erl >/dev/null; then
-  log "Erlang 26 (rabbitmq/erlang-rpm, el8)"
-  url=https://github.com/rabbitmq/erlang-rpm/releases/download/v26.2.5.19/erlang-26.2.5.19-1.el8.x86_64.rpm
-  curl -fsSL -o erlang.rpm "$url"
-  dnf -y -q install ./erlang.rpm
+if ! command -v erl >/dev/null && [ ! -x "$R/opt/erlang/bin/erl" ]; then
+  if [ "$(rpm -q --qf '%{VERSION}' openssl-libs | cut -d. -f1)" -ge 3 ]; then
+    # TencentOS 4 ships OpenSSL 3.0, but the el9 RPM needs OPENSSL_3.4.0 symbols: same OTP from source.
+    log "Erlang 26.2.5.19 (source build)"
+    dnf -y -q install ncurses-devel openssl-devel perl
+    curl -fsSL -o otp.tgz https://github.com/erlang/otp/releases/download/OTP-26.2.5.19/otp_src_26.2.5.19.tar.gz
+    rm -rf "$R/src/otp" && mkdir -p "$R/src/otp" && tar xzf otp.tgz -C "$R/src/otp" --strip-components=1
+    (cd "$R/src/otp" && ./configure --prefix="$R/opt/erlang" --without-javac --without-wx --without-odbc >/dev/null \
+      && make -j16 >/dev/null && make install >/dev/null)
+  else
+    log "Erlang 26 (rabbitmq/erlang-rpm, el8)"
+    url=https://github.com/rabbitmq/erlang-rpm/releases/download/v26.2.5.19/erlang-26.2.5.19-1.el8.x86_64.rpm
+    curl -fsSL -o erlang.rpm "$url"
+    dnf -y -q install ./erlang.rpm
+  fi
 fi
 
 if [ ! -x "$R/opt/rabbitmq/sbin/rabbitmq-server" ]; then
@@ -64,7 +79,7 @@ fi
 
 cat > "$R/env.sh" <<EOF
 export JAVA_HOME=$R/opt/jdk17
-export PATH=$R/bin:$R/opt/jdk17/bin:$R/opt/maven/bin:$R/opt/k6:$R/opt/redis/bin:$R/opt/rabbitmq/sbin:\$PATH
+export PATH=$R/bin:$R/opt/jdk17/bin:$R/opt/maven/bin:$R/opt/k6:$R/opt/redis/bin:$R/opt/erlang/bin:$R/opt/rabbitmq/sbin:\$PATH
 export K6=$R/opt/k6/k6
 EOF
 . "$R/env.sh"
