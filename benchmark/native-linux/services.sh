@@ -11,6 +11,7 @@ MYSQLD=$R/opt/mysql-bin/mysqld   # copy without file capabilities; the dnf binar
 MYDATA=$R/data/mysql
 MYLOG=$R/logs/mysql              # mysqld runs as user mysql, so its log/pid dir must be mysql-owned
 SOCK=/var/lib/mysql/mysql.sock    # default client socket, so `mysql -u... db` in benchmark scripts works unchanged
+# Optional extra mysqld options from env.sh, e.g. binlog expiry when $R/data is a size-limited tmpfs.
 
 wait_for() { # seconds, description, command...
   local n=$1 what=$2; shift 2
@@ -31,7 +32,7 @@ mysql_start() {
   mkdir -p /var/lib/mysql && chown mysql:mysql /var/lib/mysql
   TZ=Asia/Shanghai nohup "$MYSQLD" --no-defaults --user=mysql --basedir=/usr --lc-messages-dir=/usr/share/mysql --datadir="$MYDATA" --socket="$SOCK" \
     --port=3306 --bind-address=127.0.0.1 --pid-file="$MYLOG/mysqld.pid" --log-error="$MYLOG/mysqld.err" \
-    --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=300 \
+    --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=300 ${MYSQL_EXTRA_ARGS:-} \
     >/dev/null 2>&1 &
   if [ $fresh = 1 ]; then
     wait_for 60 mysql mysqladmin --socket="$SOCK" -uroot ping
