@@ -1,0 +1,10 @@
+{
+  "started_at": 1791778204.8975532,
+  "finished_at": 1791778204.9587882,
+  "http_status": 503,
+  "raw": "{\"code\":503,\"message\":\"库存预热未写入: INFLIGHT\"}",
+  "body": {
+    "code": 503,
+    "message": "库存预热未写入: INFLIGHT"
+  }
+}

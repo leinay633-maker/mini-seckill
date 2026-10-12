@@ -1,0 +1,24 @@
+# captured 2026-10-12 12:17:33 +0800
+## findmnt /data/ms/data
+TARGET        SOURCE FSTYPE OPTIONS
+/data/ms/data tmpfs  tmpfs  rw,relatime,size=41943040k,mode=755
+## MYSQL_EXTRA_ARGS=--binlog-expire-logs-seconds=600 --max-binlog-size=268435456
+## mysql variables
+8.0.45	1	1	1	134217728	600	268435456	300	fsync
+## redis
+redis_version:7.2.7
+process_id:62841
+save
+3600 1 300 100 60 10000
+appendonly
+no
+maxmemory-policy
+noeviction
+## rabbitmq
+RabbitMQ version: 3.13.7
+Erlang configuration: Erlang/OTP 26 [erts-14.2.5.13] [source] [64-bit] [smp:32:32] [ds:32:32:10] [async-threads:1] [jit:ns]
+## vdb before (cloud disk, data moved to tmpfs at 12:04)
+NAME    SIZE TYPE MOUNTPOINT
+vda     100G disk 
+`-vda1  100G part /
+vdb      50G disk /data
